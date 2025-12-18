@@ -186,21 +186,19 @@ Track your progress through the complete rebuild. Check off items as you complet
 - [x] Add message button to job applications (for employers to message applicants)
 - [x] Create public profile view page (app/dashboard/profiles/[id]/page.tsx)
 - [x] Add message button to public profile page
-- [x] Implement Supabase real-time subscription (in use-messages hook)
-- [x] Implement optimistic UI updates (in use-messages hook)
+- [x] Implement polling for messages (3-second intervals)
+- [x] Implement polling for conversations (5-second intervals)
 - [x] Implement auto-scroll to bottom on new messages (in message-list component)
 - [x] Create Supabase real-time setup documentation (docs/supabase-realtime-setup.md)
 - [x] Build verification passed (all TypeScript types correct)
 
-**Important Notes**:
-- ⚠️ **Cost Alert**: Supabase replication adds $10.25/month to your bill
-- Real-time replication needs to be enabled in the Supabase dashboard
-- **Alternative**: Use polling (free) instead of real-time for development/MVP
-- See `docs/supabase-realtime-setup.md` for detailed instructions and cost-free polling implementation
+**Implementation Details**:
+- ✅ **Using polling implementation** (no additional cost)
+- Messages refresh every 3 seconds
+- Conversations refresh every 5 seconds
+- Real-time option available in docs if needed later ($10.25/month)
 
-**Ready for testing**: The messaging feature is production-ready. Choose between:
-1. Real-time ($10.25/month) - Instant message delivery
-2. Polling (free) - Messages arrive every 3-5 seconds
+**Ready for testing**: The messaging feature is production-ready with polling implementation (cost-free).
 
 ### UI/UX Polish
 - [ ] Add loading states for all async operations

@@ -2,15 +2,13 @@
 
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { createClient } from '@/lib/supabase/client';
-import { useEffect } from 'react';
 import type { Message } from '../types';
 
 export function useMessages(conversationId: string) {
-  
   const queryClient = useQueryClient();
   const supabase = createClient();
 
-  // Fetch initial messages
+  // Fetch messages with polling (no real-time subscription)
   const query = useQuery({
     queryKey: ['messages', conversationId],
     queryFn: async (): Promise<Message[]> => {
@@ -24,59 +22,22 @@ export function useMessages(conversationId: string) {
         )
         .eq('conversation_id', conversationId)
         .order('created_at', { ascending: true })
-        .limit(50); // Initial load limit
+        .limit(50); // Load last 50 messages
 
       if (error) throw error;
+
+      // Invalidate conversations when new messages are detected
+      const currentMessages = queryClient.getQueryData<Message[]>(['messages', conversationId]);
+      if (currentMessages && data && data.length > currentMessages.length) {
+        queryClient.invalidateQueries({ queryKey: ['conversations'] });
+      }
+
       return (data || []) as Message[];
     },
     enabled: !!conversationId,
+    refetchInterval: 3000, // Poll every 3 seconds
+    staleTime: 0, // Always consider data stale to ensure fresh data
   });
-
-  // Subscribe to real-time updates
-  useEffect(() => {
-    if (!conversationId) return;
-
-    const channel = supabase
-      .channel(`conversation:${conversationId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'messages',
-          filter: `conversation_id=eq.${conversationId}`,
-        },
-        async (payload) => {
-          // Fetch sender profile for new message
-          const { data: sender } = await supabase
-            .from('profiles')
-            .select('id, name, profile_image_url')
-            .eq('id', payload.new.sender_id)
-            .single();
-
-          // Optimistically add new message to cache
-          queryClient.setQueryData<Message[]>(['messages', conversationId], (old = []) => {
-            const newMessage: Message = {
-              ...(payload.new as any),
-              sender,
-            };
-
-            // Prevent duplicates
-            if (old.find((m) => m.id === newMessage.id)) return old;
-
-            return [...old, newMessage];
-          });
-
-          // Update conversation's last_message_at in conversations cache
-          queryClient.invalidateQueries({ queryKey: ['conversations'] });
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [conversationId, queryClient, supabase]);
 
   return query;
 }
