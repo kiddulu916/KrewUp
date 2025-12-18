@@ -19,7 +19,7 @@ export default async function ConversationPage({ params }: Props) {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect('/auth/sign-in');
+    redirect('/login');
   }
 
   // Fetch conversation details to verify user is a participant
