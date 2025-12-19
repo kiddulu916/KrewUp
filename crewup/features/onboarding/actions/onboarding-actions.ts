@@ -36,16 +36,20 @@ export async function completeOnboarding(data: OnboardingData): Promise<Onboardi
     return { success: false, error: 'Not authenticated' };
   }
 
+  // Set default location if not provided
+  const location = data.location || 'United States';
+  const coords = data.coords;
+
   // If coords are provided, use the Postgres function for proper PostGIS conversion
-  if (data.coords && typeof data.coords.lat === 'number' && typeof data.coords.lng === 'number') {
+  if (coords && typeof coords.lat === 'number' && typeof coords.lng === 'number') {
     const { error: updateError } = await supabase.rpc('update_profile_coords', {
       p_user_id: user.id,
       p_name: data.name,
       p_role: data.role,
       p_trade: data.trade,
-      p_location: data.location,
-      p_lng: data.coords.lng,
-      p_lat: data.coords.lat,
+      p_location: location,
+      p_lng: coords.lng,
+      p_lat: coords.lat,
       p_bio: data.bio || `${data.role === 'worker' ? 'Skilled' : 'Hiring'} ${data.trade} professional`,
       p_sub_trade: data.sub_trade || null,
       p_employer_type: data.role === 'employer' ? data.employer_type || null : null,
@@ -60,7 +64,7 @@ export async function completeOnboarding(data: OnboardingData): Promise<Onboardi
       name: data.name,
       role: data.role,
       trade: data.trade,
-      location: data.location,
+      location: location,
       bio: data.bio || `${data.role === 'worker' ? 'Skilled' : 'Hiring'} ${data.trade} professional`,
     };
 

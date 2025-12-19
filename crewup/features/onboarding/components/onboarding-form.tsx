@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { Button, Input, Select, Card, CardContent } from '@/components/ui';
-import { LocationAutocomplete } from '@/components/common';
 import { TRADES, TRADE_SUBCATEGORIES, EMPLOYER_TYPES } from '@/lib/constants';
 import { completeOnboarding, type OnboardingData } from '../actions/onboarding-actions';
 
@@ -81,7 +80,6 @@ export function OnboardingForm({ initialName = '' }: Props) {
 
           <div className="flex justify-center gap-2">
             <div className="h-2 w-2 rounded-full bg-crewup-blue" />
-            <div className="h-2 w-2 rounded-full bg-gray-300" />
             <div className="h-2 w-2 rounded-full bg-gray-300" />
             <div className="h-2 w-2 rounded-full bg-gray-300" />
           </div>
@@ -168,7 +166,6 @@ export function OnboardingForm({ initialName = '' }: Props) {
           <div className="flex justify-center gap-2">
             <div className="h-2 w-2 rounded-full bg-gray-300" />
             <div className="h-2 w-2 rounded-full bg-crewup-blue" />
-            <div className="h-2 w-2 rounded-full bg-gray-300" />
             <div className="h-2 w-2 rounded-full bg-gray-300" />
           </div>
         </CardContent>
@@ -288,20 +285,28 @@ export function OnboardingForm({ initialName = '' }: Props) {
               </>
             )}
 
+            {error && (
+              <div className="rounded-lg bg-red-50 border border-red-200 p-3">
+                <p className="text-sm text-red-800">{error}</p>
+              </div>
+            )}
+
             <div className="flex gap-3">
-              <Button variant="outline" onClick={() => setStep(2)} className="flex-1">
+              <Button variant="outline" onClick={() => setStep(2)} disabled={isLoading} className="flex-1">
                 Back
               </Button>
               <Button
-                onClick={() => setStep(4)}
+                onClick={handleSubmit}
                 disabled={
-                  formData.role === 'worker'
+                  isLoading ||
+                  (formData.role === 'worker'
                     ? !formData.trade
-                    : !formData.employer_type || !formData.trade
+                    : !formData.employer_type || !formData.trade)
                 }
+                isLoading={isLoading}
                 className="flex-1"
               >
-                Continue
+                Complete Setup
               </Button>
             </div>
           </div>
@@ -310,65 +315,9 @@ export function OnboardingForm({ initialName = '' }: Props) {
             <div className="h-2 w-2 rounded-full bg-gray-300" />
             <div className="h-2 w-2 rounded-full bg-gray-300" />
             <div className="h-2 w-2 rounded-full bg-crewup-blue" />
-            <div className="h-2 w-2 rounded-full bg-gray-300" />
           </div>
         </CardContent>
       </Card>
     );
   }
-
-  // Step 4: Location
-  return (
-    <Card className="w-full max-w-md shadow-2xl border-2 border-crewup-light-blue">
-      <CardContent className="p-6 space-y-6">
-        <div className="text-center">
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-crewup-blue to-crewup-orange shadow-lg">
-            <span className="text-3xl">📍</span>
-          </div>
-          <h2 className="text-2xl font-bold bg-gradient-to-r from-crewup-blue to-crewup-orange bg-clip-text text-transparent">Where are you located?</h2>
-          <p className="mt-2 text-sm text-gray-600">
-            Help us connect you with nearby opportunities
-          </p>
-        </div>
-
-        {error && (
-          <div className="rounded-lg bg-red-50 border border-red-200 p-3">
-            <p className="text-sm text-red-800">{error}</p>
-          </div>
-        )}
-
-        <div className="space-y-4">
-          <LocationAutocomplete
-            label="City, State"
-            placeholder="Chicago, IL"
-            value={formData.location}
-            onChange={(data) => updateFormData({ location: data.address, coords: data.coords })}
-            helperText="We'll use this to show you relevant local jobs"
-            required
-          />
-
-          <div className="flex gap-3">
-            <Button variant="outline" onClick={() => setStep(3)} disabled={isLoading} className="flex-1">
-              Back
-            </Button>
-            <Button
-              onClick={handleSubmit}
-              disabled={!formData.location || isLoading}
-              isLoading={isLoading}
-              className="flex-1"
-            >
-              Complete Setup
-            </Button>
-          </div>
-        </div>
-
-        <div className="flex justify-center gap-2">
-          <div className="h-2 w-2 rounded-full bg-gray-300" />
-          <div className="h-2 w-2 rounded-full bg-gray-300" />
-          <div className="h-2 w-2 rounded-full bg-gray-300" />
-          <div className="h-2 w-2 rounded-full bg-crewup-blue" />
-        </div>
-      </CardContent>
-    </Card>
-  );
 }
