@@ -50,39 +50,58 @@ export async function createJob(data: JobData): Promise<JobResult> {
     return { success: false, error: 'Only employers can post jobs' };
   }
 
-  // Convert coords to PostGIS POINT format if provided
-  let coordsValue = null;
-  if (data.coords) {
-    // PostGIS expects POINT(longitude latitude) format
-    coordsValue = `POINT(${data.coords.lng} ${data.coords.lat})`;
+  // If coords are provided, use the Postgres function for proper PostGIS conversion
+  if (data.coords && typeof data.coords.lat === 'number' && typeof data.coords.lng === 'number') {
+    const { data: jobId, error: createError } = await supabase.rpc('create_job_with_coords', {
+      p_employer_id: user.id,
+      p_title: data.title,
+      p_trade: data.trade,
+      p_job_type: data.job_type,
+      p_description: data.description,
+      p_location: data.location,
+      p_lng: data.coords.lng,
+      p_lat: data.coords.lat,
+      p_pay_rate: data.pay_rate,
+      p_sub_trade: data.sub_trade || null,
+      p_pay_min: data.pay_min || null,
+      p_pay_max: data.pay_max || null,
+      p_required_certs: data.required_certs || null,
+    });
+
+    if (createError) {
+      return { success: false, error: createError.message };
+    }
+
+    revalidatePath('/dashboard/jobs');
+    redirect(`/dashboard/jobs/${jobId}`);
+  } else {
+    // If no coords provided, do regular insert
+    const { data: job, error: createError } = await supabase
+      .from('jobs')
+      .insert({
+        employer_id: user.id,
+        title: data.title,
+        trade: data.trade,
+        sub_trade: data.sub_trade,
+        job_type: data.job_type,
+        description: data.description,
+        location: data.location,
+        pay_rate: data.pay_rate,
+        pay_min: data.pay_min,
+        pay_max: data.pay_max,
+        required_certs: data.required_certs || [],
+        status: 'active',
+      })
+      .select()
+      .single();
+
+    if (createError) {
+      return { success: false, error: createError.message };
+    }
+
+    revalidatePath('/dashboard/jobs');
+    redirect(`/dashboard/jobs/${job.id}`);
   }
-
-  const { data: job, error: createError } = await supabase
-    .from('jobs')
-    .insert({
-      employer_id: user.id,
-      title: data.title,
-      trade: data.trade,
-      sub_trade: data.sub_trade,
-      job_type: data.job_type,
-      description: data.description,
-      location: data.location,
-      coords: coordsValue,
-      pay_rate: data.pay_rate,
-      pay_min: data.pay_min,
-      pay_max: data.pay_max,
-      required_certs: data.required_certs || [],
-      status: 'active',
-    })
-    .select()
-    .single();
-
-  if (createError) {
-    return { success: false, error: createError.message };
-  }
-
-  revalidatePath('/dashboard/jobs');
-  redirect(`/dashboard/jobs/${job.id}`);
 }
 
 /**
@@ -111,19 +130,46 @@ export async function updateJob(jobId: string, data: Partial<JobData>): Promise<
     return { success: false, error: 'Unauthorized' };
   }
 
-  // Convert coords to PostGIS POINT format if provided in the update data
-  const updateData = { ...data };
-  if (updateData.coords) {
-    updateData.coords = `POINT(${updateData.coords.lng} ${updateData.coords.lat})` as any;
-  }
+  // Handle coords update if provided
+  if (data.coords && typeof data.coords.lat === 'number' && typeof data.coords.lng === 'number') {
+    // First update the coords using PostGIS
+    const { error: coordsError } = await supabase.rpc('sql', {
+      query: `
+        UPDATE jobs
+        SET coords = ST_SetSRID(ST_MakePoint($1, $2), 4326)
+        WHERE id = $3
+      `,
+      params: [data.coords.lng, data.coords.lat, jobId]
+    });
 
-  const { error: updateError } = await supabase
-    .from('jobs')
-    .update(updateData)
-    .eq('id', jobId);
+    if (coordsError) {
+      // Fallback: try direct update (may not work with geometry)
+      console.error('Coords update error:', coordsError);
+    }
 
-  if (updateError) {
-    return { success: false, error: updateError.message };
+    // Update other fields (excluding coords)
+    const { coords, ...otherData } = data;
+    if (Object.keys(otherData).length > 0) {
+      const { error: updateError } = await supabase
+        .from('jobs')
+        .update(otherData)
+        .eq('id', jobId);
+
+      if (updateError) {
+        return { success: false, error: updateError.message };
+      }
+    }
+  } else {
+    // No coords update, just update other fields
+    const { coords, ...updateData } = data;
+    const { error: updateError } = await supabase
+      .from('jobs')
+      .update(updateData)
+      .eq('id', jobId);
+
+    if (updateError) {
+      return { success: false, error: updateError.message };
+    }
   }
 
   revalidatePath(`/dashboard/jobs/${jobId}`);

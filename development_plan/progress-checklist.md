@@ -44,8 +44,10 @@ Track your progress through the complete rebuild. Check off items as you complet
 - [ ] Enable real-time for conversations table (ready, needs Supabase dashboard config)
 - [ ] Configure Google OAuth in Supabase Auth (optional)
 - [ ] Set up email templates in Supabase Auth (optional)
-- [ ] Create "certifications" bucket in Supabase Storage (when implementing uploads)
-- [ ] Set up storage policies (when implementing uploads)
+- [ ] Create "certification-photos" bucket in Supabase Storage (code ready, needs dashboard config)
+- [ ] Set up storage RLS policies for certification-photos bucket (code ready, needs dashboard config)
+- [ ] Add certification_number column to certifications table (if not exists)
+- [ ] Add photo_url column to certifications table (if not exists)
 - [ ] Generate TypeScript types from schema (optional, manual types created)
 - [x] Create lib/supabase/client.ts
 - [x] Create lib/supabase/server.ts
@@ -121,7 +123,53 @@ Track your progress through the complete rebuild. Check off items as you complet
 - [ ] Test experience management (ready for manual testing)
 - [ ] Test geolocation functionality (ready for manual testing)
 
-**Implementation Complete**: All profile management features implemented using server actions. Workers can edit profiles, add certifications, and add work experience. Ready for end-to-end testing.
+#### Google Places Autocomplete Integration (✅ Completed)
+- [x] Add Google Maps API key to environment variables
+- [x] Create LocationAutocomplete component with dynamic script loading
+- [x] Implement Google Places Autocomplete with city search
+- [x] Add "Use my current location" button with geolocation
+- [x] Implement reverse geocoding for coordinates to address
+- [x] Add comprehensive error handling (permission denied, timeout, service unavailable)
+- [x] Increase geolocation timeout to 10 seconds for better reliability
+- [x] Integrate LocationAutocomplete into profile edit form
+- [x] Integrate LocationAutocomplete into onboarding form
+- [x] Update profile-actions.ts to handle coords from LocationAutocomplete
+- [x] Update onboarding-actions.ts to handle coords from LocationAutocomplete
+- [x] Convert JavaScript coords to PostGIS POINT format for database storage
+- [x] Fix "invalid geometry" errors in profile and onboarding submissions
+
+**Implementation Details**:
+- ✅ Dynamic Google Maps script loading with promise-based initialization
+- ✅ Autocomplete restricted to US cities with formatted address and geometry
+- ✅ Geolocation with high accuracy and proper error messages
+- ✅ PostGIS format: `POINT(longitude latitude)` for spatial queries
+- ✅ Clean up autocomplete listeners on component unmount
+
+#### Certification Photo Upload (✅ Completed)
+- [x] Add certification_number field to CertificationData type
+- [x] Add photo_url field to CertificationData type
+- [x] Implement uploadCertificationPhoto server action
+- [x] Add file type validation (JPEG, PNG, WebP, PDF)
+- [x] Add file size validation (max 5MB)
+- [x] Integrate Supabase Storage for certification photos
+- [x] Generate unique filenames with user ID and timestamp
+- [x] Add photo upload UI to certification form with drag-and-drop
+- [x] Add image preview for image files
+- [x] Add PDF icon display for PDF files
+- [x] Add certification number input field to certification form
+- [x] Add upload progress states and loading indicators
+- [x] Add remove photo button
+- [ ] Create "certification-photos" bucket in Supabase Storage (needs dashboard config)
+- [ ] Set up storage RLS policies for certification photos (needs dashboard config)
+
+**Implementation Details**:
+- ✅ Server action validates file type and size before upload
+- ✅ Files stored in Supabase Storage at `{userId}/{timestamp}.{ext}`
+- ✅ Public URLs generated for display
+- ✅ Upload happens before certification creation to get URL
+- ⏳ Requires Supabase Storage bucket creation (manual step in dashboard)
+
+**Implementation Complete**: All profile management features implemented using server actions. Workers can edit profiles, add certifications with photos and certification numbers, and add work experience. Ready for end-to-end testing after Supabase Storage configuration.
 
 ### Job Posting & Feed (✅ Completed)
 - [x] Create job-card.tsx component
@@ -144,7 +192,25 @@ Track your progress through the complete rebuild. Check off items as you complet
 - [ ] Test proximity search - ready for testing
 - [ ] Test employer-only access - ready for testing
 
-**Implementation Complete**: Full job posting and feed system with distance-based sorting, filters, and role-based access. Employers can post/manage jobs. Workers can browse and filter jobs.
+#### Conditional Pay Rate Logic (✅ Completed)
+- [x] Add conditional pay rate fields based on job type
+- [x] Implement hourly rate input for hourly jobs (Full-Time, Part-Time, Temporary)
+- [x] Add pay period selector (weekly, bi-weekly, monthly) for hourly jobs
+- [x] Implement contract amount input for contract jobs (Contract, 1099)
+- [x] Add payment type selector (Per Contract, Per Job) for contract jobs
+- [x] Auto-format pay_rate field based on job type selection
+- [x] Add useEffect to update pay_rate when conditional fields change
+- [x] Update job-actions.ts to handle PostGIS coords conversion
+- [x] Integrate LocationAutocomplete into job posting form
+- [x] Fix "invalid geometry" errors in job creation
+
+**Implementation Details**:
+- ✅ Hourly jobs: Format as `$X/hr (weekly|bi-weekly|monthly)`
+- ✅ Contract jobs: Format as `$X/contract` or `$X/job`
+- ✅ Dynamic form fields shown/hidden based on job_type selection
+- ✅ Auto-formatting maintains consistency across all job postings
+
+**Implementation Complete**: Full job posting and feed system with distance-based sorting, filters, conditional pay rate logic, and role-based access. Employers can post/manage jobs with smart pay rate formatting. Workers can browse and filter jobs.
 
 ### Job Applications (✅ Completed)
 - [x] Create apply-button.tsx component (modal with cover letter)
@@ -241,24 +307,51 @@ Track your progress through the complete rebuild. Check off items as you complet
   - [x] NEXT_PUBLIC_SUPABASE_ANON_KEY
   - [x] SUPABASE_SERVICE_ROLE_KEY (encrypted)
   - [x] NEXT_PUBLIC_APP_URL
-- [x] Deploy to production
+  - [x] NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
+- [x] Deploy to production (get-crewup.vercel.app)
+- [x] Update production URL to get-crewup.vercel.app
 - [ ] Test authentication in production
-- [ ] Test job posting in production
+- [ ] Test job posting in production (with conditional pay rates)
+- [ ] Test Google Places autocomplete in production
+- [ ] Test geolocation "Use my current location" in production
+- [ ] Test certification photo upload (pending Supabase Storage config)
 - [ ] Test messaging in production
 - [ ] Invite beta users (target: 50)
 - [ ] Gather initial feedback
 
 **Production URLs**:
-- 🌐 **Live Application**: https://crewup-nextjs.vercel.app
+- 🌐 **Live Application**: https://get-crewup.vercel.app
 - 📊 **Vercel Dashboard**: https://vercel.com/corey-hilsenbecks-projects/crewup-nextjs
 
 **Deployment Info**:
-- ✅ Build successful (all 16 routes)
-- ✅ Environment variables configured
+- ✅ Build successful (all routes compiled)
+- ✅ Environment variables configured (including Google Maps API)
 - ✅ Supabase connected
-- ✅ Ready for beta testing
+- ✅ Google Places Autocomplete integrated
+- ✅ Conditional pay rate logic implemented
+- ✅ PostGIS coordinate conversion fixed
+- ✅ Certification photo upload code complete
+- ⏳ Pending: Supabase Storage bucket creation for certification photos
 
-**Next Steps**: Test all features in production, then invite beta users!
+**Recent Features Added**:
+- ✅ Google Places Autocomplete for location selection (onboarding, profile, jobs)
+- ✅ "Use my current location" with improved geolocation handling
+- ✅ Conditional pay rate fields (hourly vs contract) with auto-formatting
+- ✅ Certification number and photo upload functionality
+- ✅ PostGIS POINT format conversion (fixed "invalid geometry" errors)
+- ✅ Navigation improvements (color-coded, narrower sidebar)
+
+**Pending Configuration**:
+- ⏳ Create "certification-photos" storage bucket in Supabase Dashboard
+- ⏳ Set up Row Level Security policies for certification photos
+- ⏳ Add certification_number column to certifications table (if not exists)
+- ⏳ Add photo_url column to certifications table (if not exists)
+
+**Next Steps**:
+1. Configure Supabase Storage bucket for certification photos
+2. Test all new features in production
+3. Fix any bugs discovered during testing
+4. Invite beta users!
 
 ---
 

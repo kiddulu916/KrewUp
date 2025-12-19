@@ -115,6 +115,12 @@ export function LocationAutocomplete({
       return;
     }
 
+    // Check if Google Maps is loaded
+    if (typeof window === 'undefined' || !window.google?.maps) {
+      alert('Maps service is still loading. Please try again in a moment.');
+      return;
+    }
+
     setIsLoading(true);
 
     navigator.geolocation.getCurrentPosition(
@@ -122,6 +128,11 @@ export function LocationAutocomplete({
         const { latitude, longitude } = position.coords;
 
         try {
+          // Double check Google Maps is still available
+          if (!window.google?.maps?.Geocoder) {
+            throw new Error('Maps service not available');
+          }
+
           // Reverse geocode to get address
           const geocoder = new google.maps.Geocoder();
           const response = await geocoder.geocode({
@@ -137,22 +148,32 @@ export function LocationAutocomplete({
 
             setInputValue(address);
             onChange(locationData);
+          } else {
+            alert('Could not determine address from your location');
           }
         } catch (error) {
           console.error('Geocoding error:', error);
-          alert('Failed to get address from location');
+          alert('Failed to get address from location. Please try typing it manually.');
         } finally {
           setIsLoading(false);
         }
       },
       (error) => {
         console.error('Geolocation error:', error);
-        alert('Failed to get your location. Please enter it manually.');
+        let errorMessage = 'Failed to get your location. ';
+        if (error.code === error.PERMISSION_DENIED) {
+          errorMessage += 'Please grant location permission and try again.';
+        } else if (error.code === error.TIMEOUT) {
+          errorMessage += 'Location request timed out. Please try again.';
+        } else {
+          errorMessage += 'Please enter your location manually.';
+        }
+        alert(errorMessage);
         setIsLoading(false);
       },
       {
         enableHighAccuracy: true,
-        timeout: 5000,
+        timeout: 10000, // Increased from 5s to 10s
         maximumAge: 0,
       }
     );

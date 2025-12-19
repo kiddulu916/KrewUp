@@ -36,43 +36,54 @@ export async function completeOnboarding(data: OnboardingData): Promise<Onboardi
     return { success: false, error: 'Not authenticated' };
   }
 
-  // Convert coords to PostGIS POINT format if provided
-  let coordsValue = null;
-  if (data.coords) {
-    // PostGIS expects POINT(longitude latitude) format
-    coordsValue = `POINT(${data.coords.lng} ${data.coords.lat})`;
-  }
+  // If coords are provided, use the Postgres function for proper PostGIS conversion
+  if (data.coords && typeof data.coords.lat === 'number' && typeof data.coords.lng === 'number') {
+    const { error: updateError } = await supabase.rpc('update_profile_coords', {
+      p_user_id: user.id,
+      p_name: data.name,
+      p_role: data.role,
+      p_trade: data.trade,
+      p_location: data.location,
+      p_lng: data.coords.lng,
+      p_lat: data.coords.lat,
+      p_bio: data.bio || `${data.role === 'worker' ? 'Skilled' : 'Hiring'} ${data.trade} professional`,
+      p_sub_trade: data.sub_trade || null,
+      p_employer_type: data.role === 'employer' ? data.employer_type || null : null,
+    });
 
-  // Prepare update data - only include employer_type if user is an employer
-  const updateData: any = {
-    name: data.name,
-    role: data.role,
-    trade: data.trade,
-    location: data.location,
-    coords: coordsValue,
-    bio: data.bio || `${data.role === 'worker' ? 'Skilled' : 'Hiring'} ${data.trade} professional`,
-  };
-
-  // Only set employer_type for employers
-  if (data.role === 'employer' && data.employer_type) {
-    updateData.employer_type = data.employer_type;
+    if (updateError) {
+      return { success: false, error: updateError.message };
+    }
   } else {
-    updateData.employer_type = null; // Explicitly set to null for workers
-  }
+    // If no coords provided, do a regular update without coords
+    const updateData: any = {
+      name: data.name,
+      role: data.role,
+      trade: data.trade,
+      location: data.location,
+      bio: data.bio || `${data.role === 'worker' ? 'Skilled' : 'Hiring'} ${data.trade} professional`,
+    };
 
-  // Only set sub_trade if provided
-  if (data.sub_trade) {
-    updateData.sub_trade = data.sub_trade;
-  }
+    // Only set employer_type for employers
+    if (data.role === 'employer' && data.employer_type) {
+      updateData.employer_type = data.employer_type;
+    } else {
+      updateData.employer_type = null;
+    }
 
-  // Update profile
-  const { error: updateError } = await supabase
-    .from('profiles')
-    .update(updateData)
-    .eq('id', user.id);
+    // Only set sub_trade if provided
+    if (data.sub_trade) {
+      updateData.sub_trade = data.sub_trade;
+    }
 
-  if (updateError) {
-    return { success: false, error: updateError.message };
+    const { error: updateError } = await supabase
+      .from('profiles')
+      .update(updateData)
+      .eq('id', user.id);
+
+    if (updateError) {
+      return { success: false, error: updateError.message };
+    }
   }
 
   revalidatePath('/', 'layout');
