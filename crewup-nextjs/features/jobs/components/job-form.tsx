@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button, Input, Select } from '@/components/ui';
 import { TRADES, TRADE_SUBCATEGORIES, JOB_TYPES, CERTIFICATIONS } from '@/lib/constants';
 import { createJob, type JobData } from '../actions/job-actions';
@@ -19,6 +19,31 @@ export function JobForm() {
   });
 
   const [selectedCerts, setSelectedCerts] = useState<string[]>([]);
+
+  // Pay rate state for conditional logic
+  const [hourlyRate, setHourlyRate] = useState('');
+  const [payPeriod, setPayPeriod] = useState('weekly');
+  const [contractAmount, setContractAmount] = useState('');
+  const [contractType, setContractType] = useState('Per Contract');
+
+  // Determine if job type is hourly (Full-Time, Part-Time, Temporary) or contract (Contract, 1099)
+  const isHourlyJob = ['Full-Time', 'Part-Time', 'Temporary'].includes(formData.job_type);
+  const isContractJob = ['Contract', '1099'].includes(formData.job_type);
+
+  // Auto-update pay_rate when conditional fields change
+  useEffect(() => {
+    if (isHourlyJob && hourlyRate) {
+      // Format: "$25/hr (weekly)" or "$25/hr (bi-weekly)" etc.
+      updateFormData({ pay_rate: `$${hourlyRate}/hr (${payPeriod})` });
+    } else if (isContractJob && contractAmount) {
+      // Format: "$5000/contract" or "$500/job"
+      const suffix = contractType === 'Per Contract' ? '/contract' : '/job';
+      updateFormData({ pay_rate: `$${contractAmount}${suffix}` });
+    } else if (!formData.job_type) {
+      // Reset pay_rate if job type is not selected
+      updateFormData({ pay_rate: '' });
+    }
+  }, [hourlyRate, payPeriod, contractAmount, contractType, formData.job_type, isHourlyJob, isContractJob]);
 
   function updateFormData(updates: Partial<JobData>) {
     setFormData((prev) => ({ ...prev, ...updates }));
@@ -124,40 +149,89 @@ export function JobForm() {
         />
       </div>
 
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
-        <Input
-          label="Pay Rate"
-          type="text"
-          placeholder="e.g., $25-30/hr"
-          value={formData.pay_rate}
-          onChange={(e) => updateFormData({ pay_rate: e.target.value })}
-          helperText="Describe how you pay"
-          required
-          disabled={isLoading}
-        />
+      {/* Conditional Pay Rate Section */}
+      {!formData.job_type && (
+        <div className="rounded-lg bg-blue-50 border border-blue-200 p-4">
+          <p className="text-sm text-blue-800">
+            💡 Select a job type above to configure pay rate options
+          </p>
+        </div>
+      )}
 
-        <Input
-          label="Minimum Pay (Optional)"
-          type="number"
-          placeholder="25"
-          value={formData.pay_min || ''}
-          onChange={(e) =>
-            updateFormData({ pay_min: e.target.value ? Number(e.target.value) : undefined })
-          }
-          disabled={isLoading}
-        />
+      {isHourlyJob && (
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+            <Input
+              label="Hourly Rate"
+              type="number"
+              placeholder="25"
+              value={hourlyRate}
+              onChange={(e) => setHourlyRate(e.target.value)}
+              helperText="Enter rate without $ symbol"
+              required
+              disabled={isLoading}
+            />
 
-        <Input
-          label="Maximum Pay (Optional)"
-          type="number"
-          placeholder="30"
-          value={formData.pay_max || ''}
-          onChange={(e) =>
-            updateFormData({ pay_max: e.target.value ? Number(e.target.value) : undefined })
-          }
-          disabled={isLoading}
-        />
-      </div>
+            <Select
+              label="Pay Period"
+              options={[
+                { value: 'weekly', label: 'Weekly' },
+                { value: 'bi-weekly', label: 'Bi-Weekly' },
+                { value: 'monthly', label: 'Monthly' },
+              ]}
+              value={payPeriod}
+              onChange={(e) => setPayPeriod(e.target.value)}
+              required
+              disabled={isLoading}
+            />
+          </div>
+
+          {formData.pay_rate && (
+            <div className="rounded-lg bg-green-50 border border-green-200 p-3">
+              <p className="text-sm text-green-800">
+                <strong>Pay Rate:</strong> {formData.pay_rate}
+              </p>
+            </div>
+          )}
+        </div>
+      )}
+
+      {isContractJob && (
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+            <Input
+              label="Contract/Job Amount"
+              type="number"
+              placeholder="5000"
+              value={contractAmount}
+              onChange={(e) => setContractAmount(e.target.value)}
+              helperText="Enter amount without $ symbol"
+              required
+              disabled={isLoading}
+            />
+
+            <Select
+              label="Payment Type"
+              options={[
+                { value: 'Per Contract', label: 'Per Contract' },
+                { value: 'Per Job', label: 'Per Job' },
+              ]}
+              value={contractType}
+              onChange={(e) => setContractType(e.target.value)}
+              required
+              disabled={isLoading}
+            />
+          </div>
+
+          {formData.pay_rate && (
+            <div className="rounded-lg bg-green-50 border border-green-200 p-3">
+              <p className="text-sm text-green-800">
+                <strong>Pay Rate:</strong> {formData.pay_rate}
+              </p>
+            </div>
+          )}
+        </div>
+      )}
 
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-3">

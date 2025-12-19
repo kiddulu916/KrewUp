@@ -1,5 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { Card, CardContent, CardHeader, CardTitle, Badge, Button } from '@/components/ui';
+import { CertificationItem } from '@/features/profiles/components/certification-item';
+import { ExperienceItem } from '@/features/profiles/components/experience-item';
 import Link from 'next/link';
 
 export const metadata = {
@@ -141,29 +143,7 @@ export default async function ProfilePage() {
             {certifications && certifications.length > 0 ? (
               <div className="space-y-3">
                 {certifications.map((cert: any) => (
-                  <div
-                    key={cert.id}
-                    className="flex items-center justify-between rounded-lg border border-gray-200 p-4"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-green-100">
-                        <span className="text-lg">📜</span>
-                      </div>
-                      <div>
-                        <p className="font-medium text-gray-900">
-                          {cert.certification_type}
-                        </p>
-                        {cert.expires_at && (
-                          <p className="text-sm text-gray-500">
-                            Expires: {new Date(cert.expires_at).toLocaleDateString()}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                    {cert.is_verified && (
-                      <Badge variant="success">Verified</Badge>
-                    )}
-                  </div>
+                  <CertificationItem key={cert.id} cert={cert} />
                 ))}
               </div>
             ) : (
@@ -195,19 +175,7 @@ export default async function ProfilePage() {
             {workExperience && workExperience.length > 0 ? (
               <div className="space-y-4">
                 {workExperience.map((exp: any) => (
-                  <div key={exp.id} className="border-l-2 border-crewup-blue pl-4">
-                    <h3 className="font-semibold text-gray-900">{exp.job_title}</h3>
-                    <p className="text-sm text-gray-600">{exp.company_name}</p>
-                    <p className="text-sm text-gray-500">
-                      {new Date(exp.start_date).toLocaleDateString()} -{' '}
-                      {exp.end_date
-                        ? new Date(exp.end_date).toLocaleDateString()
-                        : 'Present'}
-                    </p>
-                    {exp.description && (
-                      <p className="mt-2 text-sm text-gray-700">{exp.description}</p>
-                    )}
-                  </div>
+                  <ExperienceItem key={exp.id} exp={exp} />
                 ))}
               </div>
             ) : (

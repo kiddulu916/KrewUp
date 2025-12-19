@@ -9,6 +9,7 @@ export type ProfileUpdateData = {
   trade: string;
   sub_trade?: string;
   location: string;
+  coords?: { lat: number; lng: number } | null;
   phone?: string;
   bio?: string;
   employer_type?: 'contractor' | 'recruiter';
@@ -41,11 +42,19 @@ export async function updateProfile(data: ProfileUpdateData): Promise<ProfileRes
     .eq('id', user.id)
     .single();
 
+  // Convert coords to PostGIS POINT format if provided
+  let coordsValue = null;
+  if (data.coords) {
+    // PostGIS expects POINT(longitude latitude) format
+    coordsValue = `POINT(${data.coords.lng} ${data.coords.lat})`;
+  }
+
   // Prepare update data
   const updateData: any = {
     name: data.name,
     trade: data.trade,
     location: data.location,
+    coords: coordsValue,
     bio: data.bio,
   };
 

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { QueryProvider } from "@/providers/query-provider";
+import { ToastProvider } from "@/components/providers/toast-provider";
 
 export const metadata: Metadata = {
   title: "CrewUp - Connecting Skilled Trade Workers with Employers",
@@ -16,7 +17,9 @@ export default function RootLayout({
     <html lang="en">
       <body className="antialiased">
         <QueryProvider>
-          {children}
+          <ToastProvider>
+            {children}
+          </ToastProvider>
         </QueryProvider>
       </body>
     </html>

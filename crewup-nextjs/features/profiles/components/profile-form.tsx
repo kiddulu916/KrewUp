@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Button, Input, Textarea, Select, Card, CardContent, CardHeader, CardTitle } from '@/components/ui';
 import { useUpdateProfile } from '../hooks/use-update-profile';
 import { useUserLocation } from '@/hooks/use-user-location';
+import { useToast } from '@/components/providers/toast-provider';
 import { TRADES, TRADE_SUBCATEGORIES, EMPLOYER_TYPES } from '@/lib/constants';
 
 type ProfileFormProps = {
@@ -27,6 +28,7 @@ export function ProfileForm({ initialData }: ProfileFormProps) {
   const router = useRouter();
   const updateProfile = useUpdateProfile();
   const locationState = useUserLocation();
+  const toast = useToast();
 
   const [formData, setFormData] = useState({
     name: initialData.name || '',
@@ -66,9 +68,12 @@ export function ProfileForm({ initialData }: ProfileFormProps) {
         }),
       });
 
+      toast.success('Profile updated successfully!');
       router.push('/dashboard/profile');
     } catch (err: any) {
-      setError(err.message || 'Failed to update profile');
+      const errorMsg = err.message || 'Failed to update profile';
+      setError(errorMsg);
+      toast.error(errorMsg);
     }
   };
 

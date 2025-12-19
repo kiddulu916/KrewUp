@@ -11,6 +11,7 @@ export type OnboardingData = {
   trade: string;
   sub_trade?: string;
   location: string;
+  coords?: { lat: number; lng: number } | null;
   bio?: string;
 };
 
@@ -35,12 +36,20 @@ export async function completeOnboarding(data: OnboardingData): Promise<Onboardi
     return { success: false, error: 'Not authenticated' };
   }
 
+  // Convert coords to PostGIS POINT format if provided
+  let coordsValue = null;
+  if (data.coords) {
+    // PostGIS expects POINT(longitude latitude) format
+    coordsValue = `POINT(${data.coords.lng} ${data.coords.lat})`;
+  }
+
   // Prepare update data - only include employer_type if user is an employer
   const updateData: any = {
     name: data.name,
     role: data.role,
     trade: data.trade,
     location: data.location,
+    coords: coordsValue,
     bio: data.bio || `${data.role === 'worker' ? 'Skilled' : 'Hiring'} ${data.trade} professional`,
   };
 

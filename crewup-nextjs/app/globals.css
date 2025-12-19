@@ -38,3 +38,19 @@ body {
   box-shadow: 0 20px 25px -5px rgba(30, 64, 175, 0.15), 0 10px 10px -5px rgba(30, 64, 175, 0.1);
   transform: translateY(-2px);
 }
+
+/* Toast Animations */
+@keyframes slide-in {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.animate-slide-in {
+  animation: slide-in 0.3s ease-out;
+}

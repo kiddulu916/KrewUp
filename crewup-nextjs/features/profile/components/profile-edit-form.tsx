@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button, Input, Select } from '@/components/ui';
+import { LocationAutocomplete } from '@/components/common';
 import { TRADES, TRADE_SUBCATEGORIES, EMPLOYER_TYPES } from '@/lib/constants';
 import { updateProfile, type ProfileUpdateData } from '../actions/profile-actions';
 
@@ -108,16 +109,16 @@ export function ProfileEditForm({ profile }: Props) {
           />
         )}
 
-        <Input
-          label="Location"
-          type="text"
-          placeholder="City, State"
-          value={formData.location}
-          onChange={(e) => updateFormData({ location: e.target.value })}
-          helperText="Your location helps match you with nearby opportunities"
-          required
-          disabled={isLoading}
-        />
+        <div className="sm:col-span-2">
+          <LocationAutocomplete
+            label="Location"
+            placeholder="City, State"
+            value={formData.location}
+            onChange={(data) => updateFormData({ location: data.address, coords: data.coords })}
+            helperText="Your location helps match you with nearby opportunities"
+            required
+          />
+        </div>
       </div>
 
       <div>

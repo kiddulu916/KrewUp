@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Button, Input, Select, Card, CardContent } from '@/components/ui';
+import { LocationAutocomplete } from '@/components/common';
 import { TRADES, TRADE_SUBCATEGORIES, EMPLOYER_TYPES } from '@/lib/constants';
 import { completeOnboarding, type OnboardingData } from '../actions/onboarding-actions';
 
@@ -208,6 +209,21 @@ export function OnboardingForm({ initialName = '' }: Props) {
                     onChange={(e) => updateFormData({ sub_trade: e.target.value })}
                   />
                 )}
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                    Bio (Optional)
+                  </label>
+                  <textarea
+                    className="flex min-h-[100px] w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-crewup-blue focus:border-transparent disabled:cursor-not-allowed disabled:opacity-50"
+                    placeholder="Tell employers about your experience and skills..."
+                    value={formData.bio || ''}
+                    onChange={(e) => updateFormData({ bio: e.target.value })}
+                  />
+                  <p className="mt-1.5 text-sm text-gray-500">
+                    Briefly describe your experience and what you're looking for
+                  </p>
+                </div>
               </>
             ) : (
               <>
@@ -314,12 +330,11 @@ export function OnboardingForm({ initialName = '' }: Props) {
         )}
 
         <div className="space-y-4">
-          <Input
+          <LocationAutocomplete
             label="City, State"
-            type="text"
             placeholder="Chicago, IL"
             value={formData.location}
-            onChange={(e) => updateFormData({ location: e.target.value })}
+            onChange={(data) => updateFormData({ location: data.address, coords: data.coords })}
             helperText="We'll use this to show you relevant local jobs"
             required
           />

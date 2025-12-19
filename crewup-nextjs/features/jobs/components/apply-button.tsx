@@ -2,7 +2,8 @@
 
 import { useState } from 'react';
 import { Button } from '@/components/ui';
-import { applyToJob } from '../actions/application-actions';
+import { useApplyJob } from '@/features/applications/hooks/use-apply-job';
+import { useToast } from '@/components/providers/toast-provider';
 import { useRouter } from 'next/navigation';
 
 type Props = {
@@ -11,25 +12,38 @@ type Props = {
 
 export function ApplyButton({ jobId }: Props) {
   const [isOpen, setIsOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [coverLetter, setCoverLetter] = useState('');
   const router = useRouter();
+  const toast = useToast();
+  const { mutate: applyToJob, isPending } = useApplyJob();
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError('');
-    setIsLoading(true);
 
-    const result = await applyToJob(jobId, coverLetter);
-
-    if (!result.success) {
-      setError(result.error || 'Failed to apply');
-      setIsLoading(false);
-    } else {
-      // Success - refresh the page to show applied state
-      router.refresh();
-    }
+    applyToJob(
+      { jobId, coverLetter: coverLetter.trim() || undefined },
+      {
+        onSuccess: (result) => {
+          if (result.success) {
+            toast.success('Application submitted successfully!');
+            setIsOpen(false);
+            setCoverLetter('');
+            router.refresh();
+          } else {
+            const errorMsg = result.error || 'Failed to apply';
+            setError(errorMsg);
+            toast.error(errorMsg);
+          }
+        },
+        onError: () => {
+          const errorMsg = 'An unexpected error occurred';
+          setError(errorMsg);
+          toast.error(errorMsg);
+        },
+      }
+    );
   }
 
   if (!isOpen) {
@@ -69,7 +83,7 @@ export function ApplyButton({ jobId }: Props) {
               placeholder="Why are you interested in this position? What relevant experience do you have?"
               value={coverLetter}
               onChange={(e) => setCoverLetter(e.target.value)}
-              disabled={isLoading}
+              disabled={isPending}
             />
             <p className="mt-1.5 text-sm text-gray-500">
               Introduce yourself and highlight your relevant skills and experience
@@ -81,7 +95,7 @@ export function ApplyButton({ jobId }: Props) {
               type="button"
               variant="outline"
               onClick={() => setIsOpen(false)}
-              disabled={isLoading}
+              disabled={isPending}
               className="flex-1"
             >
               Cancel
@@ -89,7 +103,7 @@ export function ApplyButton({ jobId }: Props) {
             <Button
               type="submit"
               variant="secondary"
-              isLoading={isLoading}
+              isLoading={isPending}
               className="flex-1"
             >
               Submit Application
