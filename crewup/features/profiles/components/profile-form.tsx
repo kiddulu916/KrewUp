@@ -46,11 +46,12 @@ export function ProfileForm({ initialData }: ProfileFormProps) {
   // Update coords when location is fetched
   useEffect(() => {
     if (locationState.location && !formData.coords) {
+      const coords = locationState.location;
       setFormData(prev => ({
         ...prev,
-        coords: locationState.location,
+        coords: coords,
         // If location text is empty, fill with coords as fallback
-        location: prev.location || `${locationState.location.lat.toFixed(4)}, ${locationState.location.lng.toFixed(4)}`
+        location: prev.location || `${coords.lat.toFixed(4)}, ${coords.lng.toFixed(4)}`
       }));
     }
   }, [locationState.location, formData.coords]);
