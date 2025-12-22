@@ -162,7 +162,7 @@ export async function createCheckoutSession(priceId: string): Promise<CheckoutRe
  * Create Stripe billing portal session
  */
 export async function createPortalSession(): Promise<CheckoutResult> {
-  const supabase = await createClient();
+  const supabase = createClient();
 
   const {
     data: { user },
