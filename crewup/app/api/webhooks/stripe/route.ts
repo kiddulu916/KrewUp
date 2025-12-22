@@ -73,11 +73,11 @@ export async function POST(req: NextRequest) {
           stripe_customer_id: session.customer as string,
           stripe_subscription_id: subscriptionId,
           stripe_price_id: priceId,
-          status: 'active',
+          status: 'active' as any,
           plan_type: planType,
-          current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
-          current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
-          cancel_at_period_end: subscription.cancel_at_period_end ?? false,
+          current_period_start: new Date((subscription as any).current_period_start * 1000).toISOString(),
+          current_period_end: new Date((subscription as any).current_period_end * 1000).toISOString(),
+          cancel_at_period_end: (subscription as any).cancel_at_period_end ?? false,
         });
 
         if (error) {
@@ -122,7 +122,7 @@ export async function POST(req: NextRequest) {
           .update({
             stripe_subscription_id: subscription.id,
             stripe_price_id: priceId,
-            status: subscription.status,
+            status: subscription.status as any,
             plan_type: planType,
             current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
             current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
