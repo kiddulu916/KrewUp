@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
+import { cookies } from 'next/headers';
 
 type ApplicationResult = {
   success: boolean;
@@ -20,7 +21,7 @@ export async function createApplication(
   data: CreateApplicationData
 ): Promise<ApplicationResult> {
   try {
-    const supabase = await createClient();
+    const supabase = await createClient(await cookies());
 
     const {
       data: { user },
@@ -84,7 +85,7 @@ export async function updateApplicationStatus(
   status: 'pending' | 'viewed' | 'hired' | 'rejected'
 ): Promise<ApplicationResult> {
   try {
-    const supabase = await createClient();
+    const supabase = await createClient(await cookies());
 
     const {
       data: { user },
@@ -141,7 +142,7 @@ export async function updateApplicationStatus(
  */
 export async function hasApplied(jobId: string): Promise<boolean> {
   try {
-    const supabase = await createClient();
+    const supabase = await createClient(await cookies());
 
     const {
       data: { user },
@@ -169,7 +170,7 @@ export async function hasApplied(jobId: string): Promise<boolean> {
  */
 export async function getJobApplications(jobId: string) {
   try {
-    const supabase = await createClient();
+    const supabase = await createClient(await cookies());
 
     const {
       data: { user },

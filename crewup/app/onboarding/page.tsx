@@ -1,6 +1,7 @@
 import { OnboardingForm } from '@/features/onboarding/components/onboarding-form';
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
+import { cookies } from 'next/headers';
 
 export const metadata = {
   title: 'Complete Your Profile - CrewUp',
@@ -8,7 +9,7 @@ export const metadata = {
 };
 
 export default async function OnboardingPage() {
-  const supabase = await createClient();
+  const supabase = await createClient(await cookies());
 
   // Check if user is authenticated
   const {

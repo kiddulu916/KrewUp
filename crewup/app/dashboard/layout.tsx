@@ -3,13 +3,14 @@ import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { SignOutButton } from '@/features/auth/components/sign-out-button';
 import { Badge } from '@/components/ui';
+import { cookies } from 'next/headers';
 
 export default async function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const supabase = await createClient();
+  const supabase = await createClient(await cookies());
 
   const {
     data: { user },

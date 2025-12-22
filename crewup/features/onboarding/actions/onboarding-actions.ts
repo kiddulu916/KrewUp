@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
+import { cookies } from 'next/headers';
 
 export type OnboardingData = {
   name: string;
@@ -26,7 +27,7 @@ export type OnboardingResult = {
  * Complete user onboarding and update profile
  */
 export async function completeOnboarding(data: OnboardingData): Promise<OnboardingResult> {
-  const supabase = await createClient();
+  const supabase = await createClient(await cookies());
 
   // Get current user
   const {

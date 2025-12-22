@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
+import { cookies } from 'next/headers';
 
 export type ProfileUpdateData = {
   name: string;
@@ -24,7 +25,7 @@ export type ProfileResult = {
  * Update user profile
  */
 export async function updateProfile(data: ProfileUpdateData): Promise<ProfileResult> {
-  const supabase = await createClient();
+  const supabase = await createClient(await cookies());
 
   const {
     data: { user },
@@ -117,7 +118,7 @@ export async function updateProfileLocation(data: {
   location: string;
   coords: { lat: number; lng: number };
 }): Promise<{ success: boolean; error?: string }> {
-  const supabase = await createClient();
+  const supabase = await createClient(await cookies());
 
   // Get current user
   const {

@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle, Badge, Button } from '@/compo
 import { CertificationItem } from '@/features/profiles/components/certification-item';
 import { ExperienceItem } from '@/features/profiles/components/experience-item';
 import Link from 'next/link';
+import { cookies } from 'next/headers';
 
 export const metadata = {
   title: 'Profile - CrewUp',
@@ -10,7 +11,7 @@ export const metadata = {
 };
 
 export default async function ProfilePage() {
-  const supabase = await createClient();
+  const supabase = await createClient(await cookies());
 
   const {
     data: { user },

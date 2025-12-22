@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
+import { cookies } from 'next/headers';
 
 export type MessageResult = {
   success: boolean;
@@ -16,7 +17,7 @@ export async function sendMessage(
   conversationId: string,
   content: string
 ): Promise<MessageResult> {
-  const supabase = await createClient();
+  const supabase = await createClient(await cookies());
 
   const {
     data: { user },
@@ -85,7 +86,7 @@ export async function sendMessage(
  * Mark all messages in a conversation as read
  */
 export async function markMessagesAsRead(conversationId: string): Promise<MessageResult> {
-  const supabase = await createClient();
+  const supabase = await createClient(await cookies());
 
   const {
     data: { user },

@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server';
 import { Card, CardContent, Button, Badge } from '@/components/ui';
 import Link from 'next/link';
 import { formatRelativeTime } from '@/lib/utils';
+import { cookies } from 'next/headers';
 
 export const metadata = {
   title: 'Jobs - CrewUp',
@@ -9,7 +10,7 @@ export const metadata = {
 };
 
 export default async function JobsPage() {
-  const supabase = await createClient();
+  const supabase = await createClient(await cookies());
 
   const {
     data: { user },

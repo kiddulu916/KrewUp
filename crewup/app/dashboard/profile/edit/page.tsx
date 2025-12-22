@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { ProfileForm } from '@/features/profiles/components/profile-form';
 import { redirect } from 'next/navigation';
+import { cookies } from 'next/headers';
 
 export const metadata = {
   title: 'Edit Profile - CrewUp',
@@ -8,7 +9,7 @@ export const metadata = {
 };
 
 export default async function ProfileEditPage() {
-  const supabase = await createClient();
+  const supabase = await createClient(await cookies());
 
   const {
     data: { user },

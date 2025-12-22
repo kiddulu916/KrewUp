@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
+import { cookies } from 'next/headers';
 
 export type ProfileUpdateData = {
   name?: string;
@@ -24,7 +25,7 @@ export type ProfileResult = {
  * Update user profile
  */
 export async function updateProfile(data: ProfileUpdateData): Promise<ProfileResult> {
-  const supabase = await createClient();
+  const supabase = await createClient(await cookies());
 
   const {
     data: { user },
@@ -84,7 +85,7 @@ export async function updateProfile(data: ProfileUpdateData): Promise<ProfileRes
  * Get current user's profile
  */
 export async function getMyProfile(): Promise<ProfileResult> {
-  const supabase = await createClient();
+  const supabase = await createClient(await cookies());
 
   const {
     data: { user },

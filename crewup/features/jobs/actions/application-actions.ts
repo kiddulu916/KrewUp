@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
+import { cookies } from 'next/headers';
 
 export type ApplicationResult = {
   success: boolean;
@@ -15,7 +16,7 @@ export async function applyToJob(
   jobId: string,
   coverLetter?: string
 ): Promise<ApplicationResult> {
-  const supabase = await createClient();
+  const supabase = await createClient(await cookies());
 
   // Get current user
   const {
@@ -88,7 +89,7 @@ export async function applyToJob(
  * Withdraw an application
  */
 export async function withdrawApplication(applicationId: string): Promise<ApplicationResult> {
-  const supabase = await createClient();
+  const supabase = await createClient(await cookies());
 
   const {
     data: { user },
@@ -128,7 +129,7 @@ export async function updateApplicationStatus(
   applicationId: string,
   status: 'pending' | 'viewed' | 'contacted' | 'rejected' | 'hired'
 ): Promise<ApplicationResult> {
-  const supabase = await createClient();
+  const supabase = await createClient(await cookies());
 
   const {
     data: { user },

@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
 
 /**
  * OAuth callback handler
@@ -13,7 +14,7 @@ export async function GET(request: Request) {
   const origin = requestUrl.origin;
 
   if (code) {
-    const supabase = await createClient();
+    const supabase = await createClient(await cookies());
     const { error } = await supabase.auth.exchangeCodeForSession(code);
 
     if (error) {

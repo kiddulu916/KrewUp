@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import { ExperienceForm } from '@/features/profiles/components/experience-form';
+import { cookies } from 'next/headers';
 
 export const metadata = {
   title: 'Add Work Experience - CrewUp',
@@ -8,7 +9,7 @@ export const metadata = {
 };
 
 export default async function AddExperiencePage() {
-  const supabase = await createClient();
+  const supabase = await createClient(await cookies());
 
   const {
     data: { user },

@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import { CertificationForm } from '@/features/profiles/components/certification-form';
+import { cookies } from 'next/headers';
 
 export const metadata = {
   title: 'Add Certification - CrewUp',
@@ -8,7 +9,7 @@ export const metadata = {
 };
 
 export default async function AddCertificationPage() {
-  const supabase = await createClient();
+  const supabase = await createClient(await cookies());
 
   const {
     data: { user },

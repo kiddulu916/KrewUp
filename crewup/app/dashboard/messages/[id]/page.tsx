@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { ChatWindow } from '@/features/messaging/components/chat-window';
 import Link from 'next/link';
+import { cookies } from 'next/headers';
 
 type Props = {
   params: Promise<{
@@ -11,7 +12,7 @@ type Props = {
 
 export default async function ConversationPage({ params }: Props) {
   const { id: conversationId } = await params;
-  const supabase = await createClient();
+  const supabase = await createClient(await cookies());
 
   // Get current user
   const {

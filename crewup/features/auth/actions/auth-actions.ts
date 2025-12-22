@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
+import { cookies } from 'next/headers';
 
 export type AuthResult = {
   success: boolean;
@@ -13,7 +14,7 @@ export type AuthResult = {
  * Sign in with email and password
  */
 export async function signIn(email: string, password: string): Promise<AuthResult> {
-  const supabase = await createClient();
+  const supabase = await createClient(await cookies());
 
   const { error } = await supabase.auth.signInWithPassword({
     email,
@@ -36,7 +37,7 @@ export async function signUp(
   password: string,
   name: string
 ): Promise<AuthResult> {
-  const supabase = await createClient();
+  const supabase = await createClient(await cookies());
 
   const { data, error } = await supabase.auth.signUp({
     email,
@@ -67,7 +68,7 @@ export async function signUp(
  * Sign in with Google OAuth
  */
 export async function signInWithGoogle(): Promise<AuthResult> {
-  const supabase = await createClient();
+  const supabase = await createClient(await cookies());
 
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
@@ -91,7 +92,7 @@ export async function signInWithGoogle(): Promise<AuthResult> {
  * Sign out current user
  */
 export async function signOut(): Promise<AuthResult> {
-  const supabase = await createClient();
+  const supabase = await createClient(await cookies());
 
   const { error } = await supabase.auth.signOut();
 
@@ -107,7 +108,7 @@ export async function signOut(): Promise<AuthResult> {
  * Request password reset
  */
 export async function resetPassword(email: string): Promise<AuthResult> {
-  const supabase = await createClient();
+  const supabase = await createClient(await cookies());
 
   const { error } = await supabase.auth.resetPasswordForEmail(email, {
     redirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/auth/reset-password`,
@@ -124,7 +125,7 @@ export async function resetPassword(email: string): Promise<AuthResult> {
  * Update password
  */
 export async function updatePassword(newPassword: string): Promise<AuthResult> {
-  const supabase = await createClient();
+  const supabase = await createClient(await cookies());
 
   const { error } = await supabase.auth.updateUser({
     password: newPassword,

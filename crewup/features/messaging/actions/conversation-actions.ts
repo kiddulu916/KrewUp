@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
+import { cookies } from 'next/headers';
 
 export type ConversationResult = {
   success: boolean;
@@ -14,7 +15,7 @@ export type ConversationResult = {
  * Redirects to the conversation page after creation/finding
  */
 export async function findOrCreateConversation(recipientId: string) {
-  const supabase = await createClient();
+  const supabase = await createClient(await cookies());
 
   const {
     data: { user },

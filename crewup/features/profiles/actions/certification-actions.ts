@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
+import { cookies } from 'next/headers';
 
 export type CertificationData = {
   certification_type: string;
@@ -22,7 +23,7 @@ export type CertificationResult = {
  * Add a new certification
  */
 export async function addCertification(data: CertificationData): Promise<CertificationResult> {
-  const supabase = await createClient();
+  const supabase = await createClient(await cookies());
 
   const {
     data: { user },
@@ -68,7 +69,7 @@ export async function addCertification(data: CertificationData): Promise<Certifi
  * Delete a certification
  */
 export async function deleteCertification(certificationId: string): Promise<CertificationResult> {
-  const supabase = await createClient();
+  const supabase = await createClient(await cookies());
 
   const {
     data: { user },
@@ -99,7 +100,7 @@ export async function deleteCertification(certificationId: string): Promise<Cert
  * Upload certification photo to Supabase Storage
  */
 export async function uploadCertificationPhoto(file: File): Promise<CertificationResult> {
-  const supabase = await createClient();
+  const supabase = await createClient(await cookies());
 
   const {
     data: { user },
@@ -150,7 +151,7 @@ export async function uploadCertificationPhoto(file: File): Promise<Certificatio
  * Get user's certifications
  */
 export async function getMyCertifications(): Promise<CertificationResult> {
-  const supabase = await createClient();
+  const supabase = await createClient(await cookies());
 
   const {
     data: { user },

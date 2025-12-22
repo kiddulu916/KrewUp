@@ -7,7 +7,22 @@ import { useJobs } from '@/features/jobs/hooks/use-jobs';
 import { useAutoUserLocation } from '@/hooks/use-user-location';
 import { sortJobsByDistance } from '@/features/jobs/utils/distance';
 
-export function JobsPageClient({ initialJobs }: { initialJobs: any[] }) {
+type Job = {
+  id: string;
+  title: string;
+  trade: string;
+  sub_trade?: string | null;
+  job_type: string;
+  location: string;
+  coords?: { lat: number; lng: number } | null;
+  pay_rate: string;
+  employer_name: string;
+  required_certs?: string[];
+  created_at: string;
+  status: string;
+};
+
+export function JobsPageClient({ initialJobs }: { initialJobs: Job[] }) {
   const { location: userCoords } = useAutoUserLocation();
   const [filters, setFilters] = useState({ trade: '', subTrade: '', jobType: '' });
 
@@ -17,8 +32,8 @@ export function JobsPageClient({ initialJobs }: { initialJobs: any[] }) {
     jobType: filters.jobType || undefined,
   });
 
-  const displayJobs = jobs || initialJobs;
-  const sortedJobs = sortJobsByDistance(displayJobs, userCoords);
+  const displayJobs: Job[] = (jobs as Job[]) || initialJobs;
+  const sortedJobs = sortJobsByDistance(displayJobs, userCoords) as (Job & { distance?: number | null })[];
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">

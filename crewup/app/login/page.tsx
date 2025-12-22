@@ -1,6 +1,7 @@
 import { LoginForm } from '@/features/auth/components/login-form';
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
+import { cookies } from 'next/headers';
 
 export const metadata = {
   title: 'Login - CrewUp',
@@ -9,7 +10,7 @@ export const metadata = {
 
 export default async function LoginPage() {
   // Check if user is already logged in
-  const supabase = await createClient();
+  const supabase = await createClient(await cookies());
   const {
     data: { user },
   } = await supabase.auth.getUser();

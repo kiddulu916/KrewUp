@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui';
 import { JobForm } from '@/features/jobs/components/job-form';
+import { cookies } from 'next/headers';
 
 export const metadata = {
   title: 'Post a Job - CrewUp',
@@ -9,7 +10,7 @@ export const metadata = {
 };
 
 export default async function NewJobPage() {
-  const supabase = await createClient();
+  const supabase = await createClient(await cookies());
 
   const {
     data: { user },

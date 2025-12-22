@@ -1,6 +1,7 @@
 import { SignupForm } from '@/features/auth/components/signup-form';
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
+import { cookies } from 'next/headers';
 
 export const metadata = {
   title: 'Sign Up - CrewUp',
@@ -9,7 +10,7 @@ export const metadata = {
 
 export default async function SignupPage() {
   // Check if user is already logged in
-  const supabase = await createClient();
+  const supabase = await createClient(await cookies());
   const {
     data: { user },
   } = await supabase.auth.getUser();

@@ -4,9 +4,10 @@ import { Card, CardContent, CardHeader, CardTitle, Badge, Button } from '@/compo
 import { ApplyButton } from '@/features/jobs/components/apply-button';
 import { MessageButton } from '@/features/messaging/components/message-button';
 import Link from 'next/link';
+import { cookies } from 'next/headers';
 
 export default async function JobDetailPage({ params }: { params: { id: string } }) {
-  const supabase = await createClient();
+  const supabase = await createClient(await cookies());
 
   const {
     data: { user },

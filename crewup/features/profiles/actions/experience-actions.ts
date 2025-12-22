@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
+import { cookies } from 'next/headers';
 
 export type ExperienceData = {
   job_title: string;
@@ -22,7 +23,7 @@ export type ExperienceResult = {
  * Add new work experience
  */
 export async function addExperience(data: ExperienceData): Promise<ExperienceResult> {
-  const supabase = await createClient();
+  const supabase = await createClient(await cookies());
 
   const {
     data: { user },
@@ -84,7 +85,7 @@ export async function addExperience(data: ExperienceData): Promise<ExperienceRes
  * Delete work experience
  */
 export async function deleteExperience(experienceId: string): Promise<ExperienceResult> {
-  const supabase = await createClient();
+  const supabase = await createClient(await cookies());
 
   const {
     data: { user },
@@ -115,7 +116,7 @@ export async function deleteExperience(experienceId: string): Promise<Experience
  * Get user's work experience
  */
 export async function getMyExperience(): Promise<ExperienceResult> {
-  const supabase = await createClient();
+  const supabase = await createClient(await cookies());
 
   const {
     data: { user },

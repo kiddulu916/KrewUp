@@ -1,9 +1,10 @@
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
 import { Button } from '@/components/ui';
+import { cookies } from 'next/headers';
 
 export default async function Home() {
-  const supabase = await createClient();
+  const supabase = await createClient(await cookies());
   const {
     data: { user },
   } = await supabase.auth.getUser();

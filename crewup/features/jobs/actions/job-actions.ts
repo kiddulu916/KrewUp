@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
+import { cookies } from 'next/headers';
 
 export type JobData = {
   title: string;
@@ -28,7 +29,7 @@ export type JobResult = {
  * Create a new job posting (employers only)
  */
 export async function createJob(data: JobData): Promise<JobResult> {
-  const supabase = await createClient();
+  const supabase = await createClient(await cookies());
 
   const {
     data: { user },
@@ -108,7 +109,7 @@ export async function createJob(data: JobData): Promise<JobResult> {
  * Update an existing job
  */
 export async function updateJob(jobId: string, data: Partial<JobData>): Promise<JobResult> {
-  const supabase = await createClient();
+  const supabase = await createClient(await cookies());
 
   const {
     data: { user },
@@ -182,7 +183,7 @@ export async function updateJob(jobId: string, data: Partial<JobData>): Promise<
  * Delete a job posting
  */
 export async function deleteJob(jobId: string): Promise<JobResult> {
-  const supabase = await createClient();
+  const supabase = await createClient(await cookies());
 
   const {
     data: { user },
@@ -221,7 +222,7 @@ export async function deleteJob(jobId: string): Promise<JobResult> {
  * Get a single job by ID
  */
 export async function getJob(jobId: string): Promise<JobResult & { data?: any }> {
-  const supabase = await createClient();
+  const supabase = await createClient(await cookies());
 
   const { data: job, error } = await supabase
     .from('jobs')
@@ -247,7 +248,7 @@ export async function getJobs(filters?: {
   status?: string;
   employerId?: string;
 }): Promise<JobResult & { data?: any[] }> {
-  const supabase = await createClient();
+  const supabase = await createClient(await cookies());
 
   let query = supabase
     .from('jobs')

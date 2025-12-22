@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle, Badge, Button } from '@/compo
 import { MessageButton } from '@/features/messaging/components/message-button';
 import { notFound, redirect } from 'next/navigation';
 import Link from 'next/link';
+import { cookies } from 'next/headers';
 
 type Props = {
   params: Promise<{
@@ -12,7 +13,7 @@ type Props = {
 
 export default async function PublicProfilePage({ params }: Props) {
   const { id: profileId } = await params;
-  const supabase = await createClient();
+  const supabase = await createClient(await cookies());
 
   // Get current user
   const {

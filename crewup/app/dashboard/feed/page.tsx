@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui';
 import { InitialLocationCapture } from '@/features/dashboard/components/initial-location-capture';
+import { cookies } from 'next/headers';
 
 export const metadata = {
   title: 'Feed - CrewUp',
@@ -8,7 +9,7 @@ export const metadata = {
 };
 
 export default async function FeedPage() {
-  const supabase = await createClient();
+  const supabase = await createClient(await cookies());
 
   const {
     data: { user },
