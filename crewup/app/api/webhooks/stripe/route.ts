@@ -124,9 +124,9 @@ export async function POST(req: NextRequest) {
             stripe_price_id: priceId,
             status: subscription.status as any,
             plan_type: planType,
-            current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
-            current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
-            cancel_at_period_end: subscription.cancel_at_period_end ?? false,
+            current_period_start: new Date((subscription as any).current_period_start * 1000).toISOString(),
+            current_period_end: new Date((subscription as any).current_period_end * 1000).toISOString(),
+            cancel_at_period_end: (subscription as any).cancel_at_period_end ?? false,
           })
           .eq('user_id', existingSubscription.user_id);
 
