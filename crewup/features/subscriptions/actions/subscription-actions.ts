@@ -39,6 +39,8 @@ export async function getMySubscription(): Promise<SubscriptionResult> {
 
   // If no subscription exists, return free tier
   if (!subscription) {
+    const now = new Date();
+    const farFuture = new Date('2099-12-31');
     return {
       success: true,
       subscription: {
@@ -49,11 +51,11 @@ export async function getMySubscription(): Promise<SubscriptionResult> {
         stripe_price_id: '',
         status: 'active',
         plan_type: 'monthly',
-        current_period_start: new Date().toISOString(),
-        current_period_end: new Date().toISOString(),
+        current_period_start: now.toISOString(),
+        current_period_end: farFuture.toISOString(),
         cancel_at_period_end: false,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
+        created_at: now.toISOString(),
+        updated_at: now.toISOString(),
       },
     };
   }
@@ -82,6 +84,20 @@ export async function createCheckoutSession(priceId: string): Promise<CheckoutRe
     return { success: false, error: 'Not authenticated' };
   }
 
+  // Validate priceId format
+  if (!priceId || !priceId.startsWith('price_')) {
+    console.error('Invalid priceId format:', { priceId, userId: user.id });
+    return { success: false, error: 'Invalid price ID format' };
+  }
+
+  // Validate environment variable
+  if (!process.env.NEXT_PUBLIC_APP_URL) {
+    console.error('Missing NEXT_PUBLIC_APP_URL environment variable', { userId: user.id, priceId });
+    return { success: false, error: 'Application URL not configured' };
+  }
+
+  let customerId: string | undefined;
+
   try {
     // Get or create Stripe customer
     const { data: subscription } = await supabase
@@ -90,7 +106,7 @@ export async function createCheckoutSession(priceId: string): Promise<CheckoutRe
       .eq('user_id', user.id)
       .single();
 
-    let customerId = subscription?.stripe_customer_id;
+    customerId = subscription?.stripe_customer_id;
 
     if (!customerId) {
       // Create new Stripe customer
@@ -124,9 +140,17 @@ export async function createCheckoutSession(priceId: string): Promise<CheckoutRe
       },
     });
 
+    // Revalidate subscription page after creating session
+    revalidatePath('/dashboard/subscription');
+
     return { success: true, url: session.url || undefined };
   } catch (error) {
-    console.error('Checkout session error:', error);
+    console.error('Checkout session error:', {
+      error,
+      userId: user.id,
+      priceId,
+      customerId,
+    });
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Failed to create checkout session',
@@ -149,6 +173,8 @@ export async function createPortalSession(): Promise<CheckoutResult> {
     return { success: false, error: 'Not authenticated' };
   }
 
+  let customerId: string | undefined;
+
   try {
     const { data: subscription } = await supabase
       .from('subscriptions')
@@ -160,14 +186,23 @@ export async function createPortalSession(): Promise<CheckoutResult> {
       return { success: false, error: 'No subscription found' };
     }
 
+    customerId = subscription.stripe_customer_id;
+
     const session = await stripe.billingPortal.sessions.create({
-      customer: subscription.stripe_customer_id,
+      customer: customerId,
       return_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/subscription`,
     });
 
+    // Revalidate subscription page after creating portal session
+    revalidatePath('/dashboard/subscription');
+
     return { success: true, url: session.url };
   } catch (error) {
-    console.error('Portal session error:', error);
+    console.error('Portal session error:', {
+      error,
+      userId: user.id,
+      customerId,
+    });
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Failed to create portal session',
