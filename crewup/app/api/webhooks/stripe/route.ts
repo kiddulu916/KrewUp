@@ -10,6 +10,9 @@ const supabaseAdmin = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
+// Idempotency: Track processed event IDs to prevent duplicate processing
+const processedEvents = new Set<string>();
+
 export async function POST(req: NextRequest) {
   const body = await req.text();
   const headersList = await headers();
@@ -32,6 +35,12 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Invalid signature' }, { status: 400 });
   }
 
+  // Idempotency check: Return 200 if event already processed
+  if (processedEvents.has(event.id)) {
+    console.log(`Event ${event.id} already processed, skipping`);
+    return NextResponse.json({ received: true });
+  }
+
   try {
     switch (event.type) {
       case 'checkout.session.completed': {
@@ -40,56 +49,91 @@ export async function POST(req: NextRequest) {
 
         if (!userId) {
           console.error('No user_id in session metadata');
-          break;
+          return NextResponse.json({ error: 'Missing user_id in session metadata' }, { status: 500 });
         }
 
         // Get subscription details
         const subscriptionId = session.subscription as string;
-        const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+        const subscription = await stripe.subscriptions.retrieve(subscriptionId) as any;
+        const priceId = subscription.items.data[0]?.price.id;
 
-        await supabaseAdmin.from('subscriptions').upsert({
+        // Determine plan_type based on price ID
+        let planType: 'monthly' | 'annual';
+        if (priceId === process.env.STRIPE_PRICE_ID_PRO_MONTHLY) {
+          planType = 'monthly';
+        } else if (priceId === process.env.STRIPE_PRICE_ID_PRO_ANNUAL) {
+          planType = 'annual';
+        } else {
+          console.error('Unknown price ID:', priceId);
+          return NextResponse.json({ error: 'Unknown price ID' }, { status: 500 });
+        }
+
+        const { error } = await supabaseAdmin.from('subscriptions').upsert({
           user_id: userId,
           stripe_customer_id: session.customer as string,
           stripe_subscription_id: subscriptionId,
-          stripe_price_id: subscription.items.data[0]?.price.id,
+          stripe_price_id: priceId,
           status: 'active',
-          tier: 'pro',
-          current_period_start: new Date((subscription as any).current_period_start * 1000).toISOString(),
-          current_period_end: new Date((subscription as any).current_period_end * 1000).toISOString(),
-          cancel_at_period_end: (subscription as any).cancel_at_period_end,
+          plan_type: planType,
+          current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
+          current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
+          cancel_at_period_end: subscription.cancel_at_period_end ?? false,
         });
+
+        if (error) {
+          console.error('Database error upserting subscription:', error);
+          return NextResponse.json({ error: 'Database operation failed' }, { status: 500 });
+        }
 
         break;
       }
 
       case 'customer.subscription.updated': {
-        const subscription = event.data.object as Stripe.Subscription;
+        const subscription = event.data.object as any;
         const customerId = subscription.customer as string;
 
         // Find user by customer ID
-        const { data: existingSubscription } = await supabaseAdmin
+        const { data: existingSubscription, error: fetchError } = await supabaseAdmin
           .from('subscriptions')
           .select('user_id')
           .eq('stripe_customer_id', customerId)
           .single();
 
-        if (!existingSubscription) {
-          console.error('No subscription found for customer:', customerId);
-          break;
+        if (fetchError || !existingSubscription) {
+          console.error('No subscription found for customer:', customerId, fetchError);
+          return NextResponse.json({ error: 'Subscription not found' }, { status: 500 });
         }
 
-        await supabaseAdmin
+        const priceId = subscription.items.data[0]?.price.id;
+
+        // Determine plan_type based on price ID
+        let planType: 'monthly' | 'annual';
+        if (priceId === process.env.STRIPE_PRICE_ID_PRO_MONTHLY) {
+          planType = 'monthly';
+        } else if (priceId === process.env.STRIPE_PRICE_ID_PRO_ANNUAL) {
+          planType = 'annual';
+        } else {
+          console.error('Unknown price ID:', priceId);
+          return NextResponse.json({ error: 'Unknown price ID' }, { status: 500 });
+        }
+
+        const { error: updateError } = await supabaseAdmin
           .from('subscriptions')
           .update({
             stripe_subscription_id: subscription.id,
-            stripe_price_id: subscription.items.data[0]?.price.id,
-            status: subscription.status as any,
-            tier: subscription.status === 'active' ? 'pro' : 'free',
-            current_period_start: new Date((subscription as any).current_period_start * 1000).toISOString(),
-            current_period_end: new Date((subscription as any).current_period_end * 1000).toISOString(),
-            cancel_at_period_end: (subscription as any).cancel_at_period_end,
+            stripe_price_id: priceId,
+            status: subscription.status,
+            plan_type: planType,
+            current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
+            current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
+            cancel_at_period_end: subscription.cancel_at_period_end ?? false,
           })
           .eq('user_id', existingSubscription.user_id);
+
+        if (updateError) {
+          console.error('Database error updating subscription:', updateError);
+          return NextResponse.json({ error: 'Database operation failed' }, { status: 500 });
+        }
 
         break;
       }
@@ -98,25 +142,29 @@ export async function POST(req: NextRequest) {
         const subscription = event.data.object as Stripe.Subscription;
         const customerId = subscription.customer as string;
 
-        const { data: existingSubscription } = await supabaseAdmin
+        const { data: existingSubscription, error: fetchError } = await supabaseAdmin
           .from('subscriptions')
           .select('user_id')
           .eq('stripe_customer_id', customerId)
           .single();
 
-        if (!existingSubscription) {
-          console.error('No subscription found for customer:', customerId);
-          break;
+        if (fetchError || !existingSubscription) {
+          console.error('No subscription found for customer:', customerId, fetchError);
+          return NextResponse.json({ error: 'Subscription not found' }, { status: 500 });
         }
 
-        await supabaseAdmin
+        const { error: updateError } = await supabaseAdmin
           .from('subscriptions')
           .update({
             status: 'canceled',
-            tier: 'free',
             cancel_at_period_end: false,
           })
           .eq('user_id', existingSubscription.user_id);
+
+        if (updateError) {
+          console.error('Database error updating subscription:', updateError);
+          return NextResponse.json({ error: 'Database operation failed' }, { status: 500 });
+        }
 
         break;
       }
@@ -125,23 +173,28 @@ export async function POST(req: NextRequest) {
         const invoice = event.data.object as Stripe.Invoice;
         const customerId = invoice.customer as string;
 
-        const { data: existingSubscription } = await supabaseAdmin
+        const { data: existingSubscription, error: fetchError } = await supabaseAdmin
           .from('subscriptions')
           .select('user_id')
           .eq('stripe_customer_id', customerId)
           .single();
 
-        if (!existingSubscription) {
-          console.error('No subscription found for customer:', customerId);
-          break;
+        if (fetchError || !existingSubscription) {
+          console.error('No subscription found for customer:', customerId, fetchError);
+          return NextResponse.json({ error: 'Subscription not found' }, { status: 500 });
         }
 
-        await supabaseAdmin
+        const { error: updateError } = await supabaseAdmin
           .from('subscriptions')
           .update({
             status: 'past_due',
           })
           .eq('user_id', existingSubscription.user_id);
+
+        if (updateError) {
+          console.error('Database error updating subscription:', updateError);
+          return NextResponse.json({ error: 'Database operation failed' }, { status: 500 });
+        }
 
         break;
       }
@@ -149,6 +202,9 @@ export async function POST(req: NextRequest) {
       default:
         console.log(`Unhandled event type: ${event.type}`);
     }
+
+    // Mark event as processed for idempotency
+    processedEvents.add(event.id);
 
     return NextResponse.json({ received: true });
   } catch (err) {
