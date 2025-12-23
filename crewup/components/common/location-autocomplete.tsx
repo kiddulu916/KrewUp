@@ -6,11 +6,22 @@ import { Input } from '@/components/ui';
 // Load Google Maps API dynamically
 function loadGoogleMapsScript(apiKey: string): Promise<void> {
   return new Promise((resolve, reject) => {
+    // Check if Google Maps is already loaded
     if (typeof window !== 'undefined' && window.google?.maps) {
       resolve();
       return;
     }
 
+    // Check if script is already being loaded
+    const existingScript = document.querySelector('script[src*="maps.googleapis.com"]');
+    if (existingScript) {
+      // Wait for existing script to load
+      existingScript.addEventListener('load', () => resolve());
+      existingScript.addEventListener('error', () => reject(new Error('Failed to load Google Maps script')));
+      return;
+    }
+
+    // Create new script
     const script = document.createElement('script');
     script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places`;
     script.async = true;

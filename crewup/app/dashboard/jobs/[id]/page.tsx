@@ -2,12 +2,14 @@ import { createClient } from '@/lib/supabase/server';
 import { notFound, redirect } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle, Badge, Button } from '@/components/ui';
 import { ApplyButton } from '@/features/jobs/components/apply-button';
+import { DeleteJobButton } from '@/features/jobs/components/delete-job-button';
 import { MessageButton } from '@/features/messaging/components/message-button';
 import Link from 'next/link';
 import { cookies } from 'next/headers';
 
-export default async function JobDetailPage({ params }: { params: { id: string } }) {
+export default async function JobDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const supabase = await createClient(await cookies());
+  const { id } = await params;
 
   const {
     data: { user },
@@ -35,6 +37,7 @@ export default async function JobDetailPage({ params }: { params: { id: string }
       employer:profiles!employer_id(
         id,
         name,
+        company_name,
         trade,
         sub_trade,
         location,
@@ -42,7 +45,7 @@ export default async function JobDetailPage({ params }: { params: { id: string }
         employer_type
       )
     `)
-    .eq('id', params.id)
+    .eq('id', id)
     .single();
 
   if (error || !job) {
@@ -103,39 +106,99 @@ export default async function JobDetailPage({ params }: { params: { id: string }
           <div className="flex items-start justify-between">
             <div className="flex-1">
               <CardTitle className="text-white text-3xl mb-2">{job.title}</CardTitle>
-              <div className="flex flex-wrap gap-2 mt-3">
-                <Badge variant="info">{job.trade}</Badge>
-                {job.sub_trade && <Badge variant="default">{job.sub_trade}</Badge>}
-                <Badge variant="success">{job.job_type}</Badge>
-                <Badge
-                  variant={job.status === 'active' ? 'success' : 'default'}
-                  className="capitalize"
-                >
-                  {job.status}
-                </Badge>
-              </div>
+              {job.employer && (
+                <p className="text-white/90 text-lg mt-2">
+                  Posted by: <span className="font-semibold">{job.employer.company_name || job.employer.name}</span>
+                </p>
+              )}
             </div>
-            {isWorker && !hasApplied && job.status === 'active' && (
-              <ApplyButton jobId={job.id} />
-            )}
-            {isWorker && hasApplied && (
-              <Badge variant="success" className="text-lg px-4 py-2">
-                ✓ Applied
-              </Badge>
-            )}
+            <div className="flex flex-col gap-2">
+              {isWorker && !hasApplied && job.status === 'active' && (
+                <ApplyButton jobId={job.id} />
+              )}
+              {isWorker && hasApplied && (
+                <Badge variant="success" className="text-lg px-4 py-2">
+                  ✓ Applied
+                </Badge>
+              )}
+              {isJobOwner && <DeleteJobButton jobId={job.id} />}
+            </div>
           </div>
         </CardHeader>
 
         <CardContent className="p-6 space-y-6">
+          {/* Trades Needed */}
+          <div>
+            <h3 className="text-lg font-bold text-gray-900 mb-3 flex items-center gap-2">
+              <span className="text-2xl">🔨</span>
+              Trades Needed
+            </h3>
+            <div className="space-y-3">
+              {/* Show structured trade_selections if available */}
+              {job.trade_selections && job.trade_selections.length > 0 ? (
+                job.trade_selections.map((selection: { trade: string; subTrades: string[] }, index: number) => (
+                  <div key={index} className="space-y-2">
+                    <div>
+                      <Badge variant="info" className="text-base px-3 py-1">{selection.trade}</Badge>
+                    </div>
+                    {selection.subTrades && selection.subTrades.length > 0 && (
+                      <div className="ml-4 flex flex-wrap gap-2">
+                        {selection.subTrades.map((subTrade: string) => (
+                          <Badge key={subTrade} variant="default" className="text-sm px-2 py-1">
+                            {subTrade}
+                          </Badge>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ))
+              ) : (
+                // Fallback to old format
+                <div className="flex flex-wrap gap-2">
+                  {job.trades && job.trades.length > 0 ? (
+                    job.trades.map((trade: string) => (
+                      <Badge key={trade} variant="info" className="text-base px-3 py-1">{trade}</Badge>
+                    ))
+                  ) : (
+                    <Badge variant="info" className="text-base px-3 py-1">{job.trade}</Badge>
+                  )}
+                  {job.sub_trades && job.sub_trades.length > 0 && job.sub_trades.map((subTrade: string) => (
+                    <Badge key={subTrade} variant="default" className="text-base px-3 py-1">{subTrade}</Badge>
+                  ))}
+                  {!job.sub_trades && job.sub_trade && (
+                    <Badge variant="default" className="text-base px-3 py-1">{job.sub_trade}</Badge>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Job Description */}
+          <div className="pt-4 border-t-2 border-gray-200">
+            <h3 className="text-lg font-bold text-gray-900 mb-3 flex items-center gap-2">
+              <span className="text-2xl">📋</span>
+              Job Description
+            </h3>
+            <p className="text-gray-700 whitespace-pre-wrap leading-relaxed">
+              {job.description}
+            </p>
+          </div>
+
+          {/* Location */}
+          <div className="pt-4 border-t-2 border-gray-200">
+            <h3 className="text-lg font-bold text-gray-900 mb-2 flex items-center gap-2">
+              <span className="text-2xl">📍</span>
+              Location
+            </h3>
+            <p className="text-lg text-gray-900">{job.location}</p>
+          </div>
+
           {/* Job Info Grid */}
-          <div className="grid md:grid-cols-2 gap-6">
+          <div className="pt-4 border-t-2 border-gray-200 grid md:grid-cols-2 gap-6">
             <div className="space-y-4">
               <div>
-                <h3 className="text-sm font-semibold text-gray-500 uppercase mb-1">Location</h3>
-                <p className="text-lg text-gray-900 flex items-center gap-2">
-                  <span className="text-2xl">📍</span>
-                  {job.location}
-                </p>
+                <h3 className="text-sm font-semibold text-gray-500 uppercase mb-1">Job Type</h3>
+                <Badge variant="success" className="text-base px-3 py-1">{job.job_type}</Badge>
               </div>
 
               <div>
@@ -168,7 +231,7 @@ export default async function JobDetailPage({ params }: { params: { id: string }
                 <h3 className="text-sm font-semibold text-gray-500 uppercase mb-3">Posted By</h3>
                 <div className="space-y-3">
                   <div>
-                    <p className="text-xl font-bold text-gray-900">{job.employer.name}</p>
+                    <p className="text-xl font-bold text-gray-900">{job.employer.company_name || job.employer.name}</p>
                     <p className="text-sm text-gray-600 capitalize">
                       {job.employer.employer_type}
                     </p>
@@ -200,17 +263,6 @@ export default async function JobDetailPage({ params }: { params: { id: string }
                 </div>
               </div>
             )}
-          </div>
-
-          {/* Job Description */}
-          <div className="pt-4 border-t-2 border-gray-200">
-            <h3 className="text-lg font-bold text-gray-900 mb-3 flex items-center gap-2">
-              <span className="text-2xl">📋</span>
-              Job Description
-            </h3>
-            <p className="text-gray-700 whitespace-pre-wrap leading-relaxed">
-              {job.description}
-            </p>
           </div>
 
           {/* Posted Date */}

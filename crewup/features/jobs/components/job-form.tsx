@@ -20,6 +20,10 @@ export function JobForm() {
     time_length: '',
   });
 
+  // Trade selections: array of { trade: string, subTrades: string[] }
+  const [tradeSelections, setTradeSelections] = useState<Array<{ trade: string; subTrades: string[] }>>([
+    { trade: '', subTrades: [] }
+  ]);
   const [selectedCerts, setSelectedCerts] = useState<string[]>([]);
 
   // Pay rate state for conditional logic
@@ -52,6 +56,44 @@ export function JobForm() {
     setFormData((prev) => ({ ...prev, ...updates }));
   }
 
+  // Add a new trade selection
+  function addTradeSelection() {
+    setTradeSelections([...tradeSelections, { trade: '', subTrades: [] }]);
+  }
+
+  // Remove a trade selection
+  function removeTradeSelection(index: number) {
+    setTradeSelections(tradeSelections.filter((_, i) => i !== index));
+  }
+
+  // Update trade for a specific selection
+  function updateTrade(index: number, trade: string) {
+    const updated = [...tradeSelections];
+    updated[index] = { trade, subTrades: [] }; // Reset sub-trades when trade changes
+    setTradeSelections(updated);
+  }
+
+  // Add a sub-trade to a specific trade selection
+  function addSubTrade(index: number) {
+    const updated = [...tradeSelections];
+    updated[index].subTrades.push('');
+    setTradeSelections(updated);
+  }
+
+  // Update a specific sub-trade
+  function updateSubTrade(tradeIndex: number, subTradeIndex: number, subTrade: string) {
+    const updated = [...tradeSelections];
+    updated[tradeIndex].subTrades[subTradeIndex] = subTrade;
+    setTradeSelections(updated);
+  }
+
+  // Remove a specific sub-trade
+  function removeSubTrade(tradeIndex: number, subTradeIndex: number) {
+    const updated = [...tradeSelections];
+    updated[tradeIndex].subTrades = updated[tradeIndex].subTrades.filter((_, i) => i !== subTradeIndex);
+    setTradeSelections(updated);
+  }
+
   function toggleCert(cert: string) {
     setSelectedCerts((prev) =>
       prev.includes(cert) ? prev.filter((c) => c !== cert) : [...prev, cert]
@@ -61,11 +103,29 @@ export function JobForm() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError('');
+
+    // Validate at least one trade is selected
+    const validTrades = tradeSelections.filter(ts => ts.trade !== '');
+    if (validTrades.length === 0) {
+      setError('Please select at least one trade');
+      return;
+    }
+
     setIsLoading(true);
+
+    // Build structured trade selections
+    const structuredTradeSelections = validTrades.map(ts => ({
+      trade: ts.trade,
+      subTrades: ts.subTrades.filter(st => st !== '')
+    }));
 
     const jobData: JobData = {
       ...formData,
+      trade_selections: structuredTradeSelections,
       required_certs: selectedCerts.length > 0 ? selectedCerts : undefined,
+      // Keep old fields for backward compatibility
+      trade: structuredTradeSelections[0].trade,
+      sub_trade: structuredTradeSelections[0].subTrades[0] || undefined,
     };
 
     const result = await createJob(jobData);
@@ -95,28 +155,109 @@ export function JobForm() {
         disabled={isLoading}
       />
 
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-        <Select
-          label="Trade"
-          options={TRADES.map((trade) => ({ value: trade, label: trade }))}
-          value={formData.trade}
-          onChange={(e) => updateFormData({ trade: e.target.value, sub_trade: '' })}
-          required
-          disabled={isLoading}
-        />
+      {/* Trades Selection */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-3">
+          Trades Needed <span className="text-red-500">*</span>
+        </label>
+        <p className="text-xs text-gray-500 mb-3">Select trades and specialties needed for this job</p>
 
-        {formData.trade && TRADE_SUBCATEGORIES[formData.trade] && (
-          <Select
-            label="Specialty (Optional)"
-            options={TRADE_SUBCATEGORIES[formData.trade].map((subTrade) => ({
-              value: subTrade,
-              label: subTrade,
-            }))}
-            value={formData.sub_trade || ''}
-            onChange={(e) => updateFormData({ sub_trade: e.target.value })}
-            disabled={isLoading}
-          />
-        )}
+        <div className="space-y-4">
+          {tradeSelections.map((selection, tradeIndex) => (
+            <div key={tradeIndex} className="border border-gray-300 rounded-lg p-4 bg-gray-50">
+              {/* Trade Selection */}
+              <div className="flex items-end gap-2 mb-3">
+                <div className="flex-1">
+                  <Select
+                    label={`Trade ${tradeIndex + 1}`}
+                    options={[
+                      { value: '', label: 'Select a trade...' },
+                      ...TRADES.map((trade) => ({ value: trade, label: trade }))
+                    ]}
+                    value={selection.trade}
+                    onChange={(e) => updateTrade(tradeIndex, e.target.value)}
+                    required={tradeIndex === 0}
+                    disabled={isLoading}
+                  />
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={addTradeSelection}
+                  disabled={isLoading}
+                  className="mb-0.5"
+                >
+                  + Trade
+                </Button>
+                {tradeIndex > 0 && (
+                  <Button
+                    type="button"
+                    variant="danger"
+                    onClick={() => removeTradeSelection(tradeIndex)}
+                    disabled={isLoading}
+                    className="mb-0.5"
+                  >
+                    ×
+                  </Button>
+                )}
+              </div>
+
+              {/* Sub-Trades for this trade */}
+              {selection.trade && TRADE_SUBCATEGORIES[selection.trade] && (
+                <div className="ml-4 space-y-2 border-l-2 border-crewup-blue pl-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <label className="text-sm font-medium text-gray-600">Specialties</label>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => addSubTrade(tradeIndex)}
+                      disabled={isLoading}
+                    >
+                      + Specialty
+                    </Button>
+                  </div>
+
+                  {selection.subTrades.map((subTrade, subTradeIndex) => (
+                    <div key={subTradeIndex} className="flex items-center gap-2">
+                      <div className="flex-1">
+                        <Select
+                          label=""
+                          options={[
+                            { value: '', label: 'Select specialty...' },
+                            ...TRADE_SUBCATEGORIES[selection.trade].map((st) => ({
+                              value: st,
+                              label: st
+                            }))
+                          ]}
+                          value={subTrade}
+                          onChange={(e) => updateSubTrade(tradeIndex, subTradeIndex, e.target.value)}
+                          disabled={isLoading}
+                        />
+                      </div>
+                      <Button
+                        type="button"
+                        variant="danger"
+                        size="sm"
+                        onClick={() => removeSubTrade(tradeIndex, subTradeIndex)}
+                        disabled={isLoading}
+                      >
+                        ×
+                      </Button>
+                    </div>
+                  ))}
+
+                  {selection.subTrades.length === 0 && (
+                    <p className="text-xs text-gray-500 italic">No specialties added yet</p>
+                  )}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
 
         <Select
           label="Job Type"

@@ -5,10 +5,18 @@ import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { cookies } from 'next/headers';
 
+export type TradeSelection = {
+  trade: string;
+  subTrades: string[];
+};
+
 export type JobData = {
   title: string;
   trade: string;
   sub_trade?: string;
+  trades?: string[]; // Deprecated: use trade_selections
+  sub_trades?: string[]; // Deprecated: use trade_selections
+  trade_selections?: TradeSelection[]; // New: structured trade selections
   job_type: string;
   description: string;
   location: string;
@@ -57,18 +65,21 @@ export async function createJob(data: JobData): Promise<JobResult> {
     const { data: jobId, error: createError } = await supabase.rpc('create_job_with_coords', {
       p_employer_id: user.id,
       p_title: data.title,
-      p_trade: data.trade,
+      p_trade: data.trade_selections?.[0]?.trade || data.trades?.[0] || data.trade,
       p_job_type: data.job_type,
       p_description: data.description,
       p_location: data.location,
       p_lng: data.coords.lng,
       p_lat: data.coords.lat,
       p_pay_rate: data.pay_rate,
-      p_sub_trade: data.sub_trade || null,
+      p_sub_trade: data.sub_trades?.[0] || data.sub_trade || null,
       p_pay_min: data.pay_min || null,
       p_pay_max: data.pay_max || null,
       p_required_certs: data.required_certs || null,
       p_time_length: data.time_length || null,
+      p_trades: data.trades || null,
+      p_sub_trades: data.sub_trades || null,
+      p_trade_selections: data.trade_selections || null,
     });
 
     if (createError) {
@@ -84,8 +95,11 @@ export async function createJob(data: JobData): Promise<JobResult> {
       .insert({
         employer_id: user.id,
         title: data.title,
-        trade: data.trade,
-        sub_trade: data.sub_trade,
+        trade: data.trade_selections?.[0]?.trade || data.trades?.[0] || data.trade,
+        sub_trade: data.trade_selections?.[0]?.subTrades?.[0] || data.sub_trades?.[0] || data.sub_trade,
+        trades: data.trade_selections?.map(ts => ts.trade) || data.trades || [data.trade],
+        sub_trades: data.trade_selections?.flatMap(ts => ts.subTrades) || data.sub_trades || (data.sub_trade ? [data.sub_trade] : []),
+        trade_selections: data.trade_selections || null,
         job_type: data.job_type,
         description: data.description,
         location: data.location,

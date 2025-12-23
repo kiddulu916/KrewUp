@@ -31,7 +31,12 @@ export default async function JobsPage() {
     ? // Employers see their own jobs
       await supabase
         .from('jobs')
-        .select('*')
+        .select(
+          `
+          *,
+          employer:profiles!employer_id(name, company_name, trade, location)
+        `
+        )
         .eq('employer_id', user.id)
         .order('created_at', { ascending: false })
     : // Workers see all active jobs
@@ -40,7 +45,7 @@ export default async function JobsPage() {
         .select(
           `
           *,
-          employer:profiles!employer_id(name, trade, location)
+          employer:profiles!employer_id(name, company_name, trade, location)
         `
         )
         .eq('status', 'active')
@@ -115,11 +120,20 @@ export default async function JobsPage() {
                         )}
                       </div>
 
+                      {job.employer && (
+                        <p className="mb-2 text-sm text-gray-500">
+                          Posted by {job.employer.company_name || job.employer.name}
+                        </p>
+                      )}
+
                       <div className="flex items-center gap-4 text-sm text-gray-600">
                         <span className="flex items-center gap-1">
                           <span>💼</span>
-                          {job.trade}
-                          {job.sub_trade && ` - ${job.sub_trade}`}
+                          {job.trade_selections && job.trade_selections.length > 0
+                            ? job.trade_selections.map((ts: any) => ts.trade).join(', ')
+                            : job.trades && job.trades.length > 0
+                            ? job.trades.join(', ')
+                            : job.trade}
                         </span>
                         <span className="flex items-center gap-1">
                           <span>📍</span>
@@ -130,16 +144,6 @@ export default async function JobsPage() {
                           {job.pay_rate}
                         </span>
                       </div>
-
-                      {!isEmployer && job.employer && (
-                        <p className="mt-2 text-sm text-gray-500">
-                          Posted by {job.employer.name}
-                        </p>
-                      )}
-
-                      <p className="mt-3 text-sm text-gray-700 line-clamp-2">
-                        {job.description}
-                      </p>
 
                       {job.required_certs && job.required_certs.length > 0 && (
                         <div className="mt-3 flex flex-wrap gap-2">

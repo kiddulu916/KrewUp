@@ -13,6 +13,7 @@ export type ProfileUpdateData = {
   sub_trade?: string | null;
   bio?: string | null;
   employer_type?: string | null;
+  company_name?: string | null;
 };
 
 export type ProfileResult = {
@@ -53,26 +54,55 @@ export async function updateProfile(data: ProfileUpdateData): Promise<ProfileRes
     return { success: false, error: 'Location is too long (max 200 characters)' };
   }
 
-  // Update profile
-  const { data: profile, error: updateError } = await supabase
+  // Handle coords update separately if provided with valid lat/lng
+  if (data.coords && typeof data.coords.lat === 'number' && typeof data.coords.lng === 'number') {
+    // Use RPC function to update coords with PostGIS
+    const { error: coordsError } = await supabase.rpc('update_profile_coords_only', {
+      p_user_id: user.id,
+      p_lng: data.coords.lng,
+      p_lat: data.coords.lat
+    });
+
+    if (coordsError) {
+      console.error('Coords update error:', coordsError);
+      // Continue with other updates even if coords fail
+    }
+  }
+
+  // Update other profile fields (excluding coords)
+  const updateData: any = {};
+  if (data.name) updateData.name = data.name.trim();
+  if (data.phone !== undefined) updateData.phone = data.phone;
+  if (data.location !== undefined) updateData.location = data.location;
+  if (data.trade !== undefined) updateData.trade = data.trade;
+  if (data.sub_trade !== undefined) updateData.sub_trade = data.sub_trade;
+  if (data.bio !== undefined) updateData.bio = data.bio;
+  if (data.employer_type !== undefined) updateData.employer_type = data.employer_type;
+  if (data.company_name !== undefined) updateData.company_name = data.company_name;
+
+  // Only update if there are fields to update
+  if (Object.keys(updateData).length > 0) {
+    const { error: updateError } = await supabase
+      .from('profiles')
+      .update(updateData)
+      .eq('id', user.id);
+
+    if (updateError) {
+      console.error('Update profile error:', updateError);
+      return { success: false, error: 'Failed to update profile' };
+    }
+  }
+
+  // Fetch updated profile
+  const { data: profile, error: fetchError } = await supabase
     .from('profiles')
-    .update({
-      ...(data.name && { name: data.name.trim() }),
-      ...(data.phone !== undefined && { phone: data.phone }),
-      ...(data.location !== undefined && { location: data.location }),
-      ...(data.coords !== undefined && { coords: data.coords }),
-      ...(data.trade !== undefined && { trade: data.trade }),
-      ...(data.sub_trade !== undefined && { sub_trade: data.sub_trade }),
-      ...(data.bio !== undefined && { bio: data.bio }),
-      ...(data.employer_type !== undefined && { employer_type: data.employer_type }),
-    })
+    .select('*')
     .eq('id', user.id)
-    .select()
     .single();
 
-  if (updateError) {
-    console.error('Update profile error:', updateError);
-    return { success: false, error: 'Failed to update profile' };
+  if (fetchError) {
+    console.error('Fetch profile error:', fetchError);
+    return { success: false, error: 'Failed to fetch updated profile' };
   }
 
   revalidatePath('/dashboard/profile');
