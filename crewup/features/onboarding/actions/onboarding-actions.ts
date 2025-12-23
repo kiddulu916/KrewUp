@@ -11,6 +11,7 @@ export type OnboardingData = {
   email: string;
   role: 'worker' | 'employer';
   employer_type?: 'contractor' | 'recruiter';
+  company_name?: string; // Business name for employers
   trade: string;
   sub_trade?: string;
   location: string;
@@ -45,7 +46,8 @@ export async function completeOnboarding(data: OnboardingData): Promise<Onboardi
 
   // If coords are provided, use the Postgres function for proper PostGIS conversion
   if (coords && typeof coords.lat === 'number' && typeof coords.lng === 'number') {
-    const { error: updateError } = await supabase.rpc('update_profile_coords', {
+    // First, update the profile with coords using the RPC function
+    const { error: coordsError } = await supabase.rpc('update_profile_coords', {
       p_user_id: user.id,
       p_name: data.name,
       p_phone: data.phone,
@@ -60,8 +62,20 @@ export async function completeOnboarding(data: OnboardingData): Promise<Onboardi
       p_employer_type: data.role === 'employer' ? data.employer_type || null : null,
     });
 
-    if (updateError) {
-      return { success: false, error: updateError.message };
+    if (coordsError) {
+      return { success: false, error: coordsError.message };
+    }
+
+    // Then update company_name separately (not in the RPC function)
+    if (data.role === 'employer' && data.company_name) {
+      const { error: companyError } = await supabase
+        .from('profiles')
+        .update({ company_name: data.company_name })
+        .eq('id', user.id);
+
+      if (companyError) {
+        return { success: false, error: companyError.message };
+      }
     }
   } else {
     // If no coords provided, do a regular update without coords
@@ -80,6 +94,13 @@ export async function completeOnboarding(data: OnboardingData): Promise<Onboardi
       updateData.employer_type = data.employer_type;
     } else {
       updateData.employer_type = null;
+    }
+
+    // Only set company_name for employers
+    if (data.role === 'employer' && data.company_name) {
+      updateData.company_name = data.company_name;
+    } else {
+      updateData.company_name = null;
     }
 
     // Only set sub_trade if provided

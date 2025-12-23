@@ -85,6 +85,17 @@ export async function POST(req: NextRequest) {
           return NextResponse.json({ error: 'Database operation failed' }, { status: 500 });
         }
 
+        // Update profiles.subscription_status to 'pro'
+        const { error: profileError } = await supabaseAdmin
+          .from('profiles')
+          .update({ subscription_status: 'pro' })
+          .eq('id', userId);
+
+        if (profileError) {
+          console.error('Database error updating profile subscription status:', profileError);
+          // Don't fail the webhook for this, just log the error
+        }
+
         break;
       }
 
@@ -164,6 +175,17 @@ export async function POST(req: NextRequest) {
         if (updateError) {
           console.error('Database error updating subscription:', updateError);
           return NextResponse.json({ error: 'Database operation failed' }, { status: 500 });
+        }
+
+        // Update profiles.subscription_status back to 'free'
+        const { error: profileError } = await supabaseAdmin
+          .from('profiles')
+          .update({ subscription_status: 'free' })
+          .eq('id', existingSubscription.user_id);
+
+        if (profileError) {
+          console.error('Database error updating profile subscription status:', profileError);
+          // Don't fail the webhook for this, just log the error
         }
 
         break;

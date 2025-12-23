@@ -63,6 +63,25 @@ export function CertificationForm() {
         return;
       }
 
+      // Validate required fields
+      if (!formData.certification_number) {
+        setError('Certification number is required for verification');
+        setIsLoading(false);
+        return;
+      }
+
+      if (!formData.issued_by) {
+        setError('Issuing organization is required for verification');
+        setIsLoading(false);
+        return;
+      }
+
+      if (!photoFile && !photoUrl) {
+        setError('Certification photo is required for verification');
+        setIsLoading(false);
+        return;
+      }
+
       // Upload photo if provided
       let uploadedPhotoUrl = photoUrl;
       if (photoFile && !photoUrl) {
@@ -84,11 +103,11 @@ export function CertificationForm() {
 
       const result = await addCertification({
         certification_type: certType,
-        certification_number: formData.certification_number || undefined,
-        issued_by: formData.issued_by || undefined,
+        certification_number: formData.certification_number, // Required
+        issued_by: formData.issued_by, // Required
         issue_date: formData.issue_date || undefined,
         expires_at: formData.expires_at || undefined,
-        photo_url: uploadedPhotoUrl || undefined,
+        photo_url: uploadedPhotoUrl!, // Required
       });
 
       if (!result.success) {
@@ -161,7 +180,7 @@ export function CertificationForm() {
 
           <div>
             <label htmlFor="certification_number" className="block text-sm font-medium text-gray-700 mb-1">
-              Certification Number
+              Certification Number <span className="text-red-500">*</span>
             </label>
             <Input
               id="certification_number"
@@ -170,13 +189,14 @@ export function CertificationForm() {
               onChange={(e) => setFormData({ ...formData, certification_number: e.target.value })}
               placeholder="e.g., 123456789"
               maxLength={100}
+              required
             />
-            <p className="text-xs text-gray-500 mt-1">Enter your certification ID or license number</p>
+            <p className="text-xs text-gray-500 mt-1">Required for verification purposes</p>
           </div>
 
           <div>
             <label htmlFor="issued_by" className="block text-sm font-medium text-gray-700 mb-1">
-              Issued By
+              Issuing Organization <span className="text-red-500">*</span>
             </label>
             <Input
               id="issued_by"
@@ -185,7 +205,9 @@ export function CertificationForm() {
               onChange={(e) => setFormData({ ...formData, issued_by: e.target.value })}
               placeholder="e.g., OSHA, Red Cross"
               maxLength={100}
+              required
             />
+            <p className="text-xs text-gray-500 mt-1">Required for verification purposes</p>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
@@ -218,10 +240,10 @@ export function CertificationForm() {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Certification Photo <span className="text-gray-500">(Optional)</span>
+              Certification Photo <span className="text-red-500">*</span>
             </label>
             <p className="text-xs text-gray-500 mb-3">
-              Upload a photo of your certification document (JPEG, PNG, WebP, or PDF - Max 5MB)
+              Upload a photo of your certification document (JPEG, PNG, WebP, or PDF - Max 5MB) - Required for verification
             </p>
 
             {!photoPreview ? (

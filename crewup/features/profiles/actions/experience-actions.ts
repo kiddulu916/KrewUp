@@ -73,7 +73,14 @@ export async function addExperience(data: ExperienceData): Promise<ExperienceRes
 
   if (insertError) {
     console.error('Add experience error:', insertError);
-    return { success: false, error: 'Failed to add work experience' };
+    // Provide more detailed error messages
+    let errorMessage = 'Failed to add work experience';
+    if (insertError.code === '23505') {
+      errorMessage = 'This work experience already exists in your profile';
+    } else if (insertError.message) {
+      errorMessage = `Failed to add work experience: ${insertError.message}`;
+    }
+    return { success: false, error: errorMessage };
   }
 
   revalidatePath('/dashboard/profile');

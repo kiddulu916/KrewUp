@@ -13,11 +13,31 @@ export function useJob(jobId: string | undefined) {
 
       const { data, error } = await supabase
         .from('jobs')
-        .select('*')
+        .select(`
+          *,
+          profiles!jobs_employer_id_fkey (
+            company_name,
+            name
+          )
+        `)
         .eq('id', jobId)
         .single();
 
       if (error) throw error;
+
+      // Transform the data to include employer_name at the top level
+      if (data) {
+        const profile = (data as any).profiles;
+        const employer_name = profile?.company_name || profile?.name || 'Unknown Employer';
+
+        // Remove the nested profiles object and add employer_name to the job
+        const { profiles, ...jobData } = data as any;
+        return {
+          ...jobData,
+          employer_name,
+        };
+      }
+
       return data;
     },
     enabled: !!jobId,

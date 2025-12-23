@@ -39,6 +39,21 @@ export async function signUp(
 ): Promise<AuthResult> {
   const supabase = await createClient(await cookies());
 
+  // Check if email already exists in profiles
+  // Note: Supabase auth.signUp() may not always prevent duplicates if email confirmation is disabled
+  const { data: existingProfile } = await supabase
+    .from('profiles')
+    .select('email')
+    .eq('email', email.toLowerCase())
+    .maybeSingle();
+
+  if (existingProfile) {
+    return {
+      success: false,
+      error: 'An account with this email already exists. Please sign in instead.'
+    };
+  }
+
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
@@ -101,7 +116,7 @@ export async function signOut(): Promise<AuthResult> {
   }
 
   revalidatePath('/', 'layout');
-  redirect('/');
+  redirect('/login');
 }
 
 /**

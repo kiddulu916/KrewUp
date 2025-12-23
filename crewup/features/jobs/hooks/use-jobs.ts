@@ -19,7 +19,13 @@ export function useJobs(filters?: JobFilters) {
     queryFn: async () => {
       let query = supabase
         .from('jobs')
-        .select('*')
+        .select(`
+          *,
+          profiles!jobs_employer_id_fkey (
+            company_name,
+            name
+          )
+        `)
         .order('created_at', { ascending: false });
 
       // Apply filters
@@ -49,7 +55,21 @@ export function useJobs(filters?: JobFilters) {
       const { data, error } = await query;
 
       if (error) throw error;
-      return data || [];
+
+      // Transform the data to include employer_name at the top level
+      const jobsWithEmployerName = (data || []).map((job: any) => {
+        const profile = job.profiles;
+        const employer_name = profile?.company_name || profile?.name || 'Unknown Employer';
+
+        // Remove the nested profiles object and add employer_name to the job
+        const { profiles, ...jobData } = job;
+        return {
+          ...jobData,
+          employer_name,
+        };
+      });
+
+      return jobsWithEmployerName;
     },
     staleTime: 30000, // 30 seconds
   });

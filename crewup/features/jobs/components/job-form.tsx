@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Button, Input, Select } from '@/components/ui';
+import { LocationAutocomplete } from '@/components/common/location-autocomplete';
 import { TRADES, TRADE_SUBCATEGORIES, JOB_TYPES, CERTIFICATIONS } from '@/lib/constants';
 import { createJob, type JobData } from '../actions/job-actions';
 
@@ -16,6 +17,7 @@ export function JobForm() {
     description: '',
     location: '',
     pay_rate: '',
+    time_length: '',
   });
 
   const [selectedCerts, setSelectedCerts] = useState<string[]>([]);
@@ -29,6 +31,7 @@ export function JobForm() {
   // Determine if job type is hourly (Full-Time, Part-Time, Temporary) or contract (Contract, 1099)
   const isHourlyJob = ['Full-Time', 'Part-Time', 'Temporary'].includes(formData.job_type);
   const isContractJob = ['Contract', '1099'].includes(formData.job_type);
+  const isTemporaryOrContract = ['Temporary', 'Contract', '1099'].includes(formData.job_type);
 
   // Auto-update pay_rate when conditional fields change
   useEffect(() => {
@@ -124,15 +127,21 @@ export function JobForm() {
           disabled={isLoading}
         />
 
-        <Input
-          label="Location"
-          type="text"
-          placeholder="City, State"
-          value={formData.location}
-          onChange={(e) => updateFormData({ location: e.target.value })}
-          required
-          disabled={isLoading}
-        />
+        <div>
+          <LocationAutocomplete
+            label="Location"
+            value={formData.location}
+            onChange={(data) => {
+              updateFormData({
+                location: data.address,
+                coords: data.coords,
+              });
+            }}
+            helperText="Start typing for address suggestions"
+            required
+            placeholder="City, State"
+          />
+        </div>
       </div>
 
       <div>
@@ -230,6 +239,21 @@ export function JobForm() {
               </p>
             </div>
           )}
+        </div>
+      )}
+
+      {/* Time Length for Temporary/Contract Jobs */}
+      {isTemporaryOrContract && (
+        <div>
+          <Input
+            label="Contract Duration (Optional)"
+            type="text"
+            placeholder="e.g., 3 months, 6 weeks, 1 year"
+            value={formData.time_length || ''}
+            onChange={(e) => updateFormData({ time_length: e.target.value })}
+            helperText="How long will this position last?"
+            disabled={isLoading}
+          />
         </div>
       )}
 

@@ -57,7 +57,14 @@ export async function addCertification(data: CertificationData): Promise<Certifi
 
   if (insertError) {
     console.error('Add certification error:', insertError);
-    return { success: false, error: 'Failed to add certification' };
+    // Provide more detailed error messages
+    let errorMessage = 'Failed to add certification';
+    if (insertError.code === '23505') {
+      errorMessage = 'This certification already exists in your profile';
+    } else if (insertError.message) {
+      errorMessage = `Failed to add certification: ${insertError.message}`;
+    }
+    return { success: false, error: errorMessage };
   }
 
   revalidatePath('/dashboard/profile');
@@ -136,7 +143,14 @@ export async function uploadCertificationPhoto(file: File): Promise<Certificatio
 
   if (error) {
     console.error('Upload certification photo error:', error);
-    return { success: false, error: 'Failed to upload photo' };
+    // Provide more detailed error messages
+    let errorMessage = 'Failed to upload photo';
+    if (error.message.includes('bucket')) {
+      errorMessage = 'Upload storage not configured. Please contact support.';
+    } else if (error.message) {
+      errorMessage = `Failed to upload photo: ${error.message}`;
+    }
+    return { success: false, error: errorMessage };
   }
 
   // Get public URL

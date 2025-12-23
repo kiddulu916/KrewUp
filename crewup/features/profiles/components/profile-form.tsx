@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button, Input, Textarea, Select, Card, CardContent, CardHeader, CardTitle } from '@/components/ui';
+import { LocationAutocomplete } from '@/components/common/location-autocomplete';
 import { useUpdateProfile } from '../hooks/use-update-profile';
 import { useUserLocation } from '@/hooks/use-user-location';
 import { useToast } from '@/components/providers/toast-provider';
@@ -21,6 +22,7 @@ type ProfileFormProps = {
     bio?: string | null;
     role: string;
     employer_type?: string | null;
+    company_name?: string | null;
   };
 };
 
@@ -39,6 +41,7 @@ export function ProfileForm({ initialData }: ProfileFormProps) {
     sub_trade: initialData.sub_trade || '',
     bio: initialData.bio || '',
     employer_type: initialData.employer_type || '',
+    company_name: initialData.company_name || '',
   });
 
   const [error, setError] = useState<string | null>(null);
@@ -71,6 +74,7 @@ export function ProfileForm({ initialData }: ProfileFormProps) {
         bio: formData.bio,
         ...(initialData.role === 'employer' && {
           employer_type: formData.employer_type || null,
+          company_name: formData.company_name || null,
         }),
       });
 
@@ -85,6 +89,30 @@ export function ProfileForm({ initialData }: ProfileFormProps) {
 
   const handleGetLocation = () => {
     locationState.requestLocation();
+  };
+
+  const formatPhoneNumber = (value: string): string => {
+    // Remove all non-numeric characters
+    const phoneNumber = value.replace(/\D/g, '');
+
+    // Limit to 10 digits
+    const limited = phoneNumber.slice(0, 10);
+
+    // Format as (XXX)XXX-XXXX
+    if (limited.length === 0) {
+      return '';
+    } else if (limited.length <= 3) {
+      return `(${limited}`;
+    } else if (limited.length <= 6) {
+      return `(${limited.slice(0, 3)})${limited.slice(3)}`;
+    } else {
+      return `(${limited.slice(0, 3)})${limited.slice(3, 6)}-${limited.slice(6)}`;
+    }
+  };
+
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const formatted = formatPhoneNumber(e.target.value);
+    setFormData({ ...formData, phone: formatted });
   };
 
   const availableSubTrades = formData.trade ? TRADE_SUBCATEGORIES[formData.trade] || [] : [];
@@ -134,7 +162,7 @@ export function ProfileForm({ initialData }: ProfileFormProps) {
               id="phone"
               type="tel"
               value={formData.phone}
-              onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+              onChange={handlePhoneChange}
               placeholder="(555) 123-4567"
             />
           </div>
@@ -204,7 +232,25 @@ export function ProfileForm({ initialData }: ProfileFormProps) {
           <CardHeader>
             <CardTitle>Employer Information</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-4">
+            <div>
+              <label htmlFor="company_name" className="block text-sm font-medium text-gray-700 mb-1">
+                Company/Business Name <span className="text-red-500">*</span>
+              </label>
+              <Input
+                id="company_name"
+                type="text"
+                value={formData.company_name}
+                onChange={(e) => setFormData({ ...formData, company_name: e.target.value })}
+                placeholder="ABC Construction LLC"
+                required
+                maxLength={100}
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                Your business name (will be shown on job postings)
+              </p>
+            </div>
+
             <div>
               <label htmlFor="employer_type" className="block text-sm font-medium text-gray-700 mb-1.5">
                 Employer Type
@@ -232,40 +278,26 @@ export function ProfileForm({ initialData }: ProfileFormProps) {
           <CardTitle>Location</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div>
-            <label htmlFor="location" className="block text-sm font-medium text-gray-700 mb-1">
-              Address / City <span className="text-red-500">*</span>
-            </label>
-            <Input
-              id="location"
-              type="text"
-              value={formData.location}
-              onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-              placeholder="Chicago, IL"
-              maxLength={200}
-              required
-            />
-          </div>
+          <LocationAutocomplete
+            label="Address / City"
+            value={formData.location}
+            onChange={(data) => {
+              setFormData({
+                ...formData,
+                location: data.address,
+                coords: data.coords,
+              });
+            }}
+            helperText="Start typing to see address suggestions"
+            required
+            placeholder="Chicago, IL"
+          />
 
-          <div>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={handleGetLocation}
-              isLoading={locationState.loading}
-              className="w-full"
-            >
-              {locationState.loading ? 'Getting location...' : 'Get My Current Location'}
-            </Button>
-            {locationState.error && (
-              <p className="text-xs text-amber-600 mt-1">{locationState.error}</p>
-            )}
-            {formData.coords && formData.coords.lat && formData.coords.lng && (
-              <p className="text-xs text-green-600 mt-1">
-                Location coordinates saved ({formData.coords.lat.toFixed(4)}, {formData.coords.lng.toFixed(4)})
-              </p>
-            )}
-          </div>
+          {formData.coords && typeof formData.coords.lat === 'number' && typeof formData.coords.lng === 'number' && (
+            <p className="text-xs text-green-600">
+              ✓ Location coordinates saved ({formData.coords.lat.toFixed(4)}, {formData.coords.lng.toFixed(4)})
+            </p>
+          )}
         </CardContent>
       </Card>
 

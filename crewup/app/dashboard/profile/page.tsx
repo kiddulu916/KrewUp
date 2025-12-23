@@ -79,6 +79,12 @@ export default async function ProfilePage() {
                 <p className="text-sm font-medium text-gray-500">Name</p>
                 <p className="mt-1 text-base text-gray-900">{profile?.name}</p>
               </div>
+              {profile?.role === 'employer' && profile?.company_name && (
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Company Name</p>
+                  <p className="mt-1 text-base text-gray-900">{profile.company_name}</p>
+                </div>
+              )}
               <div>
                 <p className="text-sm font-medium text-gray-500">Email</p>
                 <p className="mt-1 text-base text-gray-900">{profile?.email}</p>

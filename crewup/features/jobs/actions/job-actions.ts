@@ -17,6 +17,7 @@ export type JobData = {
   pay_min?: number;
   pay_max?: number;
   required_certs?: string[];
+  time_length?: string;
 };
 
 export type JobResult = {
@@ -67,6 +68,7 @@ export async function createJob(data: JobData): Promise<JobResult> {
       p_pay_min: data.pay_min || null,
       p_pay_max: data.pay_max || null,
       p_required_certs: data.required_certs || null,
+      p_time_length: data.time_length || null,
     });
 
     if (createError) {
@@ -91,6 +93,7 @@ export async function createJob(data: JobData): Promise<JobResult> {
         pay_min: data.pay_min,
         pay_max: data.pay_max,
         required_certs: data.required_certs || [],
+        time_length: data.time_length || null,
         status: 'active',
       })
       .select()
