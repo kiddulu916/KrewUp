@@ -17,10 +17,11 @@ Track your progress through the complete rebuild. Check off items as you complet
 
 ### Supabase Setup ✅
 - [x] Create Supabase project
-- [x] Create profiles table
+- [x] Create complete database reset script (supabase/database-reset.sql)
+- [x] Create profiles table with PostGIS coords
 - [x] Create certifications table
-- [x] Create work_experience table
-- [x] Create jobs table
+- [x] Create experiences table (renamed from work_experience)
+- [x] Create jobs table with PostGIS coords
 - [x] Create job_applications table
 - [x] Create conversations table
 - [x] Create messages table
@@ -28,7 +29,6 @@ Track your progress through the complete rebuild. Check off items as you complet
 - [x] Create profile_views table
 - [x] Create job_views table
 - [x] Create proximity_alerts table
-- [x] Create notifications table
 - [x] Add indexes to all tables
 - [x] Enable Row Level Security on all tables
 - [x] Create RLS policies for profiles
@@ -36,28 +36,30 @@ Track your progress through the complete rebuild. Check off items as you complet
 - [x] Create RLS policies for messages
 - [x] Create RLS policies for applications
 - [x] Create RLS policies for other tables
-- [x] Create handle_new_user() trigger function
+- [x] Create handle_new_user() trigger function (auto-creates profile on signup)
 - [x] Create update_updated_at() trigger function
+- [x] Create update_profile_coords() RPC function (with phone/email parameters)
+- [x] Create get_nearby_jobs() RPC function (PostGIS distance query)
 - [x] Apply triggers to appropriate tables
 - [x] Enable PostGIS extension
-- [ ] Enable real-time for messages table (ready, needs Supabase dashboard config)
-- [ ] Enable real-time for conversations table (ready, needs Supabase dashboard config)
-- [ ] Configure Google OAuth in Supabase Auth (optional)
+- [x] Configure Google OAuth in Supabase Auth
+- [x] Test database reset and recreation
+- [ ] Enable real-time for messages table (using polling instead - cost-free)
+- [ ] Enable real-time for conversations table (using polling instead - cost-free)
 - [ ] Set up email templates in Supabase Auth (optional)
 - [ ] Create "certification-photos" bucket in Supabase Storage (code ready, needs dashboard config)
 - [ ] Set up storage RLS policies for certification-photos bucket (code ready, needs dashboard config)
-- [ ] Add certification_number column to certifications table (if not exists)
-- [ ] Add photo_url column to certifications table (if not exists)
 - [ ] Generate TypeScript types from schema (optional, manual types created)
 - [x] Create lib/supabase/client.ts
 - [x] Create lib/supabase/server.ts
 - [x] Create lib/supabase/middleware.ts
+- [x] Fix missing return statement in Supabase client
 
 ### Authentication Implementation ✅
 - [x] Create login-form.tsx component
 - [x] Create signup-form.tsx component
 - [x] Create google-auth-button.tsx component (integrated in forms)
-- [x] Create onboarding-form.tsx component (4-step multi-page form)
+- [x] Create onboarding-form.tsx component (3-step multi-page form with automatic location capture)
 - [x] Create use-auth.ts hook
 - [x] Create use-session.ts hook (implemented in use-auth)
 - [x] Create login page (app/login/page.tsx)
@@ -66,12 +68,19 @@ Track your progress through the complete rebuild. Check off items as you complet
 - [x] Create auth actions (server actions instead of layout)
 - [x] Implement middleware for route protection
 - [x] Create OAuth callback handler (app/api/auth/callback/route.ts)
+- [x] Fix Next.js redirect() error handling in Google OAuth
+- [x] Add automatic device location capture to onboarding
+- [x] Add phone number auto-formatting (XXX)XXX-XXXX
+- [x] Add email auto-fill from Google OAuth
+- [x] Update RPC function to save phone and email
 - [x] Test email/password signup
-- [x] Test Google OAuth signup (ready, needs OAuth config in Supabase)
+- [x] Test Google OAuth signup
 - [x] Test login flow
 - [x] Test onboarding redirect
 - [x] Test session persistence
 - [x] Test protected route access
+- [x] Test profile auto-creation via database trigger
+- [x] Test phone/email saving to database
 
 ### Core Layout & Navigation ✅
 - [x] Create header.tsx component (integrated in dashboard layout)

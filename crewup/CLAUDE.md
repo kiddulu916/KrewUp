@@ -33,13 +33,42 @@ When working on this project:
 
 ### Current Status
 
-The project is in the initial planning phase. The single-file React app in `crewup.jsx` is the legacy version that will be rebuilt. Do NOT make changes to `crewup.jsx` - instead, follow the development plan to build the new Next.js application.
+**Phase 1 (Free MVP) - Near Completion** ✅
+
+The Next.js rebuild is well underway with most core features implemented:
+
+**✅ Completed:**
+- Database schema with PostGIS support
+- Complete authentication flow (email/password + Google OAuth)
+- Automatic profile creation via database triggers
+- 3-step onboarding with automatic device location capture
+- Phone number auto-formatting and email auto-fill
+- Profile management (view, edit, certifications, experience)
+- Job posting and feed with distance-based sorting
+- Job applications system
+- Real-time messaging (using polling for cost efficiency)
+- Google Places Autocomplete integration
+- PostGIS coordinate storage and queries
+- Complete database reset script for development
+- Deployed to production at https://get-crewup.vercel.app
+
+**🔧 In Progress:**
+- Manual testing of all features
+- Certification photo upload (code complete, needs Supabase Storage bucket config)
+- Mobile responsiveness improvements
+
+**📋 Next Up:**
+- End-to-end testing of all user flows
+- Beta user invitations
+- Stripe integration for Pro subscriptions (Phase 2)
+
+**Legacy Note**: The single-file React app in `crewup.jsx` is the legacy version and should NOT be modified. All new work happens in the Next.js app following the development plan.
 
 ---
 
-## Project Overview (Legacy Application)
+## Project Overview
 
-CrewUp is a mobile-first React web application connecting skilled trade workers with employers (contractors and recruiters). The entire application is contained in a single JSX file (`crewup.jsx`) designed to be embedded in different environments using global configuration variables.
+CrewUp is a mobile-first Next.js web application connecting skilled trade workers with employers (contractors and recruiters). Built with Next.js 15, TypeScript, Supabase (PostgreSQL + PostGIS), and Stripe.
 
 **Business Model**: Free job posting and messaging for all users. Pro subscription ($15/month or $150/year) offers advanced features like real-time proximity alerts, profile boosts, certification filtering, and analytics dashboards.
 
