@@ -85,22 +85,26 @@ Track your progress through the complete rebuild. Check off items as you complet
 ### Core Layout & Navigation ✅
 - [x] Create header.tsx component (integrated in dashboard layout)
 - [ ] Create footer.tsx component (not needed for dashboard)
-- [ ] Create mobile-nav.tsx component (desktop-first for now)
+- [ ] Create mobile-nav.tsx component (mobile review doc created, implementation pending)
 - [x] Create root layout (app/layout.tsx)
 - [x] Create providers.tsx (TanStack Query provider)
 - [x] Create globals.css with Tailwind
 - [x] Create dashboard layout (app/dashboard/layout.tsx)
 - [x] Implement navigation sidebar with icons
 - [x] Add role-based navigation visibility
-- [ ] Create loading-spinner.tsx (to be added as needed)
-- [ ] Create error-boundary.tsx (to be added as needed)
-- [ ] Create empty-state.tsx (to be added as needed)
+- [x] Create loading-spinner.tsx (multiple variants: sm/md/lg/xl, page, inline)
+- [x] Create error-boundary.tsx (React class component with fallback UI)
+- [x] Create empty-state.tsx (with pre-built scenarios for jobs, apps, messages, etc.)
 
 ### Testing Infrastructure ✅
 - [x] Install Vitest and testing libraries
 - [x] Configure vitest.config.ts
-- [ ] Write auth flow tests (basic setup complete)
+- [x] Write auth flow tests (created, needs mocking refinement)
+- [x] Write onboarding action tests (created, needs mocking refinement)
+- [x] Create comprehensive manual testing checklist (docs/MANUAL-TESTING-CHECKLIST.md)
+- [x] Create mobile responsiveness review guide (docs/MOBILE-RESPONSIVENESS-REVIEW.md)
 - [x] Write Button component tests (example tests passing)
+- [ ] Refine automated tests with simpler mocking approach
 - [ ] Write API route tests (with mocks) (to be added as features built)
 - [ ] Set up GitHub Actions CI workflow (optional for now)
 - [ ] Verify tests pass in CI (optional for now)
