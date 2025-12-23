@@ -34,14 +34,21 @@ export function OnboardingForm({ initialName = '', initialEmail = '' }: Props) {
     setLocationStatus('loading');
 
     if (!navigator.geolocation) {
-      console.warn('Geolocation not supported');
+      console.warn('[captureLocation] Geolocation not supported by browser');
       setLocationStatus('error');
       return;
     }
 
+    console.log('[captureLocation] Requesting high-accuracy GPS location...');
+
     navigator.geolocation.getCurrentPosition(
       async (position) => {
-        const { latitude, longitude } = position.coords;
+        const { latitude, longitude, accuracy } = position.coords;
+        console.log('[captureLocation] GPS success!', {
+          lat: latitude,
+          lng: longitude,
+          accuracy: `${accuracy}m`
+        });
 
         try {
           // Reverse geocode to get address
@@ -54,7 +61,7 @@ export function OnboardingForm({ initialName = '', initialEmail = '' }: Props) {
 
           setLocationStatus('success');
         } catch (err) {
-          console.error('Reverse geocoding failed:', err);
+          console.error('[captureLocation] Reverse geocoding failed:', err);
           // Still save coords even if reverse geocoding fails
           updateFormData({
             location: `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`,
@@ -64,18 +71,29 @@ export function OnboardingForm({ initialName = '', initialEmail = '' }: Props) {
         }
       },
       (error) => {
-        console.error('Geolocation error:', error);
-        setLocationStatus('error');
-        // Use fallback location (Chicago coordinates)
-        updateFormData({
-          location: 'United States',
-          coords: { lat: 41.8781, lng: -87.6298 }
+        console.error('[captureLocation] Geolocation error:', {
+          code: error.code,
+          message: error.message,
+          PERMISSION_DENIED: error.code === 1,
+          POSITION_UNAVAILABLE: error.code === 2,
+          TIMEOUT: error.code === 3
         });
+
+        // Don't use fallback - let user know location is required
+        setLocationStatus('error');
+
+        if (error.code === 1) {
+          // Permission denied - could ask user to enable
+          console.warn('[captureLocation] User denied location permission');
+        } else if (error.code === 3) {
+          // Timeout - GPS took too long
+          console.warn('[captureLocation] GPS timeout - try again or check device settings');
+        }
       },
       {
         enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 0
+        timeout: 30000, // Increased to 30 seconds for GPS lock
+        maximumAge: 0 // Don't use cached location
       }
     );
   }
@@ -193,28 +211,39 @@ export function OnboardingForm({ initialName = '', initialEmail = '' }: Props) {
           <div className="space-y-4">
             {/* Location Status Indicator */}
             {locationStatus && (
-              <div className={`flex items-center gap-2 rounded-lg p-3 text-sm ${
+              <div className={`flex items-center justify-between gap-2 rounded-lg p-3 text-sm ${
                 locationStatus === 'loading' ? 'bg-blue-50 text-blue-700' :
                 locationStatus === 'success' ? 'bg-green-50 text-green-700' :
-                'bg-yellow-50 text-yellow-700'
+                'bg-red-50 text-red-700'
               }`}>
-                {locationStatus === 'loading' && (
-                  <>
-                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-blue-700 border-t-transparent"></div>
-                    <span>Capturing your location...</span>
-                  </>
-                )}
-                {locationStatus === 'success' && (
-                  <>
-                    <span>📍</span>
-                    <span>Location captured: {formData.location || 'Processing...'}</span>
-                  </>
-                )}
+                <div className="flex items-center gap-2">
+                  {locationStatus === 'loading' && (
+                    <>
+                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-blue-700 border-t-transparent"></div>
+                      <span>Capturing your location... (this may take up to 30 seconds)</span>
+                    </>
+                  )}
+                  {locationStatus === 'success' && (
+                    <>
+                      <span>📍</span>
+                      <span>Location captured: {formData.location || 'Processing...'}</span>
+                    </>
+                  )}
+                  {locationStatus === 'error' && (
+                    <>
+                      <span>❌</span>
+                      <span>Location access failed. Please enable location permissions and try again.</span>
+                    </>
+                  )}
+                </div>
                 {locationStatus === 'error' && (
-                  <>
-                    <span>⚠️</span>
-                    <span>Using default location (location access denied)</span>
-                  </>
+                  <button
+                    type="button"
+                    onClick={captureLocation}
+                    className="px-3 py-1 text-xs font-medium text-red-700 hover:bg-red-100 rounded border border-red-300"
+                  >
+                    Retry
+                  </button>
                 )}
               </div>
             )}
