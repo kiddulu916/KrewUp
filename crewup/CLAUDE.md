@@ -4,9 +4,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## IMPORTANT: Development Plan
 
-**ALWAYS reference the `development_plan/` folder when working on this project.**
+**ALWAYS reference the `docs/plans` folder when working on this project.**
 
-This project is undergoing a complete rebuild from a single-file React app to a production-ready Next.js application. The `development_plan/` folder contains comprehensive implementation guides:
+This project is undergoing a complete rebuild from a single-file React app to a production-ready Next.js application. The `docs/plans` folder contains comprehensive implementation guides:
 
 - **00-implementation-roadmap.md** - Complete phased implementation plan (Phases 0-3)
 - **01-overview-and-tech-stack.md** - Tech stack decisions and architecture
@@ -25,9 +25,9 @@ This project is undergoing a complete rebuild from a single-file React app to a 
 
 When working on this project:
 
-1. **Always check `progress-checklist.md` first** to see what's been completed and what's next
+1. **Always check** `progress-checklist.md` **first** to see what's been completed and what's next
 2. **Follow the phases in order** as outlined in `00-implementation-roadmap.md`
-3. **Update `progress-checklist.md`** by checking off tasks as you complete them
+3. **Update** `progress-checklist.md` by checking off tasks as you complete them
 4. **Reference the specific design document** for implementation details
 5. **Never skip phases** - each phase builds on the previous one
 
