@@ -108,6 +108,8 @@ export interface JobApplication {
   worker_id: string;
   status: 'pending' | 'viewed' | 'contacted' | 'rejected' | 'hired' | 'withdrawn';
   form_data: ApplicationFormData;
+  // Responses to employer-defined screening questions
+  custom_answers?: Record<string, unknown>;
   resume_url?: string;
   cover_letter_url?: string;
   resume_extracted_text?: string;
