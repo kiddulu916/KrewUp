@@ -4,6 +4,9 @@ import { Card, CardContent, CardHeader, CardTitle, Badge, Button } from '@/compo
 import { ApplyButton } from '@/features/jobs/components/apply-button';
 import { DeleteJobButton } from '@/features/jobs/components/delete-job-button';
 import { MessageButton } from '@/features/messaging/components/message-button';
+import { ApplicationsListWithFilter } from '@/features/applications/components/applications-list-with-filter';
+import { JobViewTracker } from '@/features/jobs/components/job-view-tracker';
+import { JobAnalyticsDashboard } from '@/features/jobs/components/job-analytics-dashboard';
 import Link from 'next/link';
 import { cookies } from 'next/headers';
 
@@ -82,7 +85,9 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
           trade,
           sub_trade,
           location,
-          bio
+          bio,
+          is_profile_boosted,
+          boost_expires_at
         )
       `)
       .eq('job_id', job.id)
@@ -93,6 +98,9 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
 
   return (
     <div className="space-y-6">
+      {/* Track job view */}
+      <JobViewTracker jobId={job.id} />
+
       {/* Back button */}
       <Link href="/dashboard/jobs">
         <Button variant="outline" className="mb-4">
@@ -278,6 +286,18 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
         </CardContent>
       </Card>
 
+      {/* Job Analytics (Only for job owner) */}
+      {isJobOwner && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Job Analytics</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <JobAnalyticsDashboard jobId={job.id} />
+          </CardContent>
+        </Card>
+      )}
+
       {/* Applications Section (Only for job owner) */}
       {isJobOwner && (
         <Card className="shadow-xl border-2 border-krewup-light-orange">
@@ -288,84 +308,7 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
             </CardTitle>
           </CardHeader>
           <CardContent className="p-6">
-            {applications.length === 0 ? (
-              <div className="text-center py-12">
-                <p className="text-gray-500 text-lg">No applications yet</p>
-                <p className="text-gray-400 text-sm mt-2">
-                  Check back later for worker applications
-                </p>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {applications.map((app: any) => (
-                  <div
-                    key={app.id}
-                    className="bg-white border-2 border-gray-200 rounded-xl p-4 hover:border-krewup-blue hover:shadow-lg transition-all"
-                  >
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-2">
-                          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-krewup-blue to-krewup-orange text-white font-bold text-lg shadow-lg">
-                            {app.worker.name.charAt(0).toUpperCase()}
-                          </div>
-                          <div>
-                            <h4 className="text-lg font-bold text-gray-900">
-                              {app.worker.name}
-                            </h4>
-                            <p className="text-sm text-gray-600">
-                              {app.worker.trade}
-                              {app.worker.sub_trade && ` - ${app.worker.sub_trade}`}
-                            </p>
-                          </div>
-                        </div>
-
-                        <div className="ml-15 space-y-2">
-                          <p className="text-sm text-gray-700">
-                            <span className="font-semibold">Location:</span> {app.worker.location}
-                          </p>
-                          {app.worker.bio && (
-                            <p className="text-sm text-gray-600 italic">{app.worker.bio}</p>
-                          )}
-                          {app.cover_letter && (
-                            <div className="mt-3 p-3 bg-gray-50 rounded-lg">
-                              <p className="text-sm font-semibold text-gray-700 mb-1">
-                                Cover Letter:
-                              </p>
-                              <p className="text-sm text-gray-700">{app.cover_letter}</p>
-                            </div>
-                          )}
-                          <p className="text-xs text-gray-500 mt-2">
-                            Applied on {new Date(app.created_at).toLocaleDateString()}
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="ml-4 flex flex-col gap-2 items-end">
-                        <Badge
-                          variant={
-                            app.status === 'pending'
-                              ? 'warning'
-                              : app.status === 'hired'
-                              ? 'success'
-                              : app.status === 'rejected'
-                              ? 'danger'
-                              : 'info'
-                          }
-                          className="capitalize"
-                        >
-                          {app.status}
-                        </Badge>
-                        <MessageButton
-                          recipientId={app.worker.id}
-                          recipientName={app.worker.name}
-                          variant="secondary"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
+            <ApplicationsListWithFilter jobId={job.id} initialApplications={applications} />
           </CardContent>
         </Card>
       )}

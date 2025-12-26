@@ -315,73 +315,129 @@ ALTER TABLE endorsement_requests ENABLE ROW LEVEL SECURITY;
 ALTER TABLE endorsements ENABLE ROW LEVEL SECURITY;
 
 -- Profile Views Policies
-CREATE POLICY "Users can insert profile views"
-  ON profile_views FOR INSERT
-  TO authenticated
-  WITH CHECK (viewer_id = auth.uid());
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies WHERE tablename = 'profile_views' AND policyname = 'Users can insert profile views'
+  ) THEN
+    CREATE POLICY "Users can insert profile views"
+      ON profile_views FOR INSERT
+      TO authenticated
+      WITH CHECK (viewer_id = auth.uid());
+  END IF;
 
-CREATE POLICY "Users can view all profile views"
-  ON profile_views FOR SELECT
-  TO authenticated
-  USING (true);
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies WHERE tablename = 'profile_views' AND policyname = 'Users can view all profile views'
+  ) THEN
+    CREATE POLICY "Users can view all profile views"
+      ON profile_views FOR SELECT
+      TO authenticated
+      USING (true);
+  END IF;
+END $$;
 
 -- Notifications Policies
-CREATE POLICY "Users can view their own notifications"
-  ON notifications FOR SELECT
-  TO authenticated
-  USING (user_id = auth.uid());
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies WHERE tablename = 'notifications' AND policyname = 'Users can view their own notifications'
+  ) THEN
+    CREATE POLICY "Users can view their own notifications"
+      ON notifications FOR SELECT
+      TO authenticated
+      USING (user_id = auth.uid());
+  END IF;
 
-CREATE POLICY "Users can update their own notifications"
-  ON notifications FOR UPDATE
-  TO authenticated
-  USING (user_id = auth.uid());
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies WHERE tablename = 'notifications' AND policyname = 'Users can update their own notifications'
+  ) THEN
+    CREATE POLICY "Users can update their own notifications"
+      ON notifications FOR UPDATE
+      TO authenticated
+      USING (user_id = auth.uid());
+  END IF;
 
-CREATE POLICY "System can create notifications"
-  ON notifications FOR INSERT
-  TO authenticated
-  WITH CHECK (true);
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies WHERE tablename = 'notifications' AND policyname = 'System can create notifications'
+  ) THEN
+    CREATE POLICY "System can create notifications"
+      ON notifications FOR INSERT
+      TO authenticated
+      WITH CHECK (true);
+  END IF;
+END $$;
 
 -- Endorsement Requests Policies
-CREATE POLICY "Pro workers can create endorsement requests"
-  ON endorsement_requests FOR INSERT
-  TO authenticated
-  WITH CHECK (
-    worker_id = auth.uid() AND
-    EXISTS (
-      SELECT 1 FROM profiles
-      WHERE profiles.id = auth.uid()
-      AND profiles.role = 'worker'
-      AND profiles.subscription_status = 'pro'
-    )
-  );
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies WHERE tablename = 'endorsement_requests' AND policyname = 'Pro workers can create endorsement requests'
+  ) THEN
+    CREATE POLICY "Pro workers can create endorsement requests"
+      ON endorsement_requests FOR INSERT
+      TO authenticated
+      WITH CHECK (
+        worker_id = auth.uid() AND
+        EXISTS (
+          SELECT 1 FROM profiles
+          WHERE profiles.id = auth.uid()
+          AND profiles.role = 'worker'
+          AND profiles.subscription_status = 'pro'
+        )
+      );
+  END IF;
 
-CREATE POLICY "Users can view endorsement requests they're involved in"
-  ON endorsement_requests FOR SELECT
-  TO authenticated
-  USING (
-    worker_id = auth.uid() OR employer_id = auth.uid()
-  );
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies WHERE tablename = 'endorsement_requests' AND policyname = 'Users can view endorsement requests they''re involved in'
+  ) THEN
+    CREATE POLICY "Users can view endorsement requests they're involved in"
+      ON endorsement_requests FOR SELECT
+      TO authenticated
+      USING (
+        worker_id = auth.uid() OR employer_id = auth.uid()
+      );
+  END IF;
 
-CREATE POLICY "Employers can update endorsement requests"
-  ON endorsement_requests FOR UPDATE
-  TO authenticated
-  USING (employer_id = auth.uid());
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies WHERE tablename = 'endorsement_requests' AND policyname = 'Employers can update endorsement requests'
+  ) THEN
+    CREATE POLICY "Employers can update endorsement requests"
+      ON endorsement_requests FOR UPDATE
+      TO authenticated
+      USING (employer_id = auth.uid());
+  END IF;
+END $$;
 
 -- Endorsements Policies
-CREATE POLICY "Employers can create endorsements"
-  ON endorsements FOR INSERT
-  TO authenticated
-  WITH CHECK (endorsed_by_user_id = auth.uid());
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies WHERE tablename = 'endorsements' AND policyname = 'Employers can create endorsements'
+  ) THEN
+    CREATE POLICY "Employers can create endorsements"
+      ON endorsements FOR INSERT
+      TO authenticated
+      WITH CHECK (endorsed_by_user_id = auth.uid());
+  END IF;
 
-CREATE POLICY "Anyone can view endorsements"
-  ON endorsements FOR SELECT
-  TO authenticated
-  USING (true);
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies WHERE tablename = 'endorsements' AND policyname = 'Anyone can view endorsements'
+  ) THEN
+    CREATE POLICY "Anyone can view endorsements"
+      ON endorsements FOR SELECT
+      TO authenticated
+      USING (true);
+  END IF;
 
-CREATE POLICY "Endorsers can update their endorsements"
-  ON endorsements FOR UPDATE
-  TO authenticated
-  USING (endorsed_by_user_id = auth.uid());
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies WHERE tablename = 'endorsements' AND policyname = 'Endorsers can update their endorsements'
+  ) THEN
+    CREATE POLICY "Endorsers can update their endorsements"
+      ON endorsements FOR UPDATE
+      TO authenticated
+      USING (endorsed_by_user_id = auth.uid());
+  END IF;
+END $$;
 
 -- ============================================================================
 -- MIGRATION COMPLETE

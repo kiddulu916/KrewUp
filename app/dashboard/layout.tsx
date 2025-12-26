@@ -73,12 +73,21 @@ export default async function DashboardLayout({
                 <NavLink href="/dashboard/applications" icon="📥" color="green">
                   Applications
                 </NavLink>
+                <NavLink href="/dashboard/workers" icon="🔍" color="blue">
+                  Find Workers
+                </NavLink>
               </>
             )}
 
             <NavLink href="/dashboard/messages" icon="💬" color="teal">
               Messages
             </NavLink>
+
+            {isWorker && (
+              <NavLink href="/dashboard/settings" icon="⚙️" color="purple">
+                Settings
+              </NavLink>
+            )}
 
             <NavLink href="/dashboard/subscription" icon="💳" color="purple">
               Subscription

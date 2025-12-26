@@ -50,7 +50,7 @@ The Next.js rebuild is well underway with most core features implemented:
 - Google Places Autocomplete integration
 - PostGIS coordinate storage and queries
 - Complete database reset script for development
-- Deployed to production at https://get-krewup.vercel.app
+- Deployed to production at https://krewup.net
 
 **🔧 In Progress:**
 - Manual testing of all features

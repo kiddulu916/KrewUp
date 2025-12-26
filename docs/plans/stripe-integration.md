@@ -1134,14 +1134,14 @@ Expected: Deployment succeeds
 
 1. Go to https://dashboard.stripe.com/webhooks
 2. Click "Add endpoint"
-3. URL: `https://get-krewup.vercel.app/api/webhooks/stripe`
+3. URL: `https://krewup.net/api/webhooks/stripe`
 4. Select events: `checkout.session.completed`, `customer.subscription.updated`, `customer.subscription.deleted`, `invoice.payment_failed`
 5. Copy webhook signing secret
 6. Update `STRIPE_WEBHOOK_SECRET` in Vercel
 
 **Step 5: Test in production**
 
-1. Navigate to: https://get-krewup.vercel.app/pricing
+1. Navigate to: https://krewup.net/pricing
 2. Complete test checkout
 3. Verify subscription updates in Supabase production database
 

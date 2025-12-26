@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server';
 import { Card, CardContent, CardHeader, CardTitle, Badge, Button } from '@/components/ui';
 import { CertificationItem } from '@/features/profiles/components/certification-item';
 import { ExperienceItem } from '@/features/profiles/components/experience-item';
+import { ProfileViewsList } from '@/features/subscriptions/components/profile-views-list';
 import Link from 'next/link';
 import { cookies } from 'next/headers';
 
@@ -132,6 +133,18 @@ export default async function ProfilePage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Who Viewed My Profile - Workers Only */}
+      {profile?.role === 'worker' && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Who Viewed My Profile</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ProfileViewsList />
+          </CardContent>
+        </Card>
+      )}
 
       {/* Certifications - Workers Only */}
       {profile?.role === 'worker' && (

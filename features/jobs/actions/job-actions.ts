@@ -10,6 +10,11 @@ export type TradeSelection = {
   subTrades: string[];
 };
 
+export type CustomQuestion = {
+  question: string;
+  required: boolean;
+};
+
 export type JobData = {
   title: string;
   trade: string;
@@ -26,6 +31,7 @@ export type JobData = {
   pay_max?: number;
   required_certs?: string[];
   time_length?: string;
+  custom_questions?: CustomQuestion[]; // Pro feature
 };
 
 export type JobResult = {
@@ -52,12 +58,19 @@ export async function createJob(data: JobData): Promise<JobResult> {
   // Verify user is an employer
   const { data: profile } = await supabase
     .from('profiles')
-    .select('role')
+    .select('role, subscription_status')
     .eq('id', user.id)
     .single();
 
   if (profile?.role !== 'employer') {
     return { success: false, error: 'Only employers can post jobs' };
+  }
+
+  // Validate Pro features
+  if (data.custom_questions && data.custom_questions.length > 0) {
+    if (profile.subscription_status !== 'pro') {
+      return { success: false, error: 'Custom screening questions require a Pro subscription' };
+    }
   }
 
   // If coords are provided, use the Postgres function for proper PostGIS conversion
@@ -108,6 +121,7 @@ export async function createJob(data: JobData): Promise<JobResult> {
         pay_max: data.pay_max,
         required_certs: data.required_certs || [],
         time_length: data.time_length || null,
+        custom_questions: data.custom_questions || null,
         status: 'active',
       })
       .select()

@@ -333,7 +333,7 @@ Track your progress through the complete rebuild. Check off items as you complet
 - [ ] Gather initial feedback
 
 **Production URLs**:
-- 🌐 **Live Application**: https://get-krewup.vercel.app
+- 🌐 **Live Application**: https://krewup.net
 - 📊 **Vercel Dashboard**: https://vercel.com/corey-hilsenbecks-projects/krewup-nextjs
 
 **Deployment Info**:

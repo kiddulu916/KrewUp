@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import { Button, ConfirmDialog } from '@/components/ui';
 import { deleteExperience } from '../actions/experience-actions';
+import { RequestEndorsementButton } from '@/features/endorsements/components/request-endorsement-button';
+import { EndorsementBadge } from '@/features/endorsements/components/endorsement-badge';
 import { useToast } from '@/components/providers/toast-provider';
 import { useRouter } from 'next/navigation';
 
@@ -15,9 +17,10 @@ type ExperienceItemProps = {
     end_date?: string | null;
     description?: string | null;
   };
+  isOwnProfile?: boolean;
 };
 
-export function ExperienceItem({ exp }: ExperienceItemProps) {
+export function ExperienceItem({ exp, isOwnProfile = true }: ExperienceItemProps) {
   const [showConfirm, setShowConfirm] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const toast = useToast();
@@ -57,15 +60,35 @@ export function ExperienceItem({ exp }: ExperienceItemProps) {
             {exp.description && (
               <p className="mt-2 text-sm text-gray-700">{exp.description}</p>
             )}
+
+            {/* Endorsement Badge */}
+            <div className="mt-3">
+              <EndorsementBadge
+                experienceId={exp.id}
+                showDetails={isOwnProfile}
+              />
+            </div>
+
+            {/* Request Endorsement Button (only on own profile) */}
+            {isOwnProfile && (
+              <div className="mt-3">
+                <RequestEndorsementButton
+                  experienceId={exp.id}
+                  onSuccess={() => router.refresh()}
+                />
+              </div>
+            )}
           </div>
-          <Button
-            onClick={() => setShowConfirm(true)}
-            variant="danger"
-            size="sm"
-            className="text-xs opacity-0 group-hover:opacity-100 transition-opacity"
-          >
-            Delete
-          </Button>
+          {isOwnProfile && (
+            <Button
+              onClick={() => setShowConfirm(true)}
+              variant="danger"
+              size="sm"
+              className="text-xs opacity-0 group-hover:opacity-100 transition-opacity"
+            >
+              Delete
+            </Button>
+          )}
         </div>
       </div>
 

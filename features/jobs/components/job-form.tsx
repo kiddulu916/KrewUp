@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Button, Input, Select } from '@/components/ui';
 import { LocationAutocomplete } from '@/components/common/location-autocomplete';
+import { CustomQuestionsBuilder } from './custom-questions-builder';
 import { TRADES, TRADE_SUBCATEGORIES, JOB_TYPES, CERTIFICATIONS } from '@/lib/constants';
 import { createJob, type JobData } from '../actions/job-actions';
 
@@ -25,6 +26,7 @@ export function JobForm() {
     { trade: '', subTrades: [] }
   ]);
   const [selectedCerts, setSelectedCerts] = useState<string[]>([]);
+  const [customQuestions, setCustomQuestions] = useState<Array<{ question: string; required: boolean }>>([]);
 
   // Pay rate state for conditional logic
   const [hourlyRate, setHourlyRate] = useState('');
@@ -123,6 +125,7 @@ export function JobForm() {
       ...formData,
       trade_selections: structuredTradeSelections,
       required_certs: selectedCerts.length > 0 ? selectedCerts : undefined,
+      custom_questions: customQuestions.length > 0 ? customQuestions : undefined,
       // Keep old fields for backward compatibility
       trade: structuredTradeSelections[0].trade,
       sub_trade: structuredTradeSelections[0].subTrades[0] || undefined,
@@ -419,6 +422,15 @@ export function JobForm() {
             </label>
           ))}
         </div>
+      </div>
+
+      {/* Custom Screening Questions */}
+      <div>
+        <h3 className="text-lg font-semibold mb-3">Screening Questions</h3>
+        <CustomQuestionsBuilder
+          value={customQuestions}
+          onChange={setCustomQuestions}
+        />
       </div>
 
       <div className="flex gap-3 pt-4 border-t border-gray-200">

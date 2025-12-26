@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useApplicationWizard } from '../../hooks/use-application-wizard';
 import { ProgressIndicator } from './progress-indicator';
@@ -8,6 +8,7 @@ import { AutoSaveIndicator } from './auto-save-indicator';
 import { Step1Documents } from './step-1-documents';
 import { Step2PersonalInfo } from './step-2-personal-info';
 import { Step3Contact } from './step-3-contact';
+import { StepScreeningQuestions } from './step-screening-questions';
 import { Step4WorkAuth } from './step-4-work-auth';
 import { Step5WorkHistory } from './step-5-work-history';
 import { Step6Education } from './step-6-education';
@@ -17,6 +18,8 @@ import { Button } from '@/components/ui';
 import { LoadingSpinner } from '@/components/ui';
 import { submitApplication } from '../../actions/application-actions';
 import { useToast } from '@/components/providers/toast-provider';
+import { createClient } from '@/lib/supabase/client';
+import type { CustomQuestion } from '@/features/jobs/components/custom-questions-builder';
 
 /**
  * Application Wizard Container Component
@@ -53,6 +56,8 @@ export function ApplicationWizardContainer({ jobId, jobTitle }: Props) {
   const router = useRouter();
   const toast = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [customQuestions, setCustomQuestions] = useState<CustomQuestion[]>([]);
+  const [hasScreeningQuestions, setHasScreeningQuestions] = useState(false);
 
   const {
     currentStep,
@@ -69,6 +74,28 @@ export function ApplicationWizardContainer({ jobId, jobTitle }: Props) {
     nextStep,
     prevStep,
   } = useApplicationWizard(jobId);
+
+  // Fetch job details to check for custom questions
+  useEffect(() => {
+    async function fetchJobDetails() {
+      const supabase = createClient();
+      const { data: job } = await supabase
+        .from('jobs')
+        .select(`
+          custom_questions,
+          employer:profiles!employer_id(subscription_status)
+        `)
+        .eq('id', jobId)
+        .single();
+
+      if (job?.custom_questions && job.custom_questions.length > 0 && job.employer?.subscription_status === 'pro') {
+        setCustomQuestions(job.custom_questions);
+        setHasScreeningQuestions(true);
+      }
+    }
+
+    fetchJobDetails();
+  }, [jobId]);
 
   async function handleSubmit() {
     // Validate all form data
@@ -118,13 +145,19 @@ export function ApplicationWizardContainer({ jobId, jobTitle }: Props) {
     );
   }
 
+  // Calculate total steps dynamically
+  const totalSteps = hasScreeningQuestions ? 9 : 8;
+
+  // No need to adjust display step since screening questions are at the end
+  const getDisplayStep = (step: number) => step;
+
   return (
     <div className="min-h-screen bg-gray-50 pb-24">
       {/* Header - Sticky */}
       <div className="bg-white border-b sticky top-0 z-10 shadow-sm">
         <div className="max-w-4xl mx-auto px-4 py-4">
           <h1 className="text-2xl font-bold text-gray-900">Apply for {jobTitle}</h1>
-          <ProgressIndicator currentStep={currentStep} totalSteps={8} />
+          <ProgressIndicator currentStep={getDisplayStep(currentStep)} totalSteps={totalSteps} />
           <AutoSaveIndicator isSaving={isSaving} lastSaved={lastSaved} />
         </div>
       </div>
@@ -158,6 +191,11 @@ export function ApplicationWizardContainer({ jobId, jobTitle }: Props) {
           {currentStep === 7 && <Step7Skills form={form} />}
 
           {currentStep === 8 && <Step8References form={form} />}
+
+          {/* Conditional Screening Questions Step - Last step before submission */}
+          {hasScreeningQuestions && currentStep === 9 && (
+            <StepScreeningQuestions questions={customQuestions} />
+          )}
         </div>
       </div>
 
@@ -175,10 +213,12 @@ export function ApplicationWizardContainer({ jobId, jobTitle }: Props) {
             </Button>
 
             <div className="text-sm text-gray-600">
-              {currentStep === 8 ? 'Ready to submit?' : `Step ${currentStep} of 8`}
+              {currentStep === totalSteps
+                ? 'Ready to submit?'
+                : `Step ${currentStep} of ${totalSteps}`}
             </div>
 
-            {currentStep === 8 ? (
+            {currentStep === totalSteps ? (
               <Button
                 type="button"
                 variant="secondary"

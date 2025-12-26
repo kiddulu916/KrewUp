@@ -1131,7 +1131,7 @@ npm install resend @react-email/components
 ```env
 # .env.local
 RESEND_API_KEY=re_xxxxxxxxxxxx
-RESEND_FROM_EMAIL=noreply@get-krewup.com
+RESEND_FROM_EMAIL=noreply@krewup.net
 ```
 
 #### 3. Email Client

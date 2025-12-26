@@ -3,6 +3,10 @@
     {
       "path": "/api/cron/reset-expired-boosts",
       "schedule": "0 0 * * *"
+    },
+    {
+      "path": "/api/cron/check-proximity-alerts",
+      "schedule": "*/10 * * * *"
     }
   ]
 }

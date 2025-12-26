@@ -1,6 +1,8 @@
 import { createClient } from '@/lib/supabase/server';
 import { Card, CardContent, CardHeader, CardTitle, Badge, Button } from '@/components/ui';
 import { MessageButton } from '@/features/messaging/components/message-button';
+import { BoostBadge } from '@/features/subscriptions/components/boost-badge';
+import { ProfileViewTracker } from '@/features/subscriptions/components/profile-view-tracker';
 import { notFound, redirect } from 'next/navigation';
 import Link from 'next/link';
 import { cookies } from 'next/headers';
@@ -61,6 +63,9 @@ export default async function PublicProfilePage({ params }: Props) {
 
   return (
     <div className="space-y-6">
+      {/* Track profile view */}
+      <ProfileViewTracker profileId={profileId} />
+
       {/* Back button */}
       <Link href="/dashboard/jobs">
         <Button variant="outline">← Back</Button>
@@ -87,7 +92,16 @@ export default async function PublicProfilePage({ params }: Props) {
 
             {/* Info Grid */}
             <div className="flex-1">
-              <h1 className="text-2xl font-bold text-gray-900 mb-4">{profile.name}</h1>
+              <div className="flex items-center gap-3 mb-4">
+                <h1 className="text-2xl font-bold text-gray-900">{profile.name}</h1>
+                {profile.role === 'worker' && (
+                  <BoostBadge
+                    expiresAt={profile.boost_expires_at}
+                    size="md"
+                    showExpiry
+                  />
+                )}
+              </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <p className="text-sm font-medium text-gray-500">Role</p>
