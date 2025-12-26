@@ -105,21 +105,21 @@ export function JobAnalyticsDashboard({ jobId, jobTitle }: JobAnalyticsDashboard
           <div className="flex gap-2">
             <Button
               size="sm"
-              variant={dateRange === 'week' ? 'default' : 'outline'}
+              variant={dateRange === 'week' ? 'primary' : 'outline'}
               onClick={() => setDateRange('week')}
             >
               7 Days
             </Button>
             <Button
               size="sm"
-              variant={dateRange === 'month' ? 'default' : 'outline'}
+              variant={dateRange === 'month' ? 'primary' : 'outline'}
               onClick={() => setDateRange('month')}
             >
               30 Days
             </Button>
             <Button
               size="sm"
-              variant={dateRange === 'all' ? 'default' : 'outline'}
+              variant={dateRange === 'all' ? 'primary' : 'outline'}
               onClick={() => setDateRange('all')}
             >
               All Time
