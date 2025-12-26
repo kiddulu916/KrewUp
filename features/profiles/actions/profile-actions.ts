@@ -14,6 +14,7 @@ export type ProfileUpdateData = {
   bio?: string | null;
   employer_type?: string | null;
   company_name?: string | null;
+  profile_image_url?: string | null;
 };
 
 export type ProfileResult = {
@@ -79,6 +80,7 @@ export async function updateProfile(data: ProfileUpdateData): Promise<ProfileRes
   if (data.bio !== undefined) updateData.bio = data.bio;
   if (data.employer_type !== undefined) updateData.employer_type = data.employer_type;
   if (data.company_name !== undefined) updateData.company_name = data.company_name;
+  if (data.profile_image_url !== undefined) updateData.profile_image_url = data.profile_image_url;
 
   // Only update if there are fields to update
   if (Object.keys(updateData).length > 0) {
