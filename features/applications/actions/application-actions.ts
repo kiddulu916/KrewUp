@@ -47,7 +47,7 @@ export async function createApplication(
 
     // Check if already applied
     const { data: existingApp } = await supabase
-      .from('applications')
+      .from('job_applications')
       .select('id')
       .eq('job_id', data.jobId)
       .eq('worker_id', user.id)
@@ -58,7 +58,7 @@ export async function createApplication(
     }
 
     // Create application
-    const { error } = await supabase.from('applications').insert({
+    const { error } = await supabase.from('job_applications').insert({
       job_id: data.jobId,
       worker_id: user.id,
       cover_letter: data.coverLetter || null,
@@ -100,7 +100,7 @@ export async function updateApplicationStatus(
 
     // Check if user is an employer and owns the job
     const { data: application } = await supabase
-      .from('applications')
+      .from('job_applications')
       .select('id, job_id')
       .eq('id', applicationId)
       .single();
@@ -122,7 +122,7 @@ export async function updateApplicationStatus(
 
     // Update status
     const { error } = await supabase
-      .from('applications')
+      .from('job_applications')
       .update({ status })
       .eq('id', applicationId);
 
@@ -156,7 +156,7 @@ export async function hasApplied(jobId: string): Promise<boolean> {
     }
 
     const { data } = await supabase
-      .from('applications')
+      .from('job_applications')
       .select('id')
       .eq('job_id', jobId)
       .eq('worker_id', user.id)
@@ -195,7 +195,7 @@ export async function getJobApplications(jobId: string) {
     }
 
     const { data: applications, error } = await supabase
-      .from('applications')
+      .from('job_applications')
       .select(
         `
         *,
@@ -212,7 +212,7 @@ export async function getJobApplications(jobId: string) {
       `
       )
       .eq('job_id', jobId)
-      .order('created_at', { ascending: false });
+      .order('created_at', { ascending: false});
 
     if (error) {
       console.error('Error fetching applications:', error);
