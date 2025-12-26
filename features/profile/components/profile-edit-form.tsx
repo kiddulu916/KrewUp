@@ -6,6 +6,8 @@ import { Button, Input, Select } from '@/components/ui';
 import { LocationAutocomplete } from '@/components/common';
 import { TRADES, TRADE_SUBCATEGORIES, EMPLOYER_TYPES } from '@/lib/constants';
 import { updateProfile, type ProfileUpdateData } from '../actions/profile-actions';
+import { ProfileAvatarUpload } from '@/features/profiles/components/profile-avatar-upload';
+import { uploadProfilePicture } from '@/features/profiles/actions/profile-picture-actions';
 
 type Props = {
   profile: any;
@@ -15,6 +17,7 @@ export function ProfileEditForm({ profile }: Props) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [selectedProfilePicture, setSelectedProfilePicture] = useState<File | null>(null);
 
   const [formData, setFormData] = useState<ProfileUpdateData>({
     name: profile.name || '',
@@ -35,13 +38,35 @@ export function ProfileEditForm({ profile }: Props) {
     setError('');
     setIsLoading(true);
 
-    const result = await updateProfile(formData);
+    try {
+      // Upload profile picture first if selected
+      let profileImageUrl = formData.profile_image_url;
+      if (selectedProfilePicture) {
+        const uploadResult = await uploadProfilePicture(selectedProfilePicture);
+        if (!uploadResult.success) {
+          setError(uploadResult.error || 'Failed to upload profile picture');
+          setIsLoading(false);
+          return;
+        }
+        profileImageUrl = uploadResult.url;
+      }
 
-    if (!result.success) {
-      setError(result.error || 'Failed to update profile');
+      // Update profile with new image URL
+      const result = await updateProfile({
+        ...formData,
+        profile_image_url: profileImageUrl,
+      });
+
+      if (!result.success) {
+        setError(result.error || 'Failed to update profile');
+        setIsLoading(false);
+      }
+      // If successful, user will be redirected by the action
+    } catch (err) {
+      console.error('Submit error:', err);
+      setError('An unexpected error occurred');
       setIsLoading(false);
     }
-    // If successful, user will be redirected by the action
   }
 
   return (
@@ -51,6 +76,14 @@ export function ProfileEditForm({ profile }: Props) {
           <p className="text-sm text-red-800">{error}</p>
         </div>
       )}
+
+      <ProfileAvatarUpload
+        currentImageUrl={profile.profile_image_url}
+        userName={profile.name}
+        userId={profile.id}
+        onImageSelected={(file) => setSelectedProfilePicture(file)}
+        disabled={isLoading}
+      />
 
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
         <Input

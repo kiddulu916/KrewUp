@@ -14,6 +14,7 @@ export type ProfileUpdateData = {
   phone?: string;
   bio?: string;
   employer_type?: 'contractor' | 'recruiter';
+  profile_image_url?: string | null;
 };
 
 export type ProfileResult = {
@@ -62,15 +63,23 @@ export async function updateProfile(data: ProfileUpdateData): Promise<ProfileRes
       return { success: false, error: updateError.message };
     }
 
-    // Update phone separately if provided (not in RPC function)
+    // Update phone and profile_image_url separately if provided (not in RPC function)
+    const extraUpdates: any = {};
     if (data.phone) {
-      const { error: phoneError } = await supabase
+      extraUpdates.phone = data.phone;
+    }
+    if (data.profile_image_url !== undefined) {
+      extraUpdates.profile_image_url = data.profile_image_url;
+    }
+
+    if (Object.keys(extraUpdates).length > 0) {
+      const { error: extraError } = await supabase
         .from('profiles')
-        .update({ phone: data.phone })
+        .update(extraUpdates)
         .eq('id', user.id);
 
-      if (phoneError) {
-        return { success: false, error: phoneError.message };
+      if (extraError) {
+        return { success: false, error: extraError.message };
       }
     }
   } else {
@@ -95,6 +104,11 @@ export async function updateProfile(data: ProfileUpdateData): Promise<ProfileRes
     // Only set employer_type for employers
     if (currentProfile?.role === 'employer' && data.employer_type) {
       updateData.employer_type = data.employer_type;
+    }
+
+    // Only set profile_image_url if provided
+    if (data.profile_image_url !== undefined) {
+      updateData.profile_image_url = data.profile_image_url;
     }
 
     const { error: updateError } = await supabase
