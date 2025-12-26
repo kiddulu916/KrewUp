@@ -88,7 +88,11 @@ export function ApplicationWizardContainer({ jobId, jobTitle }: Props) {
         .eq('id', jobId)
         .single();
 
-      if (job?.custom_questions && job.custom_questions.length > 0 && job.employer?.subscription_status === 'pro') {
+      // Check if job has custom questions and employer is Pro
+      // Note: employer is an array from the relationship query, so we access [0]
+      const employer = Array.isArray(job?.employer) ? job.employer[0] : job?.employer;
+
+      if (job?.custom_questions && job.custom_questions.length > 0 && employer?.subscription_status === 'pro') {
         setCustomQuestions(job.custom_questions);
         setHasScreeningQuestions(true);
       }
