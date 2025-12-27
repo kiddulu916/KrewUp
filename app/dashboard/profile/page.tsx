@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server';
 import { Card, CardContent, CardHeader, CardTitle, Badge, Button } from '@/components/ui';
 import { CertificationItem } from '@/features/profiles/components/certification-item';
 import { ExperienceItem } from '@/features/profiles/components/experience-item';
+import { EducationItem } from '@/features/profiles/components/education-item';
 import { ProfileViewsList } from '@/features/subscriptions/components/profile-views-list';
 import { InitialsAvatar } from '@/lib/utils/initials-avatar';
 import Link from 'next/link';
@@ -43,6 +44,15 @@ export default async function ProfilePage() {
         .select('*')
         .eq('user_id', user.id)
         .order('start_date', { ascending: false })
+    : { data: null };
+
+  // Get education if worker
+  const { data: education } = profile?.role === 'worker'
+    ? await supabase
+        .from('education')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('graduation_year', { ascending: false, nullsFirst: false })
     : { data: null };
 
   return (
@@ -210,6 +220,38 @@ export default async function ProfilePage() {
                 <p>No work experience added yet</p>
                 <p className="text-sm mt-1">
                   Add your experience to showcase your skills
+                </p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Education - Workers Only */}
+      {profile?.role === 'worker' && (
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle>Education</CardTitle>
+              <Link href="/dashboard/profile/education">
+                <Button variant="outline" size="sm">
+                  Add Education
+                </Button>
+              </Link>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {education && education.length > 0 ? (
+              <div className="space-y-3">
+                {education.map((edu: any) => (
+                  <EducationItem key={edu.id} education={edu} />
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-gray-500">
+                <p>No education added yet</p>
+                <p className="text-sm mt-1">
+                  Add your education to enhance your profile
                 </p>
               </div>
             )}
