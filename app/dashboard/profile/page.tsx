@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle, Badge, Button } from '@/compo
 import { CertificationItem } from '@/features/profiles/components/certification-item';
 import { ExperienceItem } from '@/features/profiles/components/experience-item';
 import { ProfileViewsList } from '@/features/subscriptions/components/profile-views-list';
+import { InitialsAvatar } from '@/lib/utils/initials-avatar';
 import Link from 'next/link';
 import { cookies } from 'next/headers';
 
@@ -69,10 +70,16 @@ export default async function ProfilePage() {
         </CardHeader>
         <CardContent>
           <div className="flex items-start gap-6">
-            {/* Profile Picture Placeholder */}
-            <div className="flex h-24 w-24 shrink-0 items-center justify-center rounded-full bg-krewup-blue text-4xl font-bold text-white">
-              {profile?.name.charAt(0).toUpperCase()}
-            </div>
+            {/* Profile Picture */}
+            {profile?.profile_image_url ? (
+              <img
+                src={profile.profile_image_url}
+                alt={profile.name}
+                className="w-24 h-24 rounded-full object-cover border-4 border-gray-200 shrink-0"
+              />
+            ) : (
+              <InitialsAvatar name={profile?.name || ''} userId={profile?.id || ''} size="lg" />
+            )}
 
             {/* Info Grid */}
             <div className="flex-1 grid grid-cols-2 gap-4">
