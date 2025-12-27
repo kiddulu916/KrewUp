@@ -161,7 +161,16 @@ export const TRADE_SUBCATEGORIES: Record<string, readonly string[]> = {
 export const ROLES = ['Worker', 'Employer'] as const;
 
 // Employer types
-export const EMPLOYER_TYPES = ['contractor', 'recruiter'] as const;
+export const EMPLOYER_TYPES = ['contractor', 'recruiter', 'developer'] as const;
+
+export type EmployerType = (typeof EMPLOYER_TYPES)[number];
+
+// Add human-readable labels
+export const EMPLOYER_TYPE_LABELS: Record<EmployerType, string> = {
+  contractor: 'Contractor',
+  recruiter: 'Recruiter',
+  developer: 'Developer/Home Owner',
+};
 
 // Subscription levels
 export const SUBSCRIPTION_LEVELS = ['Free', 'Pro'] as const;
@@ -235,7 +244,7 @@ export const NOTIFICATION_TYPES = [
 // Type exports
 export type Trade = typeof TRADES[number];
 export type Role = typeof ROLES[number];
-export type EmployerType = typeof EMPLOYER_TYPES[number];
+// EmployerType is defined above with EMPLOYER_TYPE_LABELS
 export type SubscriptionLevel = typeof SUBSCRIPTION_LEVELS[number];
 export type Certification = typeof CERTIFICATIONS[number];
 export type JobType = typeof JOB_TYPES[number];
