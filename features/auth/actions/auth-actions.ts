@@ -30,13 +30,23 @@ export async function signIn(email: string, password: string): Promise<AuthResul
   // Check moderation status using service role (bypasses RLS)
   if (data.user) {
     const serviceSupabase = await createServiceClient(await cookies());
-    const { data: actions } = await serviceSupabase
+    const { data: actions, error: moderationError } = await serviceSupabase
       .from('user_moderation_actions')
       .select('*')
       .eq('user_id', data.user.id)
       .in('action_type', ['ban', 'suspension', 'unbanned'])
       .order('created_at', { ascending: false })
       .limit(10);
+
+    if (moderationError) {
+      console.error('[signIn] Error checking moderation status:', moderationError);
+    }
+
+    console.log('[signIn] Moderation check for user:', data.user.id);
+    console.log('[signIn] Found actions:', actions?.length || 0);
+    if (actions && actions.length > 0) {
+      console.log('[signIn] Actions:', JSON.stringify(actions, null, 2));
+    }
 
     if (actions && actions.length > 0) {
       // Check for permanent ban

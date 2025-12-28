@@ -64,6 +64,14 @@ export async function createClient(cookieStore: Awaited<ReturnType<typeof cookie
  * Use with caution - only for server-side operations that need full access
  */
 export async function createServiceClient(cookieStore: Awaited<ReturnType<typeof cookies>>) {
+  if (!supabaseServiceKey) {
+    console.error('[createServiceClient] SUPABASE_SERVICE_ROLE_KEY is not set!');
+    throw new Error('Service role key not configured');
+  }
+
+  console.log('[createServiceClient] Creating service client with key:',
+    supabaseServiceKey.substring(0, 20) + '...');
+
   return createServerClient(
     supabaseUrl!,
     supabaseServiceKey!,
