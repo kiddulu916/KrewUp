@@ -25,7 +25,7 @@ export async function suspendUser(
   const { data: profile } = await supabase
     .from('profiles')
     .select('is_admin')
-    .eq('user_id', user.id)
+    .eq('id', user.id)
     .single();
 
   if (!profile?.is_admin) {
@@ -98,7 +98,7 @@ export async function banUser(userId: string, reason: string) {
   const { data: profile } = await supabase
     .from('profiles')
     .select('is_admin')
-    .eq('user_id', user.id)
+    .eq('id', user.id)
     .single();
 
   if (!profile?.is_admin) {
@@ -160,7 +160,7 @@ export async function unbanUser(userId: string) {
   const { data: profile } = await supabase
     .from('profiles')
     .select('is_admin')
-    .eq('user_id', user.id)
+    .eq('id', user.id)
     .single();
 
   if (!profile?.is_admin) {
@@ -217,7 +217,7 @@ export async function grantProSubscription(userId: string, reason: string) {
   const { data: profile } = await supabase
     .from('profiles')
     .select('is_admin')
-    .eq('user_id', user.id)
+    .eq('id', user.id)
     .single();
 
   if (!profile?.is_admin) {
@@ -290,7 +290,7 @@ export async function revokeProSubscription(userId: string, reason: string) {
   const { data: profile } = await supabase
     .from('profiles')
     .select('is_admin')
-    .eq('user_id', user.id)
+    .eq('id', user.id)
     .single();
 
   if (!profile?.is_admin) {
@@ -355,7 +355,7 @@ export async function getUserModerationHistory(userId: string) {
   const { data: profile } = await supabase
     .from('profiles')
     .select('is_admin')
-    .eq('user_id', user.id)
+    .eq('id', user.id)
     .single();
 
   if (!profile?.is_admin) {
