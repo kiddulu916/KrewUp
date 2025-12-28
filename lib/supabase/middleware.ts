@@ -41,6 +41,36 @@ import { NextResponse, type NextRequest } from 'next/server';
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY;
 
+/**
+ * Check if user has admin access for /admin/* routes
+ */
+async function checkAdminAccess(
+  supabase: ReturnType<typeof createServerClient>,
+  pathname: string
+): Promise<boolean> {
+  // Only check admin routes
+  if (!pathname.startsWith('/admin')) {
+    return true; // Not an admin route, allow
+  }
+
+  // Get current authenticated user
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return false; // Not logged in
+  }
+
+  // Check if user has admin flag
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('is_admin')
+    .eq('user_id', user.id)
+    .single();
+
+  return profile?.is_admin === true;
+}
 
 export async function createClient(request: NextRequest) {
   // Create an unmodified response
@@ -80,24 +110,38 @@ export async function createClient(request: NextRequest) {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  
+
+  // Check admin access for /admin/* routes
+  if (request.nextUrl.pathname.startsWith('/admin')) {
+    const hasAdminAccess = await checkAdminAccess(
+      supabase,
+      request.nextUrl.pathname
+    );
+
+    if (!hasAdminAccess) {
+      // Return 404 to hide admin routes from non-admins
+      // (Don't redirect to login to avoid revealing admin routes exist)
+      return NextResponse.rewrite(new URL('/404', request.url));
+    }
+  }
+
   // Protected routes logic
   const isProtectedRoute = request.nextUrl.pathname.startsWith('/dashboard');
   const isAuthRoute =
   request.nextUrl.pathname === '/login' || request.nextUrl.pathname === '/signup';
-  
+
   // Redirect unauthenticated users trying to access protected routes
   if (!user && isProtectedRoute) {
     const redirectUrl = new URL('/login', request.url);
     redirectUrl.searchParams.set('redirect', request.nextUrl.pathname);
     return NextResponse.redirect(redirectUrl);
   }
-  
+
   // Redirect authenticated users away from auth pages
   if (user && isAuthRoute) {
     return NextResponse.redirect(new URL('/dashboard/feed', request.url));
   }
-  
+
   return supabaseResponse;
 }
 
