@@ -17,13 +17,13 @@ export function AdminSidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="w-64 bg-gray-900 text-white min-h-screen">
-      <div className="p-6">
-        <h1 className="text-2xl font-bold">KrewUp Admin</h1>
-        <p className="text-xs text-gray-400 mt-1">Platform Management</p>
+    <aside className="w-48 bg-gray-900 text-white min-h-screen">
+      <div className="p-4">
+        <h1 className="text-xl font-bold">KrewUp Admin</h1>
+        <p className="text-xs text-gray-400 mt-1">Platform Mgmt</p>
       </div>
 
-      <nav className="px-3 space-y-1">
+      <nav className="px-2 space-y-1">
         {navigation.map((item) => {
           const isActive =
             pathname === item.href || pathname.startsWith(item.href + '/');
@@ -32,26 +32,26 @@ export function AdminSidebar() {
             <Link
               key={item.name}
               href={item.href}
-              className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+              className={`flex items-center gap-2 px-2 py-2 rounded-lg text-sm font-medium transition-colors ${
                 isActive
                   ? 'bg-gray-800 text-white'
                   : 'text-gray-300 hover:bg-gray-800 hover:text-white'
               }`}
             >
-              <span className="text-xl">{item.icon}</span>
+              <span className="text-lg">{item.icon}</span>
               <span>{item.name}</span>
             </Link>
           );
         })}
       </nav>
 
-      <div className="absolute bottom-0 w-64 p-4 border-t border-gray-800">
+      <div className="absolute bottom-0 w-48 p-3 border-t border-gray-800">
         <Link
           href="/dashboard/feed"
-          className="flex items-center gap-2 text-sm text-gray-400 hover:text-white transition-colors"
+          className="flex items-center gap-2 text-xs text-gray-400 hover:text-white transition-colors"
         >
           <span>←</span>
-          <span>Back to Main App</span>
+          <span>Back to App</span>
         </Link>
       </div>
     </aside>
