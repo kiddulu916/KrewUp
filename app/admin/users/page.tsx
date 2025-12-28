@@ -495,6 +495,7 @@ export default function UsersPage() {
                     {!moderationStatus?.isBanned && (
                       <React.Fragment key="moderation-actions">
                         <Button
+                          key="suspend-button"
                           variant="secondary"
                           onClick={() => setShowSuspendDialog(true)}
                           disabled={actionLoading || moderationStatus?.isSuspended}
@@ -502,6 +503,7 @@ export default function UsersPage() {
                           Suspend User
                         </Button>
                         <Button
+                          key="ban-button"
                           variant="danger"
                           onClick={() => setShowBanDialog(true)}
                           disabled={actionLoading}
