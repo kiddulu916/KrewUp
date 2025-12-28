@@ -65,13 +65,8 @@ export async function createClient(cookieStore: Awaited<ReturnType<typeof cookie
  */
 export async function createServiceClient(_cookieStore?: Awaited<ReturnType<typeof cookies>>) {
   if (!supabaseServiceKey) {
-    console.error('[createServiceClient] SUPABASE_SERVICE_ROLE_KEY is not set!');
-    throw new Error('Service role key not configured');
+    throw new Error('SUPABASE_SERVICE_ROLE_KEY is not configured');
   }
-
-  console.log('[createServiceClient] Creating service client with key:',
-    supabaseServiceKey.substring(0, 20) + '...');
-  console.log('[createServiceClient] Using Supabase URL:', supabaseUrl);
 
   // Service role doesn't need cookies - it bypasses auth entirely
   return createServerClient(

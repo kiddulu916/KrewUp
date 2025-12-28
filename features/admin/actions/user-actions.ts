@@ -43,17 +43,8 @@ export async function suspendUser(
   const expiresAt = new Date();
   expiresAt.setDate(expiresAt.getDate() + durationDays);
 
-  console.log('[suspendUser] Attempting to insert moderation action:', {
-    user_id: userId,
-    action_type: 'suspension',
-    reason,
-    duration_days: durationDays,
-    expires_at: expiresAt.toISOString(),
-    actioned_by: user.id,
-  });
-
   // Create moderation action record
-  const { data: insertedData, error: moderationError } = await supabase
+  const { error: moderationError } = await supabase
     .from('user_moderation_actions')
     .insert({
       user_id: userId,
@@ -62,36 +53,12 @@ export async function suspendUser(
       duration_days: durationDays,
       expires_at: expiresAt.toISOString(),
       actioned_by: user.id,
-    })
-    .select();
+    });
 
   if (moderationError) {
-    console.error('[suspendUser] Error creating moderation action:', moderationError);
-    console.error('[suspendUser] Error details:', JSON.stringify(moderationError, null, 2));
-    return { success: false, error: `Failed to suspend user: ${moderationError.message}` };
+    console.error('Error creating moderation action:', moderationError);
+    return { success: false, error: 'Failed to suspend user' };
   }
-
-  console.log('[suspendUser] Successfully inserted:', insertedData);
-
-  // Verify the insert persisted
-  const { data: verifyData, error: verifyError } = await supabase
-    .from('user_moderation_actions')
-    .select('*')
-    .eq('id', insertedData[0].id)
-    .single();
-
-  console.log('[suspendUser] Verification query result:', verifyData);
-  console.log('[suspendUser] Verification query error:', verifyError);
-
-  // Also check with service role
-  const { createServiceClient } = require('@/lib/supabase/server');
-  const serviceSupabase = await createServiceClient(await cookies());
-  const { data: serviceVerify } = await serviceSupabase
-    .from('user_moderation_actions')
-    .select('*')
-    .eq('id', insertedData[0].id)
-    .single();
-  console.log('[suspendUser] Service role verification:', serviceVerify);
 
   // Log activity
   const { error: logError } = await supabase.from('admin_activity_log').insert({

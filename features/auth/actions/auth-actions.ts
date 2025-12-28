@@ -30,23 +30,7 @@ export async function signIn(email: string, password: string): Promise<AuthResul
   // Check moderation status using service role (bypasses RLS)
   if (data.user) {
     const serviceSupabase = await createServiceClient(await cookies());
-
-    // Test: Can service role query profiles table?
-    const { data: testProfiles, error: testError } = await serviceSupabase
-      .from('profiles')
-      .select('id')
-      .limit(1);
-    console.log('[signIn] Service role test - Can query profiles?', testProfiles ? 'YES' : 'NO');
-    console.log('[signIn] Service role test error:', testError);
-
-    // Test: Can service role count moderation actions?
-    const { count, error: countError } = await serviceSupabase
-      .from('user_moderation_actions')
-      .select('*', { count: 'exact', head: true });
-    console.log('[signIn] Service role - moderation actions count:', count);
-    console.log('[signIn] Service role - count error:', countError);
-
-    const { data: actions, error: moderationError } = await serviceSupabase
+    const { data: actions } = await serviceSupabase
       .from('user_moderation_actions')
       .select('*')
       .eq('user_id', data.user.id)
@@ -54,60 +38,16 @@ export async function signIn(email: string, password: string): Promise<AuthResul
       .order('created_at', { ascending: false })
       .limit(10);
 
-    if (moderationError) {
-      console.error('[signIn] Error checking moderation status:', moderationError);
-    }
-
-    console.log('[signIn] Moderation check for user:', data.user.id);
-    console.log('[signIn] Found actions:', actions?.length || 0);
     if (actions && actions.length > 0) {
-      console.log('[signIn] Actions:', JSON.stringify(actions, null, 2));
-    } else {
-      // Debug: Check what user_ids exist in the table
-      const { data: allActions, error: allError } = await serviceSupabase
-        .from('user_moderation_actions')
-        .select('user_id, action_type, created_at')
-        .limit(5);
-      console.log('[signIn] Sample of all actions in table:', JSON.stringify(allActions, null, 2));
-      console.log('[signIn] Error querying all actions:', allError);
-
-      // Try to query the specific record we know exists
-      const { data: specificAction, error: specificError } = await serviceSupabase
-        .from('user_moderation_actions')
-        .select('*')
-        .eq('id', '374de1dd-5443-46e4-936b-75d6c055409f')
-        .single();
-      console.log('[signIn] Query for specific known record (374de1dd...):', specificAction);
-      console.log('[signIn] Error:', specificError);
-
-      // Also check the profiles table to see what ID is stored there
-      const { data: profile } = await serviceSupabase
-        .from('profiles')
-        .select('id')
-        .eq('id', data.user.id)
-        .single();
-      console.log('[signIn] Profile exists with this auth user ID?', profile ? 'YES' : 'NO');
-    }
-
-    if (actions && actions.length > 0) {
-      console.log('[signIn] Checking moderation status...');
-
       // Check for permanent ban
       const latestBan = actions.find((a) => a.action_type === 'ban');
       const latestUnban = actions.find((a) => a.action_type === 'unbanned');
-
-      console.log('[signIn] Latest ban:', latestBan);
-      console.log('[signIn] Latest unban:', latestUnban);
 
       const isBanned =
         latestBan &&
         (!latestUnban || new Date(latestBan.created_at) > new Date(latestUnban.created_at));
 
-      console.log('[signIn] Is banned?', isBanned);
-
       if (isBanned) {
-        console.log('[signIn] User is banned, signing out...');
-        // Log out the user immediately
         await supabase.auth.signOut();
         return {
           success: false,
@@ -123,17 +63,8 @@ export async function signIn(email: string, password: string): Promise<AuthResul
           new Date(a.expires_at) > new Date()
       );
 
-      console.log('[signIn] Active suspension found:', activeSuspension);
-      console.log('[signIn] Current time:', new Date().toISOString());
-      if (activeSuspension) {
-        console.log('[signIn] Suspension expires at:', activeSuspension.expires_at);
-        console.log('[signIn] Expires > Now?', new Date(activeSuspension.expires_at) > new Date());
-      }
-
       if (activeSuspension) {
         const expiresDate = new Date(activeSuspension.expires_at).toLocaleString();
-        console.log('[signIn] User is suspended, signing out...');
-        // Log out the user immediately
         await supabase.auth.signOut();
         return {
           success: false,
@@ -141,8 +72,6 @@ export async function signIn(email: string, password: string): Promise<AuthResul
         };
       }
     }
-
-    console.log('[signIn] No active moderation found, allowing login...');
   }
 
   revalidatePath('/', 'layout');
