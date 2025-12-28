@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { Button, Input, Select, Card, CardContent } from '@/components/ui';
 import { TRADES, TRADE_SUBCATEGORIES, EMPLOYER_TYPES } from '@/lib/constants';
 import { completeOnboarding, type OnboardingData } from '../actions/onboarding-actions';
+import { uploadCertificationPhoto } from '@/features/profiles/actions/certification-actions';
 
 type Props = {
   initialName?: string;
@@ -23,6 +24,17 @@ export function OnboardingForm({ initialName = '', initialEmail = '' }: Props) {
     location: '',
     phone: '',
     email: initialEmail,
+  });
+
+  // License state for contractors
+  const [licenseFile, setLicenseFile] = useState<File | null>(null);
+  const [licensePreview, setLicensePreview] = useState<string | null>(null);
+  const [isUploadingLicense, setIsUploadingLicense] = useState(false);
+  const [licenseData, setLicenseData] = useState({
+    license_type: '',
+    license_number: '',
+    issuing_state: '',
+    expires_at: '',
   });
 
   // Capture device location on component mount
@@ -179,7 +191,36 @@ export function OnboardingForm({ initialName = '', initialEmail = '' }: Props) {
     setIsLoading(true);
 
     try {
-      const result = await completeOnboarding(formData);
+      // If contractor, upload license first
+      let licensePhotoUrl = null;
+      if (formData.employer_type === 'contractor' && licenseFile) {
+        setIsUploadingLicense(true);
+
+        // Use existing uploadCertificationPhoto action
+        const uploadResult = await uploadCertificationPhoto(licenseFile);
+        setIsUploadingLicense(false);
+
+        if (!uploadResult.success) {
+          const errorMsg = uploadResult.error || 'Failed to upload license photo';
+          setError(errorMsg);
+          setIsLoading(false);
+          return;
+        }
+
+        licensePhotoUrl = uploadResult.data.url;
+      }
+
+      // Complete onboarding with license data
+      const result = await completeOnboarding({
+        ...formData,
+        licenseData:
+          formData.employer_type === 'contractor' && licensePhotoUrl
+            ? {
+                ...licenseData,
+                photo_url: licensePhotoUrl,
+              }
+            : undefined,
+      });
 
       if (!result.success) {
         setError(result.error || 'Failed to complete onboarding');
@@ -498,6 +539,151 @@ export function OnboardingForm({ initialName = '', initialEmail = '' }: Props) {
                     Briefly describe your company and hiring needs
                   </p>
                 </div>
+
+                {/* Contractor License Upload Section */}
+                {formData.employer_type === 'contractor' && (
+                  <div className="mt-6 p-4 border-2 border-blue-300 bg-blue-50 rounded-lg">
+                    <h3 className="font-semibold text-blue-900 mb-1">
+                      Contractor License Required
+                    </h3>
+                    <p className="text-sm text-blue-800 mb-4">
+                      To ensure platform trust and safety, you must upload your contractor license.
+                      You won't be able to post jobs until your license is verified (usually within 24-48 hours).
+                    </p>
+
+                    <div className="space-y-4 bg-white p-4 rounded-lg">
+                      <Input
+                        label="License Type"
+                        type="text"
+                        placeholder="e.g., General Contractor License"
+                        value={licenseData.license_type}
+                        onChange={(e) =>
+                          setLicenseData({ ...licenseData, license_type: e.target.value })
+                        }
+                        required
+                        helperText="Your contractor license classification"
+                      />
+
+                      <Input
+                        label="License Number"
+                        type="text"
+                        placeholder="e.g., 123456"
+                        value={licenseData.license_number}
+                        onChange={(e) =>
+                          setLicenseData({ ...licenseData, license_number: e.target.value })
+                        }
+                        required
+                        helperText="Your state-issued license number"
+                      />
+
+                      <Input
+                        label="Issuing State/Authority"
+                        type="text"
+                        placeholder="e.g., California"
+                        value={licenseData.issuing_state}
+                        onChange={(e) =>
+                          setLicenseData({ ...licenseData, issuing_state: e.target.value })
+                        }
+                        required
+                        helperText="State that issued your license"
+                      />
+
+                      <Input
+                        label="Expiration Date"
+                        type="date"
+                        value={licenseData.expires_at}
+                        onChange={(e) =>
+                          setLicenseData({ ...licenseData, expires_at: e.target.value })
+                        }
+                        required
+                        helperText="When your license expires"
+                      />
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          License Photo <span className="text-red-500">*</span>
+                        </label>
+                        <p className="text-xs text-gray-600 mb-3">
+                          Upload a clear photo of your contractor license (JPEG, PNG, WebP, or PDF - Max 5MB)
+                        </p>
+
+                        {!licensePreview ? (
+                          <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors">
+                            <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                              <svg
+                                className="w-8 h-8 mb-2 text-gray-400"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                                />
+                              </svg>
+                              <p className="mb-1 text-sm text-gray-500">
+                                <span className="font-semibold">Click to upload</span> or drag and drop
+                              </p>
+                              <p className="text-xs text-gray-500">Image or PDF (MAX. 5MB)</p>
+                            </div>
+                            <input
+                              type="file"
+                              className="hidden"
+                              accept="image/jpeg,image/jpg,image/png,image/webp,application/pdf"
+                              onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (file) {
+                                  setLicenseFile(file);
+                                  const reader = new FileReader();
+                                  reader.onloadend = () => {
+                                    setLicensePreview(reader.result as string);
+                                  };
+                                  reader.readAsDataURL(file);
+                                }
+                              }}
+                              required
+                            />
+                          </label>
+                        ) : (
+                          <div className="space-y-3">
+                            {licenseFile?.type === 'application/pdf' ? (
+                              <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                                <svg className="w-10 h-10 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+                                  <path d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" />
+                                </svg>
+                                <div className="flex-1">
+                                  <p className="text-sm font-medium text-gray-900">{licenseFile.name}</p>
+                                  <p className="text-xs text-gray-500">
+                                    {(licenseFile.size / 1024 / 1024).toFixed(2)} MB
+                                  </p>
+                                </div>
+                              </div>
+                            ) : (
+                              <img
+                                src={licensePreview}
+                                alt="License preview"
+                                className="w-full max-h-64 object-contain rounded-lg border border-gray-200"
+                              />
+                            )}
+                            <Button
+                              type="button"
+                              variant="outline"
+                              onClick={() => {
+                                setLicenseFile(null);
+                                setLicensePreview(null);
+                              }}
+                              className="w-full"
+                            >
+                              Remove Photo
+                            </Button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
               </>
             )}
 
@@ -517,12 +703,20 @@ export function OnboardingForm({ initialName = '', initialEmail = '' }: Props) {
                   isLoading ||
                   (formData.role === 'worker'
                     ? !formData.trade
-                    : !formData.employer_type || !formData.company_name || !formData.trade)
+                    : !formData.employer_type ||
+                      !formData.company_name ||
+                      !formData.trade ||
+                      (formData.employer_type === 'contractor' &&
+                        (!licenseData.license_type ||
+                          !licenseData.license_number ||
+                          !licenseData.issuing_state ||
+                          !licenseData.expires_at ||
+                          !licenseFile)))
                 }
-                isLoading={isLoading}
+                isLoading={isLoading || isUploadingLicense}
                 className="flex-1"
               >
-                Complete Setup
+                {isUploadingLicense ? 'Uploading License...' : 'Complete Setup'}
               </Button>
             </div>
           </div>

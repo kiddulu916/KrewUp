@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
 import { cookies } from 'next/headers';
+import { addCertification } from '@/features/profiles/actions/certification-actions';
 
 export type OnboardingData = {
   name: string;
@@ -17,6 +18,13 @@ export type OnboardingData = {
   location: string;
   coords?: { lat: number; lng: number } | null;
   bio?: string;
+  licenseData?: {
+    license_type: string;
+    license_number: string;
+    issuing_state: string;
+    expires_at: string;
+    photo_url: string;
+  };
 };
 
 export type OnboardingResult = {
@@ -149,6 +157,36 @@ export async function completeOnboarding(data: OnboardingData): Promise<Onboardi
     if (updateError) {
       return { success: false, error: updateError.message };
     }
+  }
+
+  // If contractor, create license certification and set can_post_jobs to false
+  if (data.employer_type === 'contractor' && data.licenseData) {
+    // Save license as certification
+    const certResult = await addCertification({
+      credential_category: 'license',
+      certification_type: data.licenseData.license_type,
+      certification_number: data.licenseData.license_number,
+      issued_by: data.licenseData.issuing_state,
+      expires_at: data.licenseData.expires_at,
+      photo_url: data.licenseData.photo_url,
+    });
+
+    if (!certResult.success) {
+      return { success: false, error: certResult.error || 'Failed to save license' };
+    }
+
+    // Set can_post_jobs to false until license verified
+    const { error: postJobsError } = await supabase
+      .from('profiles')
+      .update({ can_post_jobs: false })
+      .eq('id', user.id);
+
+    if (postJobsError) {
+      console.error('[onboarding] Error setting can_post_jobs:', postJobsError);
+      return { success: false, error: 'Failed to update job posting permissions' };
+    }
+
+    console.log('[onboarding] Contractor license saved, can_post_jobs set to false');
   }
 
   // Verify the profile was updated correctly
