@@ -43,8 +43,17 @@ export async function suspendUser(
   const expiresAt = new Date();
   expiresAt.setDate(expiresAt.getDate() + durationDays);
 
+  console.log('[suspendUser] Attempting to insert moderation action:', {
+    user_id: userId,
+    action_type: 'suspension',
+    reason,
+    duration_days: durationDays,
+    expires_at: expiresAt.toISOString(),
+    actioned_by: user.id,
+  });
+
   // Create moderation action record
-  const { error: moderationError } = await supabase
+  const { data: insertedData, error: moderationError } = await supabase
     .from('user_moderation_actions')
     .insert({
       user_id: userId,
@@ -53,12 +62,16 @@ export async function suspendUser(
       duration_days: durationDays,
       expires_at: expiresAt.toISOString(),
       actioned_by: user.id,
-    });
+    })
+    .select();
 
   if (moderationError) {
-    console.error('Error creating moderation action:', moderationError);
-    return { success: false, error: 'Failed to suspend user' };
+    console.error('[suspendUser] Error creating moderation action:', moderationError);
+    console.error('[suspendUser] Error details:', JSON.stringify(moderationError, null, 2));
+    return { success: false, error: `Failed to suspend user: ${moderationError.message}` };
   }
+
+  console.log('[suspendUser] Successfully inserted:', insertedData);
 
   // Log activity
   const { error: logError } = await supabase.from('admin_activity_log').insert({
