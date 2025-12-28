@@ -23,7 +23,7 @@ export function AdminSidebar() {
         <p className="text-xs text-gray-400 mt-1">Platform Mgmt</p>
       </div>
 
-      <nav className="px-2 space-y-1">
+      <nav className="px-2 space-y-1 pb-16">
         {navigation.map((item) => {
           const isActive =
             pathname === item.href || pathname.startsWith(item.href + '/');
