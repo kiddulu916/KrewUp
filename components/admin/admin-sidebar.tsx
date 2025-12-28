@@ -17,9 +17,9 @@ export function AdminSidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="w-48 bg-gray-900 text-white min-h-screen">
-      <div className="p-4">
-        <h1 className="text-xl font-bold">KrewUp Admin</h1>
+    <aside className="w-44 bg-gray-900 text-white min-h-screen">
+      <div className="p-3">
+        <h1 className="text-lg font-bold">KrewUp Admin</h1>
         <p className="text-xs text-gray-400 mt-1">Platform Mgmt</p>
       </div>
 
@@ -38,14 +38,14 @@ export function AdminSidebar() {
                   : 'text-gray-300 hover:bg-gray-800 hover:text-white'
               }`}
             >
-              <span className="text-lg">{item.icon}</span>
+              <span className="text-base">{item.icon}</span>
               <span>{item.name}</span>
             </Link>
           );
         })}
       </nav>
 
-      <div className="absolute bottom-0 w-48 p-3 border-t border-gray-800">
+      <div className="absolute bottom-0 w-44 p-3 border-t border-gray-800">
         <Link
           href="/dashboard/feed"
           className="flex items-center gap-2 text-xs text-gray-400 hover:text-white transition-colors"
