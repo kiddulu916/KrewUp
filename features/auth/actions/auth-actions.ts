@@ -90,15 +90,23 @@ export async function signIn(email: string, password: string): Promise<AuthResul
     }
 
     if (actions && actions.length > 0) {
+      console.log('[signIn] Checking moderation status...');
+
       // Check for permanent ban
       const latestBan = actions.find((a) => a.action_type === 'ban');
       const latestUnban = actions.find((a) => a.action_type === 'unbanned');
+
+      console.log('[signIn] Latest ban:', latestBan);
+      console.log('[signIn] Latest unban:', latestUnban);
 
       const isBanned =
         latestBan &&
         (!latestUnban || new Date(latestBan.created_at) > new Date(latestUnban.created_at));
 
+      console.log('[signIn] Is banned?', isBanned);
+
       if (isBanned) {
+        console.log('[signIn] User is banned, signing out...');
         // Log out the user immediately
         await supabase.auth.signOut();
         return {
@@ -115,8 +123,16 @@ export async function signIn(email: string, password: string): Promise<AuthResul
           new Date(a.expires_at) > new Date()
       );
 
+      console.log('[signIn] Active suspension found:', activeSuspension);
+      console.log('[signIn] Current time:', new Date().toISOString());
+      if (activeSuspension) {
+        console.log('[signIn] Suspension expires at:', activeSuspension.expires_at);
+        console.log('[signIn] Expires > Now?', new Date(activeSuspension.expires_at) > new Date());
+      }
+
       if (activeSuspension) {
         const expiresDate = new Date(activeSuspension.expires_at).toLocaleString();
+        console.log('[signIn] User is suspended, signing out...');
         // Log out the user immediately
         await supabase.auth.signOut();
         return {
@@ -125,6 +141,8 @@ export async function signIn(email: string, password: string): Promise<AuthResul
         };
       }
     }
+
+    console.log('[signIn] No active moderation found, allowing login...');
   }
 
   revalidatePath('/', 'layout');
