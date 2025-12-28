@@ -72,12 +72,12 @@ export default async function DashboardLayout({
       <aside className="hidden md:flex w-40 bg-white border-r border-gray-200 shadow-lg">
         <div className="flex h-full flex-col">
           {/* Logo with gradient */}
-          <div className="flex h-20 items-center justify-center bg-gradient-to-r from-krewup-blue to-krewup-light-blue px-2 py-2">
-            <Link href="/dashboard/feed" className="flex items-center gap-2">
+          <div className="flex h-20 items-center justify-center bg-gradient-to-r from-krewup-blue to-krewup-light-blue">
+            <Link href="/dashboard/feed" className="flex items-center">
               <Image
                 src="/navbar_logo.png"
                 alt="KrewUp Logo"
-                width={120}
+                width={140}
                 height={80}
                 className="object-contain"
               />
