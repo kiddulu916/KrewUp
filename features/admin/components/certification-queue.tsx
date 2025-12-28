@@ -10,10 +10,8 @@ type CertificationWithProfile = {
   id: string;
   user_id: string;
   credential_category: string;
-  name: string;
-  certification_number?: string;
-  issued_by?: string;
-  photo_url: string;
+  certification_type: string;
+  image_url: string;
   verification_status: string;
   verified_at?: string;
   verified_by?: string;
@@ -109,8 +107,8 @@ export function CertificationQueue({ certifications, currentStatus, counts }: Pr
                   {/* Thumbnail */}
                   <div className="relative w-24 h-24 flex-shrink-0 rounded-lg overflow-hidden bg-gray-100">
                     <Image
-                      src={cert.photo_url}
-                      alt={cert.name}
+                      src={cert.image_url}
+                      alt={cert.certification_type}
                       fill
                       className="object-cover"
                       sizes="96px"
@@ -122,7 +120,7 @@ export function CertificationQueue({ certifications, currentStatus, counts }: Pr
                     <div className="flex items-start justify-between gap-2">
                       <div>
                         <h3 className="font-semibold text-gray-900">
-                          {cert.name}
+                          {cert.certification_type}
                         </h3>
                         <p className="text-sm text-gray-600 mt-1">
                           {cert.profiles.name}

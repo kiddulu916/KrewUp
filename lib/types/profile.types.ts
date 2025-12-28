@@ -83,27 +83,12 @@ export interface Certification {
   id: string;
   user_id: string;
   credential_category: 'license' | 'certification';
-  name: string; // Certification type/name
-  certification_number?: string;
-  issuer?: string;
-  issued_by?: string;
-  issue_date?: string;
-  expiry_date?: string;
-  credential_id?: string;
-  credential_url?: string;
-  photo_url?: string;
-  verification_status?: 'pending' | 'verified' | 'rejected';
+  certification_type: string;
+  image_url: string;
+  is_verified: boolean;
   verified_at?: string;
-  verified_by?: string;
-  rejection_reason?: string;
-  verification_notes?: string;
+  expires_at?: string;
   created_at: string;
-  updated_at?: string;
-
-  // Legacy field mapping
-  certification_type?: string; // Maps to 'name' for backwards compatibility
-  image_url?: string; // Maps to 'photo_url' for backwards compatibility
-  is_verified?: boolean; // Computed from verification_status
 }
 
 // Profile with all related data (for application auto-fill)
