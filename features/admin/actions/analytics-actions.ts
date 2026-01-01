@@ -231,3 +231,91 @@ export async function getActiveUsers(
     comparison,
   };
 }
+
+export type ConversionFunnelStage = {
+  stage: string;
+  count: number;
+  percentage: number;
+  dropOffRate: number | null;
+};
+
+/**
+ * Get conversion funnel metrics
+ * Stages: Signup → Profile Complete → First Action
+ */
+export async function getConversionFunnel(
+  dateRange: DateRangeValue,
+  segment: SegmentValue = {}
+): Promise<ConversionFunnelStage[]> {
+  const supabase = await createClient(await cookies());
+  const { gte, lte } = buildDateRangeFilter(dateRange);
+
+  // Stage 1: Signups (users created in date range)
+  let signupQuery = supabase
+    .from('profiles')
+    .select('id, role, subscription_status, location, employer_type, name, trade, created_at')
+    .gte('created_at', gte)
+    .lte('created_at', lte);
+
+  signupQuery = applySegmentFilters(signupQuery, segment);
+  const { data: signups } = await signupQuery;
+  const signupCount = signups?.length || 0;
+
+  // Stage 2: Profile Complete (required fields: name, trade, location)
+  const profileComplete = signups?.filter(
+    (user) => user.name && user.trade && user.location
+  ) || [];
+  const profileCompleteCount = profileComplete.length;
+
+  // Stage 3: First Action (posted job OR submitted application)
+  const profileCompleteIds = profileComplete.map((u) => u.id);
+
+  const [jobsData, appsData] = await Promise.all([
+    supabase
+      .from('jobs')
+      .select('user_id')
+      .in('user_id', profileCompleteIds)
+      .limit(profileCompleteIds.length),
+    supabase
+      .from('job_applications')
+      .select('user_id')
+      .in('user_id', profileCompleteIds)
+      .limit(profileCompleteIds.length),
+  ]);
+
+  const firstActionUserIds = new Set<string>();
+  jobsData.data?.forEach((job) => firstActionUserIds.add(job.user_id));
+  appsData.data?.forEach((app) => firstActionUserIds.add(app.user_id));
+
+  const firstActionCount = firstActionUserIds.size;
+
+  // Calculate percentages and drop-off rates
+  const stages: ConversionFunnelStage[] = [
+    {
+      stage: 'Signup',
+      count: signupCount,
+      percentage: 100,
+      dropOffRate: null,
+    },
+    {
+      stage: 'Profile Complete',
+      count: profileCompleteCount,
+      percentage: signupCount > 0 ? (profileCompleteCount / signupCount) * 100 : 0,
+      dropOffRate:
+        signupCount > 0
+          ? ((signupCount - profileCompleteCount) / signupCount) * 100
+          : 0,
+    },
+    {
+      stage: 'First Action',
+      count: firstActionCount,
+      percentage: signupCount > 0 ? (firstActionCount / signupCount) * 100 : 0,
+      dropOffRate:
+        profileCompleteCount > 0
+          ? ((profileCompleteCount - firstActionCount) / profileCompleteCount) * 100
+          : 0,
+    },
+  ];
+
+  return stages;
+}
