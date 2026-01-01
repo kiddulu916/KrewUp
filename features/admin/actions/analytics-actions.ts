@@ -6,6 +6,32 @@ import type { DateRangeValue } from '@/components/admin/date-range-picker';
 import type { SegmentValue } from '@/components/admin/segment-filter';
 import { buildDateRangeFilter, applySegmentFilters, getComparisonDates, calculatePercentageChange } from '@/lib/analytics/filters';
 
+/**
+ * Represents an activity record from database tables (jobs, job_applications, messages)
+ */
+type ActivityRecord = {
+  user_id?: string;
+  sender_id?: string;
+  created_at: string;
+};
+
+/**
+ * Result type for active users analytics
+ */
+export type ActiveUsersResult = {
+  dau: number;
+  wau: number;
+  mau: number;
+  comparison: {
+    dau: number;
+    wau: number;
+    mau: number;
+    dauChange: number;
+    wauChange: number;
+    mauChange: number;
+  } | null;
+};
+
 export async function getUserGrowthData() {
   const supabase = await createClient(await cookies());
 
@@ -42,11 +68,26 @@ export async function getEngagementMetrics() {
 
 /**
  * Get active users metrics (DAU/WAU/MAU)
+ *
+ * Calculates Daily Active Users, Weekly Active Users, and Monthly Active Users
+ * based on user activity across jobs, applications, and messages.
+ *
+ * Calculation Logic:
+ * - DAU: Unique users who performed any action (job post, application, message) today (00:00 - 23:59)
+ * - WAU: Unique users who performed any action in the last 7 days
+ * - MAU: Unique users who performed any action in the last 30 days
+ *
+ * All metrics respect the provided date range and segment filters (role, subscription, location, employer type).
+ *
+ * @param dateRange - Date range filter with optional comparison period
+ * @param segment - User segment filters (role, subscription, location, employer type)
+ * @returns Active users metrics with optional comparison to previous period
+ * @throws Error if database queries fail or date range is invalid
  */
 export async function getActiveUsers(
   dateRange: DateRangeValue,
-  segment: SegmentValue
-) {
+  segment: SegmentValue = {}
+): Promise<ActiveUsersResult> {
   const supabase = await createClient(await cookies());
   const { gte, lte } = buildDateRangeFilter(dateRange);
 
@@ -55,24 +96,38 @@ export async function getActiveUsers(
   const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
   const monthAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
 
-  // Get unique user IDs from all activity tables
+  // Get unique user IDs from all activity tables with query limits to prevent memory exhaustion
   const [jobsData, appsData, messagesData] = await Promise.all([
     supabase
       .from('jobs')
       .select('user_id, created_at')
       .gte('created_at', gte)
-      .lte('created_at', lte),
+      .lte('created_at', lte)
+      .limit(10000),
     supabase
       .from('job_applications')
       .select('user_id, created_at')
       .gte('created_at', gte)
-      .lte('created_at', lte),
+      .lte('created_at', lte)
+      .limit(10000),
     supabase
       .from('messages')
       .select('sender_id, created_at')
       .gte('created_at', gte)
-      .lte('created_at', lte),
+      .lte('created_at', lte)
+      .limit(10000),
   ]);
+
+  // Check for database errors
+  if (jobsData.error) {
+    throw new Error(`Failed to fetch jobs data: ${jobsData.error.message}`);
+  }
+  if (appsData.error) {
+    throw new Error(`Failed to fetch applications data: ${appsData.error.message}`);
+  }
+  if (messagesData.error) {
+    throw new Error(`Failed to fetch messages data: ${messagesData.error.message}`);
+  }
 
   // Combine all user IDs
   const allUserIds = new Set<string>();
@@ -80,14 +135,29 @@ export async function getActiveUsers(
   appsData.data?.forEach((app) => allUserIds.add(app.user_id));
   messagesData.data?.forEach((msg) => allUserIds.add(msg.sender_id));
 
+  // Handle empty result sets
+  if (allUserIds.size === 0) {
+    return {
+      dau: 0,
+      wau: 0,
+      mau: 0,
+      comparison: null,
+    };
+  }
+
   // Get user profiles with segment filters
   let profileQuery = supabase
     .from('profiles')
     .select('id, role, subscription_status, location, employer_type, created_at')
-    .in('id', Array.from(allUserIds));
+    .in('id', Array.from(allUserIds))
+    .limit(10000);
 
   profileQuery = applySegmentFilters(profileQuery, segment);
-  const { data: profiles } = await profileQuery;
+  const { data: profiles, error: profilesError } = await profileQuery;
+
+  if (profilesError) {
+    throw new Error(`Failed to fetch profiles data: ${profilesError.message}`);
+  }
 
   const activeUserIds = new Set(profiles?.map((p) => p.id) || []);
 
@@ -97,14 +167,14 @@ export async function getActiveUsers(
 
   const dauUserIds = new Set<string>();
   [jobsData.data, appsData.data, messagesData.data].forEach((dataset) => {
-    dataset?.forEach((item: any) => {
-      const createdAt = new Date(item.created_at || item.created_at);
+    dataset?.forEach((item: ActivityRecord) => {
+      const createdAt = new Date(item.created_at);
       if (
         createdAt >= new Date(todayStart) &&
         createdAt <= new Date(todayEnd) &&
-        activeUserIds.has(item.user_id || item.sender_id)
+        activeUserIds.has(item.user_id || item.sender_id || '')
       ) {
-        dauUserIds.add(item.user_id || item.sender_id);
+        dauUserIds.add(item.user_id || item.sender_id || '');
       }
     });
   });
@@ -114,13 +184,13 @@ export async function getActiveUsers(
   // Calculate WAU (users active in last 7 days)
   const wauUserIds = new Set<string>();
   [jobsData.data, appsData.data, messagesData.data].forEach((dataset) => {
-    dataset?.forEach((item: any) => {
-      const createdAt = new Date(item.created_at || item.created_at);
+    dataset?.forEach((item: ActivityRecord) => {
+      const createdAt = new Date(item.created_at);
       if (
         createdAt >= weekAgo &&
-        activeUserIds.has(item.user_id || item.sender_id)
+        activeUserIds.has(item.user_id || item.sender_id || '')
       ) {
-        wauUserIds.add(item.user_id || item.sender_id);
+        wauUserIds.add(item.user_id || item.sender_id || '');
       }
     });
   });

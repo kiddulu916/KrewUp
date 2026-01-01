@@ -1,6 +1,5 @@
 import type { DateRangeValue } from '@/components/admin/date-range-picker';
 import type { SegmentValue } from '@/components/admin/segment-filter';
-import type { PostgrestFilterBuilder } from '@supabase/postgrest-js';
 
 /**
  * Build date range filter for SQL queries
@@ -50,12 +49,16 @@ export function getComparisonDates(dateRange: DateRangeValue): {
 
 /**
  * Apply segment filters to Supabase query
+ *
+ * @param query - The Supabase query builder to apply filters to
+ * @param segment - User segment filters (role, subscription, location, employer type)
+ * @returns The filtered query builder
  */
-export function applySegmentFilters<T>(
-  query: PostgrestFilterBuilder<any, any, T, unknown>,
+export function applySegmentFilters<T extends Record<string, any>>(
+  query: T,
   segment: SegmentValue
-): PostgrestFilterBuilder<any, any, T, unknown> {
-  let filteredQuery = query;
+): T {
+  let filteredQuery = query as any;
 
   if (segment.role) {
     filteredQuery = filteredQuery.eq('role', segment.role);
@@ -73,7 +76,7 @@ export function applySegmentFilters<T>(
     filteredQuery = filteredQuery.eq('employer_type', segment.employerType);
   }
 
-  return filteredQuery;
+  return filteredQuery as T;
 }
 
 /**
