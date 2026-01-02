@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { cookies } from 'next/headers';
+import * as Sentry from '@sentry/nextjs';
 
 export type TradeSelection = {
   trade: string;
@@ -45,16 +46,21 @@ export type JobResult = {
  * Create a new job posting (employers only)
  */
 export async function createJob(data: JobData): Promise<JobResult> {
-  const supabase = await createClient(await cookies());
+  try {
+    // Set Sentry tags for feature tracking
+    Sentry.setTag('feature', 'job-posting');
+    Sentry.setTag('action', 'create-job');
 
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser();
+    const supabase = await createClient(await cookies());
 
-  if (authError || !user) {
-    return { success: false, error: 'Not authenticated' };
-  }
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      return { success: false, error: 'Not authenticated' };
+    }
 
   // Verify user is an employer
   const { data: profile } = await supabase
@@ -99,8 +105,14 @@ export async function createJob(data: JobData): Promise<JobResult> {
     });
 
     if (createError) {
-      return { success: false, error: createError.message };
+      throw createError;
     }
+
+    Sentry.addBreadcrumb({
+      message: 'Job created successfully',
+      level: 'info',
+      data: { jobId },
+    });
 
     revalidatePath('/dashboard/jobs');
     redirect(`/dashboard/jobs/${jobId}`);
@@ -132,11 +144,30 @@ export async function createJob(data: JobData): Promise<JobResult> {
       .single();
 
     if (createError) {
-      return { success: false, error: createError.message };
+      throw createError;
     }
+
+    Sentry.addBreadcrumb({
+      message: 'Job created successfully',
+      level: 'info',
+      data: { jobId: job.id },
+    });
 
     revalidatePath('/dashboard/jobs');
     redirect(`/dashboard/jobs/${job.id}`);
+  }
+  } catch (error) {
+    Sentry.captureException(error, {
+      tags: {
+        feature: 'job-posting',
+        action: 'create-job',
+      },
+    });
+
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to create job'
+    };
   }
 }
 
