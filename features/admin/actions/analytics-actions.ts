@@ -505,3 +505,171 @@ export async function getSubscriptionMetrics(
     comparison,
   };
 }
+
+export type OperationalLoadMetrics = {
+  pendingCertifications: number;
+  avgCertificationReviewTime: number; // in hours
+  moderationQueueBacklog: number;
+  avgModerationResolutionTime: number; // in hours
+  weeklyTrend: {
+    date: string;
+    pendingCerts: number;
+    pendingReports: number;
+  }[];
+};
+
+/**
+ * Get operational load metrics
+ *
+ * Tracks admin workload metrics including certification verification queue,
+ * content moderation backlog, and historical trends to help with capacity planning.
+ *
+ * Metrics Calculated:
+ * - Pending Certifications: Count of certifications awaiting verification
+ * - Avg Certification Review Time: Mean time from submission to verification (hours)
+ * - Moderation Queue Backlog: Count of pending content reports
+ * - Avg Moderation Resolution Time: Mean time from report to resolution (hours)
+ * - Weekly Trend: Daily snapshot of pending items for last 7 days
+ *
+ * Security: Requires admin role authorization
+ * Performance: Applies 1,000 record limit to historical queries
+ *
+ * @param dateRange - Date range filter for calculating averages
+ * @returns Operational load metrics with weekly trend data
+ * @throws Error if user is not authenticated
+ * @throws Error if user is not admin
+ * @throws Error if database queries fail
+ */
+export async function getOperationalLoad(
+  dateRange: DateRangeValue
+): Promise<OperationalLoadMetrics> {
+  const supabase = await createClient(await cookies());
+
+  // Admin authorization check
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    throw new Error('Unauthorized: User not authenticated');
+  }
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', user.id)
+    .single();
+
+  if (profile?.role !== 'admin') {
+    throw new Error('Forbidden: Admin access required');
+  }
+
+  const { gte, lte } = buildDateRangeFilter(dateRange);
+
+  // Current pending certifications
+  const { count: pendingCertifications, error: certsCountError } = await supabase
+    .from('certifications')
+    .select('*', { count: 'exact', head: true })
+    .eq('verification_status', 'pending');
+
+  if (certsCountError) {
+    throw new Error(`Failed to fetch pending certifications: ${certsCountError.message}`);
+  }
+
+  // Average certification review time (from submission to verification)
+  const { data: verifiedCerts, error: verifiedCertsError } = await supabase
+    .from('certifications')
+    .select('created_at, verified_at')
+    .eq('verification_status', 'verified')
+    .not('verified_at', 'is', null)
+    .gte('verified_at', gte)
+    .lte('verified_at', lte)
+    .limit(1000);
+
+  if (verifiedCertsError) {
+    throw new Error(`Failed to fetch verified certifications: ${verifiedCertsError.message}`);
+  }
+
+  let avgCertificationReviewTime = 0;
+  if (verifiedCerts && verifiedCerts.length > 0) {
+    const totalTime = verifiedCerts.reduce((sum, cert) => {
+      const created = new Date(cert.created_at).getTime();
+      const verified = new Date(cert.verified_at!).getTime();
+      return sum + (verified - created);
+    }, 0);
+    avgCertificationReviewTime = totalTime / verifiedCerts.length / (1000 * 60 * 60); // Convert to hours
+  }
+
+  // Moderation queue backlog
+  const { count: moderationQueueBacklog, error: reportsCountError } = await supabase
+    .from('content_reports')
+    .select('*', { count: 'exact', head: true })
+    .eq('status', 'pending');
+
+  if (reportsCountError) {
+    throw new Error(`Failed to fetch moderation queue: ${reportsCountError.message}`);
+  }
+
+  // Average moderation resolution time
+  const { data: reviewedReports, error: reviewedReportsError } = await supabase
+    .from('content_reports')
+    .select('created_at, reviewed_at')
+    .in('status', ['actioned', 'dismissed'])
+    .not('reviewed_at', 'is', null)
+    .gte('reviewed_at', gte)
+    .lte('reviewed_at', lte)
+    .limit(1000);
+
+  if (reviewedReportsError) {
+    throw new Error(`Failed to fetch reviewed reports: ${reviewedReportsError.message}`);
+  }
+
+  let avgModerationResolutionTime = 0;
+  if (reviewedReports && reviewedReports.length > 0) {
+    const totalTime = reviewedReports.reduce((sum, report) => {
+      const created = new Date(report.created_at).getTime();
+      const reviewed = new Date(report.reviewed_at!).getTime();
+      return sum + (reviewed - created);
+    }, 0);
+    avgModerationResolutionTime = totalTime / reviewedReports.length / (1000 * 60 * 60);
+  }
+
+  // Weekly trend (last 7 days)
+  const weeklyTrend = [];
+  for (let i = 6; i >= 0; i--) {
+    const date = new Date();
+    date.setDate(date.getDate() - i);
+    const dateStr = date.toISOString().split('T')[0];
+
+    const [certsResult, reportsResult] = await Promise.all([
+      supabase
+        .from('certifications')
+        .select('*', { count: 'exact', head: true })
+        .eq('verification_status', 'pending')
+        .lte('created_at', dateStr + 'T23:59:59'),
+      supabase
+        .from('content_reports')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'pending')
+        .lte('created_at', dateStr + 'T23:59:59'),
+    ]);
+
+    if (certsResult.error) {
+      throw new Error(`Failed to fetch certification trend: ${certsResult.error.message}`);
+    }
+    if (reportsResult.error) {
+      throw new Error(`Failed to fetch reports trend: ${reportsResult.error.message}`);
+    }
+
+    weeklyTrend.push({
+      date: dateStr,
+      pendingCerts: certsResult.count || 0,
+      pendingReports: reportsResult.count || 0,
+    });
+  }
+
+  return {
+    pendingCertifications: pendingCertifications || 0,
+    avgCertificationReviewTime,
+    moderationQueueBacklog: moderationQueueBacklog || 0,
+    avgModerationResolutionTime,
+    weeklyTrend,
+  };
+}
