@@ -1,4 +1,4 @@
-import { test, expect, devices } from '@playwright/test';
+import { test, expect } from '@playwright/test';
 import {
   createTestUser,
   deleteTestUser,
@@ -35,8 +35,6 @@ test.describe('Mobile Responsiveness', () => {
   });
 
   test.describe('iPhone 13 Pro Layout (390x844)', () => {
-    test.use({ ...devices['iPhone 13 Pro'] });
-
     test('should display mobile bottom navigation', async ({ page }) => {
       await loginAsUser(page, testUser);
 
@@ -175,8 +173,6 @@ test.describe('Mobile Responsiveness', () => {
   });
 
   test.describe('iPad Pro Layout (1024x1366)', () => {
-    test.use({ ...devices['iPad Pro'] });
-
     test('should display desktop sidebar on tablet', async ({ page }) => {
       await loginAsUser(page, testUser);
 
@@ -244,8 +240,6 @@ test.describe('Mobile Responsiveness', () => {
   });
 
   test.describe('Responsive Interactions', () => {
-    test.use({ ...devices['iPhone 13 Pro'] });
-
     test('should support vertical scrolling on mobile', async ({ page }) => {
       await loginAsUser(page, testUser);
       await page.goto('/dashboard/feed');
@@ -319,8 +313,6 @@ test.describe('Mobile Responsiveness', () => {
   });
 
   test.describe('Font Scaling and Accessibility', () => {
-    test.use({ ...devices['iPhone 13 Pro'] });
-
     test('should have readable heading sizes', async ({ page }) => {
       await loginAsUser(page, testUser);
       await page.goto('/dashboard/jobs');
@@ -363,8 +355,6 @@ test.describe('Mobile Responsiveness', () => {
   });
 
   test.describe('Visual Regression Prevention', () => {
-    test.use({ ...devices['iPhone 13 Pro'] });
-
     test('should not have layout shifts on job feed', async ({ page }) => {
       await loginAsUser(page, testUser);
       await page.goto('/dashboard/jobs');
@@ -416,8 +406,6 @@ test.describe('Mobile Responsiveness', () => {
   });
 
   test.describe('Content Overflow Protection', () => {
-    test.use({ ...devices['iPhone 13 Pro'] });
-
     test('should handle long job titles gracefully', async ({ page }) => {
       // Create job with very long title
       const longJob = await createTestJob(testUser.id, {

@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { getActiveUsers, getConversionFunnel } from '@/features/admin/actions/analytics-actions';
+import { getActiveUsers, getConversionFunnel, getSubscriptionMetrics, getOperationalLoad } from '@/features/admin/actions/analytics-actions';
 import type { DateRangeValue } from '@/components/admin/date-range-picker';
 
 // Mock Next.js cookies
@@ -17,8 +17,10 @@ const createMockChain = () => {
     limit: vi.fn(() => mockChain),
     eq: vi.fn(() => mockChain),
     single: vi.fn(() => mockChain),
+    not: vi.fn(() => mockChain),
     data: [],
     error: null,
+    count: 0,
   };
   return mockChain;
 };
@@ -331,6 +333,210 @@ describe('Analytics Actions', () => {
       expect(result[2].count).toBe(35);
       expect(result[2].percentage).toBe(35); // 35/100 * 100
       expect(result[2].dropOffRate).toBeCloseTo(41.67, 1); // (60-35)/60 * 100
+    });
+  });
+
+  describe('getSubscriptionMetrics', () => {
+    beforeEach(() => {
+      vi.clearAllMocks();
+      mockSupabaseClient.auth.getUser.mockResolvedValue({
+        data: { user: { id: 'test-user-id' } },
+        error: null,
+      });
+      mockSupabaseClient.from.mockReturnValue(createMockChain());
+    });
+
+    it('returns subscription metrics with correct structure', async () => {
+      const dateRange: DateRangeValue = {
+        preset: 'last30days',
+        startDate: new Date('2025-01-01'),
+        endDate: new Date('2025-01-31'),
+      };
+
+      // Mock admin role check
+      const mockProfileChain = createMockChain();
+      mockProfileChain.data = { role: 'admin' };
+      mockSupabaseClient.from.mockReturnValueOnce(mockProfileChain);
+
+      const result = await getSubscriptionMetrics(dateRange);
+
+      expect(result).toHaveProperty('freeUsers');
+      expect(result).toHaveProperty('proUsers');
+      expect(result).toHaveProperty('conversionRate');
+      expect(result).toHaveProperty('mrr');
+      expect(result).toHaveProperty('churnRate');
+      expect(result).toHaveProperty('comparison');
+      expect(typeof result.freeUsers).toBe('number');
+      expect(typeof result.proUsers).toBe('number');
+      expect(typeof result.conversionRate).toBe('number');
+      expect(typeof result.mrr).toBe('number');
+    });
+
+    it('throws error when user is not authenticated', async () => {
+      const dateRange: DateRangeValue = {
+        preset: 'last30days',
+        startDate: new Date('2025-01-01'),
+        endDate: new Date('2025-01-31'),
+      };
+
+      mockSupabaseClient.auth.getUser.mockResolvedValueOnce({
+        data: { user: null },
+        error: null,
+      });
+
+      await expect(getSubscriptionMetrics(dateRange)).rejects.toThrow(
+        'Unauthorized: User not authenticated'
+      );
+    });
+
+    it('throws error when user is not admin', async () => {
+      const dateRange: DateRangeValue = {
+        preset: 'last30days',
+        startDate: new Date('2025-01-01'),
+        endDate: new Date('2025-01-31'),
+      };
+
+      const mockProfileChain = createMockChain();
+      mockProfileChain.data = { role: 'worker' };
+      mockSupabaseClient.from.mockReturnValueOnce(mockProfileChain);
+
+      await expect(getSubscriptionMetrics(dateRange)).rejects.toThrow(
+        'Forbidden: Admin access required'
+      );
+    });
+
+    it('throws error when users query fails', async () => {
+      const dateRange: DateRangeValue = {
+        preset: 'last30days',
+        startDate: new Date('2025-01-01'),
+        endDate: new Date('2025-01-31'),
+      };
+
+      // Mock admin role check
+      const mockProfileChain = createMockChain();
+      mockProfileChain.data = { role: 'admin' };
+      mockSupabaseClient.from.mockReturnValueOnce(mockProfileChain);
+
+      // Mock users query error
+      const mockUsersChain = createMockChain();
+      mockUsersChain.error = { message: 'Database connection failed' };
+      mockSupabaseClient.from.mockReturnValueOnce(mockUsersChain);
+
+      await expect(getSubscriptionMetrics(dateRange)).rejects.toThrow(
+        'Failed to fetch users data: Database connection failed'
+      );
+    });
+
+    it('calculates correct conversion rate and MRR', async () => {
+      const dateRange: DateRangeValue = {
+        preset: 'last30days',
+        startDate: new Date('2025-01-01'),
+        endDate: new Date('2025-01-31'),
+      };
+
+      // Mock admin role check
+      const mockProfileChain = createMockChain();
+      mockProfileChain.data = { role: 'admin' };
+      mockSupabaseClient.from.mockReturnValueOnce(mockProfileChain);
+
+      // Mock 100 users: 70 free, 30 pro
+      const mockUsers = [
+        ...Array.from({ length: 70 }, (_, i) => ({
+          id: `free${i}`,
+          subscription_status: 'free',
+        })),
+        ...Array.from({ length: 30 }, (_, i) => ({
+          id: `pro${i}`,
+          subscription_status: 'pro',
+        })),
+      ];
+      const mockUsersChain = createMockChain();
+      mockUsersChain.data = mockUsers;
+      mockSupabaseClient.from.mockReturnValueOnce(mockUsersChain);
+
+      // Mock 30 active subscriptions at $10 each
+      const mockSubscriptions = Array.from({ length: 30 }, () => ({
+        amount: 10,
+      }));
+      const mockSubscriptionsChain = createMockChain();
+      mockSubscriptionsChain.data = mockSubscriptions;
+      mockSupabaseClient.from.mockReturnValueOnce(mockSubscriptionsChain);
+
+      const result = await getSubscriptionMetrics(dateRange);
+
+      expect(result.freeUsers).toBe(70);
+      expect(result.proUsers).toBe(30);
+      expect(result.conversionRate).toBe(30); // 30/100 * 100
+      expect(result.mrr).toBe(300); // 30 * $10
+      expect(result.churnRate).toBe(0); // Placeholder
+    });
+  });
+
+  describe('getOperationalLoad', () => {
+    beforeEach(() => {
+      vi.clearAllMocks();
+      mockSupabaseClient.auth.getUser.mockResolvedValue({
+        data: { user: { id: 'test-user-id' } },
+        error: null,
+      });
+      mockSupabaseClient.from.mockReturnValue(createMockChain());
+    });
+
+    it('returns operational load metrics with correct structure', async () => {
+      const dateRange: DateRangeValue = {
+        preset: 'last7days',
+        startDate: new Date('2025-01-01'),
+        endDate: new Date('2025-01-08'),
+      };
+
+      // Mock admin role check
+      const mockProfileChain = createMockChain();
+      mockProfileChain.data = { role: 'admin' };
+      mockSupabaseClient.from.mockReturnValueOnce(mockProfileChain);
+
+      const result = await getOperationalLoad(dateRange);
+
+      expect(result).toHaveProperty('pendingCertifications');
+      expect(result).toHaveProperty('avgCertificationReviewTime');
+      expect(result).toHaveProperty('moderationQueueBacklog');
+      expect(result).toHaveProperty('avgModerationResolutionTime');
+      expect(result).toHaveProperty('weeklyTrend');
+      expect(Array.isArray(result.weeklyTrend)).toBe(true);
+      expect(typeof result.pendingCertifications).toBe('number');
+      expect(typeof result.avgCertificationReviewTime).toBe('number');
+    });
+
+    it('throws error when user is not authenticated', async () => {
+      const dateRange: DateRangeValue = {
+        preset: 'last7days',
+        startDate: new Date('2025-01-01'),
+        endDate: new Date('2025-01-08'),
+      };
+
+      mockSupabaseClient.auth.getUser.mockResolvedValueOnce({
+        data: { user: null },
+        error: null,
+      });
+
+      await expect(getOperationalLoad(dateRange)).rejects.toThrow(
+        'Unauthorized: User not authenticated'
+      );
+    });
+
+    it('throws error when user is not admin', async () => {
+      const dateRange: DateRangeValue = {
+        preset: 'last7days',
+        startDate: new Date('2025-01-01'),
+        endDate: new Date('2025-01-08'),
+      };
+
+      const mockProfileChain = createMockChain();
+      mockProfileChain.data = { role: 'employer' };
+      mockSupabaseClient.from.mockReturnValueOnce(mockProfileChain);
+
+      await expect(getOperationalLoad(dateRange)).rejects.toThrow(
+        'Forbidden: Admin access required'
+      );
     });
   });
 });

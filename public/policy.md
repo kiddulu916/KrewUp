@@ -1,8 +1,7 @@
 
-Privacy Policy for KrewUp
+# KrewUp Privacy Policy
 
-
-1. Information We Collect
+## 1. Information We Collect
 
 We collect personal and professional data to help you build your construction network. This includes:
 
@@ -12,14 +11,13 @@ Credential Data: Verification status of licenses, OSHA certifications, and insur
 
 Professional History: Past projects, photos of work, and references.
 
-
-2. Data Security and Third-Party Infrastructure
+## 2. Data Security and Third-Party Infrastructure
 
 We take the security of your professional data seriously.
 
 Infrastructure: KrewUp utilizes Supabase for our backend database and authentication services. Supabase is a secure, enterprise-grade platform. You acknowledge and agree that KrewUp's services depend on third-party infrastructure providers, including Supabase, and that KrewUp shall not be liable for any service interruptions, data loss, security breaches, or other issues arising from the acts, omissions, or failures of such third-party providers. While we select reputable providers and require them to maintain appropriate security standards, we do not control and cannot guarantee the performance, availability, or security of third-party services.
 
-* Encryption Standards: All sensitive user information is fully encrypted in all states:
+### Encryption Standards: All sensitive user information is fully encrypted in all states:
 
 Data in Transit: Encrypted via SSL/TLS protocols during transfer between your device and our servers. Encryption is implemented using third-party infrastructure, and KrewUp disclaims liability for any vulnerabilities or failures in such third-party encryption services.
 
@@ -27,10 +25,9 @@ Data at Rest: All sensitive records stored in our databases are encrypted using 
 
 Force Majeure and Third-Party Service Dependencies: KrewUp shall not be liable for any failure or delay in performing its obligations under these Terms where such failure or delay results from circumstances beyond KrewUp's reasonable control, including but not limited to: (i) outages, failures, or service disruptions of third-party infrastructure providers (including Supabase); (ii) cyberattacks, data breaches, or security incidents affecting third-party providers; (iii) acts of God, natural disasters, pandemics, or public health emergencies; (iv) war, terrorism, civil unrest, or government actions; (v) failures of telecommunications networks or internet service providers; or (vi) any other force majeure event. In the event of such circumstances, KrewUp will use commercially reasonable efforts to resume normal operations as soon as practicable, but makes no guarantees regarding the timing or completeness of service restoration.
 
-Note: We employ industry-standard security measures, including encryption in transit and at rest, regular security audits, and access controls limiting employee access to sensitive data on a need-to-know basis. In the event of a data breach affecting your personal information, we will notify affected users and relevant regulatory authorities in accordance with applicable law. While no method of electronic transmission or storage is completely secure, we are committed to protecting your data and maintaining robust incident response procedures. Users are encouraged to use strong, unique passwords and to notify KrewUp immediately of any suspected security breach.
+#### Note: We employ industry-standard security measures, including encryption in transit and at rest, regular security audits, and access controls limiting employee access to sensitive data on a need-to-know basis. In the event of a data breach affecting your personal information, we will notify affected users and relevant regulatory authorities in accordance with applicable law. While no method of electronic transmission or storage is completely secure, we are committed to protecting your data and maintaining robust incident response procedures. Users are encouraged to use strong, unique passwords and to notify KrewUp immediately of any suspected security breach.
 
- 
-3. How We Share Your Information
+## 3. How We Share Your Information
 
 Public Profiles: Information like your trade, years of experience, and general location are visible to other KrewUp users.
 
@@ -42,7 +39,7 @@ No Selling of Data: We do not sell your personal information to third-party adve
 
 Third-Party Services: KrewUp integrates with third-party services, including Stripe for payment and subscription processing, and Supabase for backend database and authentication services. We may also link to other third-party services for identity verification or other functions. Your use of such services is subject to their respective terms and privacy policies. For Stripe, please refer to Stripe's privacy policy at stripe.com/privacy. For Supabase, please refer to Supabase's privacy policy at supabase.com/privacy. KrewUp is not responsible for the privacy practices, security measures, or content of any third-party services, and disclaims all liability for any damages or losses arising from your use of such services or any data breaches occurring at such third parties.
 
-* Cookies and Tracking Technologies
+### Cookies and Tracking Technologies
 
 KrewUp uses cookies and similar tracking technologies to enhance your experience on our platform.
 
@@ -62,8 +59,7 @@ Do Not Track: Some browsers offer a "Do Not Track" feature. Our platform does no
 
 Third-Party Tracking: Some third-party services integrated into our platform may use their own cookies and tracking technologies, subject to their own privacy policies.
 
-
-4. User Rights (GDPR/CCPA Compliance) and Data Subject Request Procedures
+## 4. User Rights (GDPR/CCPA Compliance) and Data Subject Request Procedures
 
 Depending on your location, you have the right to:
 
@@ -79,7 +75,7 @@ Object to processing of your personal data for certain purposes, including direc
 
 Restrict processing of your personal data in certain circumstances, such as while we verify the accuracy of data you have contested.
 
-* International Data Transfers
+### International Data Transfers
 
 KrewUp operates globally, and your personal data may be transferred to and processed in countries other than your country of residence.
 
@@ -95,7 +91,7 @@ Withdraw consent at any time where we rely on consent as the legal basis for pro
 
 To exercise any of these rights, please contact us at [Insert Email Address]. We will respond to verified requests within the timeframes required by applicable law (typically thirty (30) days for GDPR requests and forty-five (45) days for CCPA requests). We may request additional information to verify your identity before fulfilling your request.
 
-* Jurisdiction-Specific Data Subject Request Procedures:
+### Jurisdiction-Specific Data Subject Request Procedures:
 
 European Economic Area (EEA), United Kingdom, and Switzerland: If you are located in the EEA, UK, or Switzerland, your requests will be processed in accordance with the General Data Protection Regulation (GDPR) or UK GDPR, as applicable. You have the right to lodge a complaint with your local supervisory authority if you believe your rights have been violated. We will respond to your request within thirty (30) days; if an extension is required due to the complexity of the request, we will notify you within the initial period and may extend by up to sixty (60) additional days. We will not charge a fee for processing your request unless it is manifestly unfounded or excessive.
 
@@ -109,7 +105,7 @@ Other Jurisdictions: If you are located in a jurisdiction not specifically liste
 
 Appeals Process for Denied Requests: If we deny your data subject request in whole or in part, we will provide you with a written explanation of the reasons for the denial, including the specific legal basis or exception relied upon. You may appeal the denial by submitting a written appeal to [Insert Email Address] within thirty (30) days of receiving the denial notice. Your appeal should include: (i) a copy of or reference to your original request; (ii) a copy of or reference to our denial notice; and (iii) a detailed explanation of why you believe the denial was incorrect or the exception does not apply. Appeals will be reviewed by a senior privacy official who was not involved in the initial decision. We will respond to your appeal within thirty (30) days (or within such shorter period as required by applicable law). If we uphold the denial, we will inform you of your right to lodge a complaint with the relevant supervisory authority or data protection regulator in your jurisdiction.
 
-* Automated Decision-Making and Profiling
+### Automated Decision-Making and Profiling
 
 KrewUp may use automated systems to assist in certain platform functions. This section explains how we use automated decision-making and your rights in relation to such processing.
 
@@ -123,8 +119,7 @@ Profiling for Platform Improvement: We may analyse aggregated and anonymised use
 
 Safeguards: Where we use automated processing, we implement appropriate safeguards, including: (i) regular testing of algorithms for accuracy and bias; (ii) maintaining human oversight of automated systems; (iii) providing clear information to users about how automated systems affect them; and (iv) ensuring users can easily exercise their rights in relation to automated processing.
 
-
-5. Data Retention
+## 5. Data Retention
 
 We retain your personal and professional data only for as long as necessary to fulfil the purposes for which it was collected, or as required by law.
 
@@ -136,8 +131,6 @@ Transaction and Communication Records: Records of transactions, messages, and in
 
 Anonymised Data: We may retain anonymised or aggregated data that cannot reasonably be used to identify you for analytical and research purposes indefinitely.
 
-
-6. Updates to This Policy
+## 6. Updates to This Policy
 
 As KrewUp grows, we may update our privacy practices. We will notify you of any material changes via the email address associated with your account or through a prominent notice on the KrewUp dashboard.
-

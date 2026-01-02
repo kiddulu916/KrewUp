@@ -1,4 +1,4 @@
-package com.krewup.app;
+package com.chilsen.krewup;
 
 import com.getcapacitor.BridgeActivity;
 

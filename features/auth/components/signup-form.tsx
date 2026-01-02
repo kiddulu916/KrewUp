@@ -200,11 +200,11 @@ export function SignupForm() {
           />
           <label className="ml-2 text-sm text-gray-600">
             I agree to the{' '}
-            <a href="/terms" className="text-krewup-blue hover:underline">
+            <a href="/legal/terms" className="text-krewup-blue hover:underline">
               Terms of Service
             </a>{' '}
             and{' '}
-            <a href="/privacy" className="text-krewup-blue hover:underline">
+            <a href="/legal/privacy" className="text-krewup-blue hover:underline">
               Privacy Policy
             </a>
           </label>

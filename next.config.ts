@@ -1,8 +1,10 @@
 import type { NextConfig } from 'next';
 import { withSentryConfig } from '@sentry/nextjs';
+import createMDX from '@next/mdx';
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  pageExtensions: ['ts', 'tsx', 'mdx', 'md', 'js', 'jsx', 'json'],
   images: {
     remotePatterns: [
       {
@@ -28,7 +30,11 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default withSentryConfig(nextConfig, {
+const withMDX = createMDX({
+  extension: /\.(md|mdx)$/,
+});
+
+export default withMDX(withSentryConfig(nextConfig, {
   org: "corey-tb",
   project: "krewup",
   authToken: process.env.SENTRY_AUTH_TOKEN,
@@ -41,4 +47,4 @@ export default withSentryConfig(nextConfig, {
       removeDebugLogging: true,
     },
   },
-});
+}));

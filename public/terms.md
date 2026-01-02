@@ -1,13 +1,12 @@
-Terms of Service for KrewUp
+# KrewUp Terms of Service
 
 Effective Date: 12/28/25
 
-
-1. Acceptance of the Agreement
+## 1. Acceptance of the Agreement
 
 By creating an account on KrewUp, you agree to these Terms of Service. You acknowledge that KrewUp is a technology platform that facilitates connections between construction industry professionals and is not an employment agency, staffing service, or labour provider. By completing the account creation process, you confirm that you understand: (i) KrewUp acts solely as a passive online venue and does not employ, recruit, screen, or place workers; (ii) KrewUp does not recommend, endorse, or guarantee any user; (iii) you are solely responsible for evaluating any user you choose to work with; and (iv) any work arrangement you enter into with another user is at your own risk. If you are using KrewUp on behalf of a company, you represent that you have the authority to bind that entity to these terms.
 
-Account Eligibility and Registration
+### Account Eligibility and Registration
 
 To use KrewUp, you must meet the following eligibility requirements:
 
@@ -21,8 +20,7 @@ Account Security: You are responsible for maintaining the confidentiality of you
 
 One Account Per Person: Each user may maintain only one account. Creating multiple accounts may result in termination of all accounts.
 
-
-2. The Scope of KrewUp Services
+## 2. The Scope of KrewUp Services
 
 KrewUp is an online technology platform that operates solely as a passive digital venue, enabling construction industry professionals—including contractors, tradespeople, developers, and property owners—to create profiles, discover one another, and establish direct contact for potential work opportunities. KrewUp does not participate in, facilitate, or have any involvement in the negotiation, formation, or performance of any work arrangements between users.
 
@@ -32,10 +30,11 @@ User Acknowledgment of Platform's Limited Role: By using KrewUp, you acknowledge
 
 No Guarantees: KrewUp provides a digital venue for users to connect but makes no guarantees, representations, or warranties regarding outcomes. Specifically, KrewUp does not guarantee: (i) that any worker will find employment or work opportunities; (ii) that any developer, contractor, or property owner will find qualified, available, or suitable workers; (iii) the accuracy, completeness, or reliability of any user profile or information; (iv) the quality, safety, or legality of any work performed; or (v) the successful completion of any project or transaction between users.
 
-> Example: A residential developer may post a need for 10 framers, but KrewUp does not guarantee those positions will be filled or that the applicants will meet the developer's specific quality standards.< 
+### Example-1
 
+A residential developer may post a need for 10 framers, but KrewUp does not guarantee those positions will be filled or that the applicants will meet the developer's specific quality standards.
 
-3. Non-Negotiable Certification and License Verification
+## 3. Non-Negotiable Certification and License Verification
 
 To maintain the integrity of the KrewUp community, professional users must provide proof of valid trade licenses and certifications.
 
@@ -45,10 +44,11 @@ Credential Upload Acknowledgment: By uploading any license, certification, or pr
 
 Third-Party Incident Disclaimer: To the fullest extent permitted by applicable law, KrewUp shall not be liable for any incidents, disputes, claims, or damages arising from or related to the status, validity, or accuracy of any user's license, certification, insurance, or professional credentials. Users acknowledge that: (i) KrewUp does not independently verify the authenticity or validity of licenses and certifications; (ii) KrewUp does not monitor for license expirations or revocations; (iii) any verification features are provided for convenience only and do not constitute a guarantee of any user; and (iv) users are solely responsible for conducting their own due diligence before entering into any work arrangement.
 
-> Example: If a contractor's license expires mid-project after they were introduced via KrewUp, if their license is subsequently revoked, if they perform work for which they are not actually licensed, or if a hiring party relies on credential information displayed on the platform without conducting independent verification, KrewUp holds no liability for the resulting building code violations, insurance claims, or any other damages or losses.< 
+### Example-2
 
+If a contractor's license expires mid-project after they were introduced via KrewUp, if their license is subsequently revoked, if they perform work for which they are not actually licensed, or if a hiring party relies on credential information displayed on the platform without conducting independent verification, KrewUp holds no liability for the resulting building code violations, insurance claims, or any other damages or losses.
 
-4. Limitation of Liability for On-Site Conduct
+## 4. Limitation of Liability for On-Site Conduct
 
 KrewUp provides a digital handshake; we do not oversee the job site.
 
@@ -56,9 +56,11 @@ User-Induced Incidents: To the fullest extent permitted by applicable law, KrewU
 
 Hiring Responsibility: The decision to enter into a work agreement, and all subsequent interactions, negotiations, contracts, and on-site activities, are solely between the users. Users acknowledge and agree that KrewUp acts only as a passive venue for connecting parties and exercises no control over, and assumes no responsibility for, the quality, safety, legality, or suitability of work performed, the truth or accuracy of user representations, or the ability of users to complete transactions or fulfil obligations.
 
-> Example: If a homeowner hires a plumber via KrewUp and the plumber accidentally causes a flood, the homeowner agrees that KrewUp is not responsible for the damages, cost of repairs, any resulting personal injury, or any claims brought by third parties. This limitation applies regardless of the legal theory under which such liability is asserted, including but not limited to negligence, breach of contract, strict liability, or any other theory.<
+### Example-3
 
-Indemnification: You agree to indemnify, defend, and hold harmless KrewUp, its officers, directors, employees, agents, licensors, and affiliates from and against any and all claims, damages, losses, liabilities, costs, and expenses (including reasonable legal fees) arising out of or relating to: (i) your use of the platform; (ii) your violation of these Terms; (iii) your violation of any rights of another party; (iv) any work performed or services provided by you or on your behalf; or (v) any dispute between you and another user.
+If a homeowner hires a plumber via KrewUp and the plumber accidentally causes a flood, the homeowner agrees that KrewUp is not responsible for the damages, cost of repairs, any resulting personal injury, or any claims brought by third parties. This limitation applies regardless of the legal theory under which such liability is asserted, including but not limited to negligence, breach of contract, strict liability, or any other theory.<
+
+Indemnification: You agree to indemnify, defend, and hold KrewUp, its officers, directors, employees, agents, licensors, and affiliates from and against any and all claims, damages, losses, liabilities, costs, and expenses (including reasonable legal fees) arising out of or relating to: (i) your use of the platform; (ii) your violation of these Terms; (iii) your violation of any rights of another party; (iv) any work performed or services provided by you or on your behalf; or (v) any dispute between you and another user.
 
 Assumption of Risk: Users expressly assume all risks associated with connecting with, hiring, or being hired by other users through KrewUp, including risks related to on-site safety, worker qualifications, project outcomes, and financial transactions. Users acknowledge that the construction industry involves inherent risks and agree that KrewUp shall bear no liability for any such risks.
 
@@ -74,8 +76,7 @@ Canadian Users: If you reside in Canada, you are entitled to the protections aff
 
 Governing Law: Except as otherwise required by applicable law, these Terms and any disputes arising out of or related to these Terms or the platform shall be governed by and construed in accordance with the laws of the State of Delaware, United States, without regard to its conflict of law principles. You agree to submit to the exclusive jurisdiction of the state and federal courts located in Delaware for the resolution of any disputes, except where prohibited by law or where mandatory consumer protection laws grant you the right to bring proceedings in your local courts.
 
- 
-5. Background Checks and Drug Testing
+## 5. Background Checks and Drug Testing
 
 IMPORTANT NOTICE: KrewUp does not perform, and has never performed, any criminal background checks, criminal history screenings, sex offender registry checks, drug or alcohol testing, identity verification beyond basic account authentication, or any other screening of users' personal history, character, or fitness for employment. KrewUp makes no representations whatsoever regarding the criminal history, character, integrity, reliability, or trustworthiness of any user. You expressly acknowledge and agree that you have read and understood this disclaimer before using the platform.
 
@@ -83,12 +84,13 @@ Hiring Party Responsibility: By using KrewUp to find or hire workers, you acknow
 
 Mandatory Acknowledgment Checkbox: Before accessing or using KrewUp's services to find or hire workers, you must affirmatively check a box confirming that: (i) you have read and understood the foregoing disclaimers regarding KrewUp's non-performance of background checks; (ii) you understand that users on the platform may have criminal records, including records involving violent crimes, property crimes, theft, fraud, or other offences; (iii) you accept sole and exclusive responsibility for conducting any and all background checks, screenings, and due diligence you deem necessary or appropriate before allowing any worker access to your premises or engaging them for work; (iv) you voluntarily assume all risks associated with hiring or working with any user found through the platform; and (v) you release KrewUp from any and all liability arising from the conduct, criminal history, or background of any user. This acknowledgment is a condition precedent to your use of the platform, and your continued use of the platform constitutes ongoing affirmation of this acknowledgment. KrewUp reserves the right to require re-acknowledgment at any time and may suspend or terminate your account if you fail to complete the required acknowledgment.
 
-No Liability for User Conduct: TO THE FULLEST EXTENT PERMITTED BY APPLICABLE LAW, KREWUP SHALL NOT BE LIABLE FOR ANY CLAIMS, DAMAGES, LOSSES, INJURIES, OR EXPENSES ARISING FROM THE CONDUCT, ACTIONS, OR BACKGROUND OF ANY USER, including but not limited to: theft, assault, harassment, fraud, property damage, personal injury, drug or alcohol impairment, violation of any law, or misrepresentation of qualifications or identity. This limitation applies regardless of the legal theory under which liability is asserted and whether such damages were foreseeable. Users agree to release, indemnify, defend, and hold harmless KrewUp from any such claims.
+No Liability for User Conduct: **TO THE FULLEST EXTENT PERMITTED BY APPLICABLE LAW, KREWUP SHALL NOT BE LIABLE FOR ANY CLAIMS, DAMAGES, LOSSES, INJURIES, OR EXPENSES ARISING FROM THE CONDUCT, ACTIONS, OR BACKGROUND OF ANY USER,** including but not limited to: theft, assault, harassment, fraud, property damage, personal injury, drug or alcohol impairment, violation of any law, or misrepresentation of qualifications or identity. This limitation applies regardless of the legal theory under which liability is asserted and whether such damages were foreseeable. Users agree to release, indemnify, defend, and hold harmless KrewUp from any such claims.
 
-> Example: A commercial developer requiring a "drug-free workplace" must arrange for their own testing of any worker found through KrewUp before that worker enters the job site.< 
+### Example
 
+A commercial developer requiring a "drug-free workplace" must arrange for their own testing of any worker found through KrewUp before that worker enters the job site.
 
-6. Dispute Resolution and Arbitration
+## 6. Dispute Resolution and Arbitration
 
 Please read this section carefully as it affects your legal rights, including your right to file a lawsuit in court.
 
@@ -102,8 +104,7 @@ Opt-Out Right: You may opt out of this arbitration agreement by sending written 
 
 Survival: This arbitration agreement shall survive termination of your account and these Terms.
 
-
-7. Class Action Waiver
+## 7. Class Action Waiver
 
 Waiver of Class and Collective Actions: To the fullest extent permitted by applicable law, you and KrewUp each agree that any Dispute resolution proceedings will be conducted only on an individual basis and not in a class, consolidated, or representative action. You expressly waive any right to participate as a plaintiff or class member in any class action, collective action, private attorney general action, or other representative proceeding against KrewUp.
 
@@ -111,8 +112,7 @@ No Consolidation: The arbitrator may not consolidate more than one party's claim
 
 Limitation on Relief: The arbitrator may award relief (including monetary, injunctive, and declaratory relief) only in favour of the individual party seeking relief and only to the extent necessary to provide relief warranted by that party's individual claim. Any relief awarded cannot affect other users.
 
-
-8. Intellectual Property Rights
+## 8. Intellectual Property Rights
 
 KrewUp Ownership: The KrewUp platform, including its website, mobile applications, logos, trademarks, service marks, trade names, software, code, algorithms, user interface designs, and all other intellectual property (collectively, "KrewUp IP"), are the exclusive property of KrewUp and its licensors. Nothing in these Terms grants you any right, title, or interest in any KrewUp IP, except for the limited licence to use the platform as expressly set forth herein.
 
@@ -124,8 +124,7 @@ User Content Responsibility: You retain ownership of your User Content, but you 
 
 DMCA and Copyright Complaints: If you believe that any content on the platform infringes your copyright, please submit a notice to KrewUp's designated copyright agent at [Insert Email Address] containing: (i) a description of the copyrighted work; (ii) identification of the allegedly infringing material and its location on the platform; (iii) your contact information; (iv) a statement that you have a good faith belief that the use is not authorised; (v) a statement under penalty of perjury that the information in your notice is accurate and that you are the copyright owner or authorised to act on behalf of the owner; and (vi) your electronic or physical signature.
 
-
-9. User Conduct and Acceptable Use
+## 9. User Conduct and Acceptable Use
 
 You agree to use KrewUp only for lawful purposes and in accordance with these Terms. By accessing or using the platform, you agree not to engage in any of the following prohibited conduct:
 
@@ -147,8 +146,7 @@ Circumvention: You shall not circumvent, disable, or otherwise interfere with an
 
 Reporting Violations: If you become aware of any violation of these acceptable use policies, you are encouraged to report it to KrewUp at [Insert Email Address]. KrewUp reserves the right, but has no obligation, to investigate and take appropriate action against anyone who violates these provisions.
 
-
-10. Fees and Payment Terms
+## 10. Fees and Payment Terms
 
 Certain features of KrewUp may require payment of fees. This section governs your payment obligations.
 
@@ -164,8 +162,7 @@ Price Changes: KrewUp reserves the right to change its fees at any time. We will
 
 Taxes: You are responsible for any applicable taxes associated with your use of paid services, except for taxes based on KrewUp's net income.
 
-
-11. Termination
+## 11. Termination
 
 Termination by You: You may terminate your account at any time by following the account deletion process in your account settings or by contacting KrewUp at [Insert Email Address]. Upon termination, your right to use the platform will immediately cease, and your profile will be removed from public view. Termination of your account does not relieve you of any obligations incurred prior to termination, including any payment obligations or liability for prior conduct.
 
@@ -179,8 +176,7 @@ Appeals: If your account is terminated or suspended and you believe the action w
 
 No Liability for Termination: To the fullest extent permitted by applicable law, KrewUp shall not be liable to you or any third party for any termination or suspension of your account or access to the platform, regardless of the reason for such termination or suspension.
 
-
-12. Communications and Marketing
+## 12. Communications and Marketing
 
 By creating an account, you agree to receive certain communications from KrewUp.
 
@@ -194,8 +190,7 @@ Push Notifications: If you enable push notifications on your mobile device, we m
 
 Communication Preferences: You can manage your communication preferences at any time through your account settings. Please note that even if you opt out of marketing communications, we will still send you transactional and service-related messages.
 
-
-13. KrewUp's Commitments to Users
+## 13. KrewUp's Commitments to Users
 
 While KrewUp operates as a passive venue, we are committed to providing a reliable and fair platform experience.
 
@@ -211,8 +206,7 @@ Data Protection: KrewUp will handle your personal data in accordance with our Pr
 
 Dispute Assistance: While KrewUp is not a party to agreements between users, we may, at our discretion, assist in facilitating communication between users involved in disputes. However, KrewUp has no obligation to mediate or resolve disputes between users.
 
-
-14. Severability
+## 14. Severability
 
 Severability of Provisions: If any provision of these Terms is held to be invalid, illegal, or unenforceable by a court or arbitrator of competent jurisdiction, such invalidity, illegality, or unenforceability shall not affect any other provision of these Terms, which shall remain in full force and effect. The invalid, illegal, or unenforceable provision shall be modified to the minimum extent necessary to make it valid, legal, and enforceable while preserving the parties' original intent as closely as possible. If such modification is not possible, the provision shall be severed from these Terms.
 
@@ -220,8 +214,7 @@ Preservation of Intent: In the event any provision is severed or modified pursua
 
 No Waiver by Severance: The severance or modification of any provision shall not be construed as a waiver of KrewUp's right to enforce the remaining provisions of these Terms or to seek enforcement of similar provisions in other contexts.
 
-
-15. Entire Agreement and Amendments
+## 15. Entire Agreement and Amendments
 
 Entire Agreement: These Terms, together with the Privacy Policy, any applicable supplemental terms, policies, or guidelines posted on the platform, and any agreements you enter into through the platform, constitute the entire agreement between you and KrewUp regarding your use of the platform. These Terms supersede all prior or contemporaneous agreements, understandings, representations, and warranties, whether written or oral, regarding the subject matter hereof.
 
@@ -240,4 +233,3 @@ Third-Party Beneficiaries: These Terms do not create any third-party beneficiary
 Headings: The section headings in these Terms are for convenience only and shall not affect the interpretation of any provision.
 
 Contact Information: If you have any questions about these Terms, please contact us at cor.hilsen@gmail.com or by mail at 2416 Upham Ct., Carmicheal, CA 95608.
-
