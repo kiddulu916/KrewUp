@@ -1,5 +1,6 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
+import * as Sentry from '@sentry/nextjs';
 
 /**
  * Middleware Supabase client for refreshing auth sessions
@@ -110,6 +111,35 @@ export async function createClient(request: NextRequest) {
   const {
     data: { user },
   } = await supabase.auth.getUser();
+
+  // Add Sentry user context for better error tracking
+  if (user) {
+    // Fetch full profile for additional context
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role, subscription_status, location, employer_type')
+      .eq('id', user.id)
+      .single();
+
+    if (profile) {
+      Sentry.setUser({
+        id: user.id,
+        email: user.email,
+        role: profile.role,
+        subscription_status: profile.subscription_status,
+        location: profile.location,
+        employer_type: profile.employer_type,
+      });
+
+      Sentry.setTags({
+        user_role: profile.role,
+        subscription_tier: profile.subscription_status,
+      });
+    }
+  } else {
+    // Clear Sentry user context on logout
+    Sentry.setUser(null);
+  }
 
   // Check admin access for /admin/* routes
   if (request.nextUrl.pathname.startsWith('/admin')) {
