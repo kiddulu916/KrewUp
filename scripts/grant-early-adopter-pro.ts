@@ -18,12 +18,14 @@
 
 import { config } from 'dotenv';
 import { createServerClient } from '@supabase/ssr';
-import type { Profile } from '../lib/types/profile.types';
+import { writeFileSync } from 'fs';
+import { join } from 'path';
 
 // Load environment variables from .env.local
 config({ path: '.env.local' });
 
 const isDryRun = process.argv.includes('--dry-run');
+const SEPARATOR_LENGTH = 60;
 
 const GRANT_LIMITS = {
   workers: 50,
@@ -40,6 +42,27 @@ interface GrantResult {
   skipped: number;
   failed: number;
   userIds: string[];
+}
+
+interface AuditOutput {
+  executedAt: string;
+  isDryRun: boolean;
+  results: GrantResult[];
+  summary: {
+    totalTarget: number;
+    totalGranted: number;
+    totalSkipped: number;
+    totalFailed: number;
+  };
+}
+
+/**
+ * Mask email for privacy in logs (show only first char + domain)
+ */
+function maskEmail(email: string): string {
+  const [local, domain] = email.split('@');
+  if (!local || !domain) return '***';
+  return `${local[0]}***@${domain}`;
 }
 
 /**
@@ -106,13 +129,13 @@ async function grantToWorkers(supabase: ReturnType<typeof createServiceClient>):
   for (const worker of workers) {
     // Skip if already has lifetime Pro
     if (worker.is_lifetime_pro) {
-      console.log(`⏭️  Skipping ${worker.name} (${worker.email}) - already has lifetime Pro`);
+      console.log(`⏭️  Skipping user ${worker.id} (${maskEmail(worker.email)}) - already has lifetime Pro`);
       result.skipped++;
       continue;
     }
 
     if (isDryRun) {
-      console.log(`🔍 [DRY RUN] Would grant to: ${worker.name} (${worker.email})`);
+      console.log(`🔍 [DRY RUN] Would grant to user ${worker.id} (${maskEmail(worker.email)})`);
       result.granted++;
       result.userIds.push(worker.id);
     } else {
@@ -127,10 +150,10 @@ async function grantToWorkers(supabase: ReturnType<typeof createServiceClient>):
         .eq('id', worker.id);
 
       if (updateError) {
-        console.error(`❌ Failed to grant to ${worker.name}:`, updateError.message);
+        console.error(`❌ Failed to grant to user ${worker.id}:`, updateError.message);
         result.failed++;
       } else {
-        console.log(`✅ Granted to: ${worker.name} (${worker.email})`);
+        console.log(`✅ Granted to user ${worker.id} (${maskEmail(worker.email)})`);
         result.granted++;
         result.userIds.push(worker.id);
       }
@@ -185,13 +208,13 @@ async function grantToEmployerType(
   for (const employer of employers) {
     // Skip if already has lifetime Pro
     if (employer.is_lifetime_pro) {
-      console.log(`⏭️  Skipping ${employer.name} (${employer.email}) - already has lifetime Pro`);
+      console.log(`⏭️  Skipping user ${employer.id} (${maskEmail(employer.email)}) - already has lifetime Pro`);
       result.skipped++;
       continue;
     }
 
     if (isDryRun) {
-      console.log(`🔍 [DRY RUN] Would grant to: ${employer.name} (${employer.email})`);
+      console.log(`🔍 [DRY RUN] Would grant to user ${employer.id} (${maskEmail(employer.email)})`);
       result.granted++;
       result.userIds.push(employer.id);
     } else {
@@ -206,10 +229,10 @@ async function grantToEmployerType(
         .eq('id', employer.id);
 
       if (updateError) {
-        console.error(`❌ Failed to grant to ${employer.name}:`, updateError.message);
+        console.error(`❌ Failed to grant to user ${employer.id}:`, updateError.message);
         result.failed++;
       } else {
-        console.log(`✅ Granted to: ${employer.name} (${employer.email})`);
+        console.log(`✅ Granted to user ${employer.id} (${maskEmail(employer.email)})`);
         result.granted++;
         result.userIds.push(employer.id);
       }
@@ -220,12 +243,48 @@ async function grantToEmployerType(
 }
 
 /**
+ * Write audit results to JSON file
+ */
+function writeAuditFile(results: GrantResult[]): string {
+  const timestamp = new Date().toISOString().replace(/:/g, '-').split('.')[0];
+  const filename = `grant-results-${timestamp}.json`;
+  const filepath = join(process.cwd(), 'scripts', 'output', filename);
+
+  let totalTarget = 0;
+  let totalGranted = 0;
+  let totalSkipped = 0;
+  let totalFailed = 0;
+
+  for (const result of results) {
+    totalTarget += result.limit;
+    totalGranted += result.granted;
+    totalSkipped += result.skipped;
+    totalFailed += result.failed;
+  }
+
+  const auditOutput: AuditOutput = {
+    executedAt: new Date().toISOString(),
+    isDryRun,
+    results,
+    summary: {
+      totalTarget,
+      totalGranted,
+      totalSkipped,
+      totalFailed,
+    },
+  };
+
+  writeFileSync(filepath, JSON.stringify(auditOutput, null, 2), 'utf-8');
+  return filepath;
+}
+
+/**
  * Print summary report
  */
 function printSummary(results: GrantResult[]) {
-  console.log('\n' + '='.repeat(60));
+  console.log('\n' + '='.repeat(SEPARATOR_LENGTH));
   console.log('📊 SUMMARY REPORT');
-  console.log('='.repeat(60));
+  console.log('='.repeat(SEPARATOR_LENGTH));
 
   let totalLimit = 0;
   let totalGranted = 0;
@@ -246,13 +305,13 @@ function printSummary(results: GrantResult[]) {
     totalFailed += result.failed;
   }
 
-  console.log('\n' + '-'.repeat(60));
+  console.log('\n' + '-'.repeat(SEPARATOR_LENGTH));
   console.log('Overall Totals:');
   console.log(`  Target:  ${totalLimit} users`);
   console.log(`  Granted: ${totalGranted} users`);
   console.log(`  Skipped: ${totalSkipped} users (already had lifetime Pro)`);
   console.log(`  Failed:  ${totalFailed} users`);
-  console.log('='.repeat(60));
+  console.log('='.repeat(SEPARATOR_LENGTH));
 
   if (isDryRun) {
     console.log('\n⚠️  DRY RUN MODE - No changes were made to the database');
@@ -269,7 +328,7 @@ function printSummary(results: GrantResult[]) {
  */
 async function main() {
   console.log('🚀 Early Adopter Lifetime Pro Grant Script');
-  console.log('='.repeat(60));
+  console.log('='.repeat(SEPARATOR_LENGTH));
 
   if (isDryRun) {
     console.log('⚠️  Running in DRY RUN mode - no database changes will be made\n');
@@ -308,6 +367,10 @@ async function main() {
 
     // Print summary
     printSummary(results);
+
+    // Write audit file
+    const auditFilePath = writeAuditFile(results);
+    console.log(`\n📝 Audit results written to: ${auditFilePath}`);
 
     process.exit(0);
   } catch (error) {
