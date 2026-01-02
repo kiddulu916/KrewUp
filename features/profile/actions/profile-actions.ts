@@ -177,3 +177,46 @@ export async function updateProfileLocation(data: {
   revalidatePath('/dashboard/profile');
   return { success: true };
 }
+
+/**
+ * Update worker's tools owned
+ */
+export async function updateToolsOwned(
+  hasTools: boolean,
+  toolsOwned: string[]
+): Promise<{ success: boolean; error?: string }> {
+  const supabase = await createClient(await cookies());
+
+  // 1. Get authenticated user
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  if (authError || !user) {
+    return { success: false, error: 'Not authenticated' };
+  }
+
+  // 2. Verify user is a worker
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', user.id)
+    .single();
+
+  if (profile?.role !== 'worker') {
+    return { success: false, error: 'Only workers can update tools owned' };
+  }
+
+  // 3. Update tools
+  const { error } = await supabase
+    .from('profiles')
+    .update({
+      has_tools: hasTools,
+      tools_owned: toolsOwned
+    })
+    .eq('id', user.id);
+
+  if (error) {
+    return { success: false, error: error.message };
+  }
+
+  revalidatePath('/dashboard/profile/edit');
+  return { success: true };
+}
