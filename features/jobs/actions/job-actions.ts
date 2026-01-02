@@ -5,6 +5,7 @@ import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { cookies } from 'next/headers';
 import * as Sentry from '@sentry/nextjs';
+import { ALLOWED_JOB_POSTING_EMPLOYER_TYPES } from '@/lib/constants';
 
 export type TradeSelection = {
   trade: string;
@@ -65,12 +66,21 @@ export async function createJob(data: JobData): Promise<JobResult> {
   // Verify user is an employer
   const { data: profile } = await supabase
     .from('profiles')
-    .select('role, subscription_status')
+    .select('role, subscription_status, employer_type')
     .eq('id', user.id)
     .single();
 
+  // Step 1: Must be an employer role
   if (profile?.role !== 'employer') {
     return { success: false, error: 'Only employers can post jobs' };
+  }
+
+  // Step 2: Must be allowed employer type
+  if (!profile?.employer_type || !ALLOWED_JOB_POSTING_EMPLOYER_TYPES.includes(profile.employer_type)) {
+    return {
+      success: false,
+      error: 'Only contractors and developers can post jobs'
+    };
   }
 
   // Validate Pro features
