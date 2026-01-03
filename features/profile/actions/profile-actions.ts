@@ -177,3 +177,68 @@ export async function updateProfileLocation(data: {
   revalidatePath('/dashboard/profile');
   return { success: true };
 }
+
+/**
+ * Update worker's tools owned
+ */
+export async function updateToolsOwned(
+  hasTools: boolean,
+  toolsOwned: string[]
+): Promise<{ success: boolean; error?: string }> {
+  const supabase = await createClient(await cookies());
+
+  // 1. Get authenticated user
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  if (authError || !user) {
+    return { success: false, error: 'Not authenticated' };
+  }
+
+  // 2. Validate input
+  if (typeof hasTools !== 'boolean') {
+    return { success: false, error: 'Invalid hasTools value' };
+  }
+
+  // Validate and sanitize toolsOwned array
+  const MAX_TOOLS = 100;
+  const MAX_TOOL_NAME_LENGTH = 100;
+
+  if (toolsOwned.length > MAX_TOOLS) {
+    return { success: false, error: `Cannot save more than ${MAX_TOOLS} tools` };
+  }
+
+  // Sanitize: trim whitespace, filter empty/too long, remove duplicates
+  const sanitizedTools = toolsOwned
+    .map(tool => tool.trim())
+    .filter(tool => tool.length > 0 && tool.length <= MAX_TOOL_NAME_LENGTH);
+
+  const uniqueTools = [...new Set(sanitizedTools)];
+
+  // 3. Verify user is a worker
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', user.id)
+    .single();
+
+  if (profile?.role !== 'worker') {
+    return { success: false, error: 'Only workers can update tools owned' };
+  }
+
+  // 4. Update tools
+  const { error } = await supabase
+    .from('profiles')
+    .update({
+      has_tools: hasTools,
+      tools_owned: uniqueTools
+    })
+    .eq('id', user.id);
+
+  if (error) {
+    console.error('Update tools error:', error);
+    return { success: false, error: 'Failed to update tools' };
+  }
+
+  revalidatePath('/dashboard/profile/edit');
+  revalidatePath('/dashboard/profile');
+  return { success: true };
+}

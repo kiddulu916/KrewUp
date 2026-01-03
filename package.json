@@ -23,13 +23,18 @@
     "lighthouse": "lhci autorun",
     "lighthouse:mobile": "lhci mobile",
     "lighthouse:desktop": "lhci desktop",
-    "test:perf": "npm run lighthouse"
+    "test:perf": "npm run lighthouse",
+    "grant-early-adopter-pro": "tsx scripts/grant-early-adopter-pro.ts",
+    "grant-early-adopter-pro:dry-run": "tsx scripts/grant-early-adopter-pro.ts --dry-run"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
     "@capacitor/android": "^8.0.0",
+    "@dnd-kit/core": "^6.3.1",
+    "@dnd-kit/sortable": "^10.0.0",
+    "@dnd-kit/utilities": "^3.2.2",
     "@dotenvx/dotenvx": "^1.51.2",
     "@googlemaps/js-api-loader": "^2.0.2",
     "@hookform/resolvers": "^5.2.2",
@@ -47,6 +52,7 @@
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
     "export": "^0.1.337",
+    "lucide-react": "^0.562.0",
     "mammoth": "^1.11.0",
     "next": "^16.0.10",
     "pdf-parse": "^2.4.5",
