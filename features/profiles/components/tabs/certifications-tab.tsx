@@ -4,6 +4,7 @@ import { useCertifications } from '../../hooks/use-certifications';
 import { Badge } from '@/components/ui/badge';
 import { Loader2, Award, CheckCircle, XCircle, Clock } from 'lucide-react';
 import { format } from 'date-fns';
+import Image from 'next/image';
 
 type CertificationsTabProps = {
   userId: string;
@@ -115,7 +116,7 @@ export function CertificationsTab({ userId }: CertificationsTabProps) {
                     )}
                     {cert.certification_number && (
                       <p>
-                        <span className="font-medium">Number:</span> {cert.certification_number}
+                        <span className="font-medium">Number:</span> ****{cert.certification_number.slice(-4)}
                       </p>
                     )}
                     {cert.issue_date && (
@@ -136,9 +137,11 @@ export function CertificationsTab({ userId }: CertificationsTabProps) {
             {/* Right side: Photo */}
             {cert.image_url && (
               <div className="flex-shrink-0">
-                <img
+                <Image
                   src={cert.image_url}
                   alt={`${cert.certification_type} certificate`}
+                  width={160}
+                  height={160}
                   className="h-32 w-32 rounded-lg border border-gray-200 object-cover sm:h-40 sm:w-40"
                 />
               </div>

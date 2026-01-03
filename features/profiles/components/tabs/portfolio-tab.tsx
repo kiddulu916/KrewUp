@@ -2,6 +2,7 @@
 
 import { usePortfolioImages } from '../../hooks/use-portfolio-images';
 import { Loader2, Image as ImageIcon } from 'lucide-react';
+import Image from 'next/image';
 
 type PortfolioTabProps = {
   userId: string;
@@ -47,11 +48,12 @@ export function PortfolioTab({ userId }: PortfolioTabProps) {
             key={image.id}
             className="group relative aspect-square overflow-hidden rounded-lg border border-gray-200 bg-gray-100"
           >
-            <img
+            <Image
               src={image.image_url}
               alt={`Portfolio image ${image.display_order + 1}`}
-              className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-              loading="lazy"
+              fill
+              className="object-cover transition-transform duration-300 group-hover:scale-105"
+              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
             />
             <div className="absolute inset-0 bg-black bg-opacity-0 transition-opacity duration-300 group-hover:bg-opacity-10" />
           </div>

@@ -3,6 +3,7 @@
 import { Badge } from '@/components/ui/badge';
 import { usePublicProfile } from '../../hooks/use-public-profile';
 import { Loader2, MapPin, Briefcase, Calendar } from 'lucide-react';
+import Image from 'next/image';
 
 type AboutTabProps = {
   userId: string;
@@ -41,9 +42,11 @@ export function AboutTab({ userId }: AboutTabProps) {
       <div className="flex items-start gap-4">
         <div className="flex-shrink-0">
           {profile.profile_image_url ? (
-            <img
+            <Image
               src={profile.profile_image_url}
               alt={profile.name}
+              width={80}
+              height={80}
               className="h-20 w-20 rounded-full border-2 border-krewup-blue object-cover"
             />
           ) : (

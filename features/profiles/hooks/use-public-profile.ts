@@ -4,6 +4,8 @@ import { useQuery } from '@tanstack/react-query';
 import { createClient } from '@/lib/supabase/client';
 import type { PublicProfile } from '../types';
 
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 export function usePublicProfile(userId: string) {
   return useQuery({
     queryKey: ['publicProfile', userId],
@@ -20,6 +22,6 @@ export function usePublicProfile(userId: string) {
       return data as PublicProfile;
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
-    enabled: !!userId,
+    enabled: !!userId && UUID_REGEX.test(userId),
   });
 }
