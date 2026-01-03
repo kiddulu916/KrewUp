@@ -62,6 +62,8 @@ export function Accordion({ items, allowMultiple = false, className }: Accordion
     <div className={cn('divide-y divide-gray-200 border border-gray-200 rounded-lg', className)}>
       {items.map((item) => {
         const isOpen = openItems.has(item.id);
+        const headerId = `accordion-header-${item.id}`;
+        const panelId = `accordion-panel-${item.id}`;
         return (
           <div key={item.id}>
             <button
@@ -69,9 +71,12 @@ export function Accordion({ items, allowMultiple = false, className }: Accordion
               onClick={() => toggleItem(item.id)}
               className="flex w-full items-center justify-between px-4 py-3 text-left hover:bg-gray-50 transition-colors"
               aria-expanded={isOpen}
+              aria-controls={panelId}
+              id={headerId}
             >
               <span className="font-medium text-gray-900">{item.title}</span>
               <svg
+                aria-hidden="true"
                 className={cn(
                   'h-5 w-5 text-gray-500 transition-transform duration-200',
                   isOpen && 'rotate-180'
@@ -89,7 +94,12 @@ export function Accordion({ items, allowMultiple = false, className }: Accordion
               </svg>
             </button>
             {isOpen && (
-              <div className="px-4 py-3 bg-gray-50 border-t border-gray-200">
+              <div
+                id={panelId}
+                role="region"
+                aria-labelledby={headerId}
+                className="px-4 py-3 bg-gray-50 border-t border-gray-200"
+              >
                 {item.children}
               </div>
             )}
@@ -115,6 +125,8 @@ export function AccordionItem({
   className?: string;
 }) {
   const [isOpen, setIsOpen] = useState(defaultOpen);
+  const headerId = `accordion-item-header-${title.replace(/\s+/g, '-').toLowerCase()}`;
+  const panelId = `accordion-item-panel-${title.replace(/\s+/g, '-').toLowerCase()}`;
 
   return (
     <div className={cn('border border-gray-200 rounded-lg', className)}>
@@ -123,9 +135,12 @@ export function AccordionItem({
         onClick={() => setIsOpen(!isOpen)}
         className="flex w-full items-center justify-between px-4 py-3 text-left hover:bg-gray-50 transition-colors rounded-lg"
         aria-expanded={isOpen}
+        aria-controls={panelId}
+        id={headerId}
       >
         <span className="font-medium text-gray-900">{title}</span>
         <svg
+          aria-hidden="true"
           className={cn(
             'h-5 w-5 text-gray-500 transition-transform duration-200',
             isOpen && 'rotate-180'
@@ -143,7 +158,12 @@ export function AccordionItem({
         </svg>
       </button>
       {isOpen && (
-        <div className="px-4 py-3 bg-gray-50 border-t border-gray-200 rounded-b-lg">
+        <div
+          id={panelId}
+          role="region"
+          aria-labelledby={headerId}
+          className="px-4 py-3 bg-gray-50 border-t border-gray-200 rounded-b-lg"
+        >
           {children}
         </div>
       )}

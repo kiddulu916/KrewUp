@@ -80,23 +80,26 @@ export function ToolsSelector({
   );
 
   // Render a category section
-  const renderCategory = (categoryKey: string, category: ToolCategory) => {
-    return (
-      <div key={categoryKey} className="space-y-3">
-        <h3 className="font-semibold text-gray-900">{category.name}</h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          {category.tools.map((tool) => (
-            <Checkbox
-              key={tool}
-              label={tool}
-              checked={toolsOwned.includes(tool)}
-              onChange={() => handleToolToggle(tool)}
-            />
-          ))}
+  const renderCategory = useCallback(
+    (categoryKey: string, category: ToolCategory) => {
+      return (
+        <div key={categoryKey} className="space-y-3">
+          <h3 className="font-semibold text-gray-900">{category.name}</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {category.tools.map((tool) => (
+              <Checkbox
+                key={tool}
+                label={tool}
+                checked={toolsOwned.includes(tool)}
+                onChange={() => handleToolToggle(tool)}
+              />
+            ))}
+          </div>
         </div>
-      </div>
-    );
-  };
+      );
+    },
+    [toolsOwned, handleToolToggle]
+  );
 
   return (
     <div className="space-y-6">
@@ -198,7 +201,7 @@ export function ToolsSelector({
                 <button
                   type="button"
                   onClick={() => handleToolToggle(tool)}
-                  className="hover:text-blue-700"
+                  className="hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 rounded"
                   aria-label={`Remove ${tool}`}
                 >
                   <svg
