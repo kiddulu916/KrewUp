@@ -100,26 +100,31 @@ export async function POST(req: NextRequest) {
         // Update profiles.subscription_status to 'pro' and activate profile boost
         const { data: profile } = await supabaseAdmin
           .from('profiles')
-          .select('role')
+          .select('role, is_lifetime_pro')
           .eq('id', userId)
           .single();
 
-        // Only set profile boost for workers
-        const profileUpdate: any = { subscription_status: 'pro' };
-        if (profile?.role === 'worker') {
-          profileUpdate.is_profile_boosted = true;
-          // Profile boost lasts 7 days and renews monthly
-          profileUpdate.boost_expires_at = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
-        }
+        // Protect lifetime Pro users - they already have Pro access
+        if (profile?.is_lifetime_pro) {
+          console.log(`User ${userId} has lifetime Pro - skipping subscription_status update`);
+        } else {
+          // Only set profile boost for workers
+          const profileUpdate: any = { subscription_status: 'pro' };
+          if (profile?.role === 'worker') {
+            profileUpdate.is_profile_boosted = true;
+            // Profile boost lasts 7 days and renews monthly
+            profileUpdate.boost_expires_at = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+          }
 
-        const { error: profileError } = await supabaseAdmin
-          .from('profiles')
-          .update(profileUpdate)
-          .eq('id', userId);
+          const { error: profileError } = await supabaseAdmin
+            .from('profiles')
+            .update(profileUpdate)
+            .eq('id', userId);
 
-        if (profileError) {
-          console.error('Database error updating profile subscription status:', profileError);
-          // Don't fail the webhook for this, just log the error
+          if (profileError) {
+            console.error('Database error updating profile subscription status:', profileError);
+            // Don't fail the webhook for this, just log the error
+          }
         }
 
         break;
@@ -184,11 +189,14 @@ export async function POST(req: NextRequest) {
         if (subscription.status === 'active') {
           const { data: profile } = await supabaseAdmin
             .from('profiles')
-            .select('role')
+            .select('role, is_lifetime_pro')
             .eq('id', existingSubscription.user_id)
             .single();
 
-          if (profile?.role === 'worker') {
+          // Protect lifetime Pro users - don't modify their status
+          if (profile?.is_lifetime_pro) {
+            console.log(`User ${existingSubscription.user_id} has lifetime Pro - skipping subscription renewal updates`);
+          } else if (profile?.role === 'worker') {
             await supabaseAdmin
               .from('profiles')
               .update({
@@ -231,18 +239,29 @@ export async function POST(req: NextRequest) {
         }
 
         // Update profiles.subscription_status back to 'free' and remove profile boost
-        const { error: profileError } = await supabaseAdmin
+        // BUT protect lifetime Pro users - they keep Pro access even after canceling
+        const { data: profile } = await supabaseAdmin
           .from('profiles')
-          .update({
-            subscription_status: 'free',
-            is_profile_boosted: false,
-            boost_expires_at: null,
-          })
-          .eq('id', existingSubscription.user_id);
+          .select('is_lifetime_pro')
+          .eq('id', existingSubscription.user_id)
+          .single();
 
-        if (profileError) {
-          console.error('Database error updating profile subscription status:', profileError);
-          // Don't fail the webhook for this, just log the error
+        if (profile?.is_lifetime_pro) {
+          console.log(`User ${existingSubscription.user_id} has lifetime Pro - keeping Pro access despite cancellation`);
+        } else {
+          const { error: profileError } = await supabaseAdmin
+            .from('profiles')
+            .update({
+              subscription_status: 'free',
+              is_profile_boosted: false,
+              boost_expires_at: null,
+            })
+            .eq('id', existingSubscription.user_id);
+
+          if (profileError) {
+            console.error('Database error updating profile subscription status:', profileError);
+            // Don't fail the webhook for this, just log the error
+          }
         }
 
         break;
