@@ -558,6 +558,53 @@ export async function getProfile(userId: string) {
 }
 
 /**
+ * Create a test notification for a user
+ */
+export async function createTestNotification(
+  userId: string,
+  data: {
+    type: 'proximity_alert' | 'application_status' | 'new_message' | 'profile_view';
+    title: string;
+    message: string;
+    link?: string;
+    read?: boolean;
+  }
+) {
+  const { data: notification, error } = await testDb
+    .from('notifications')
+    .insert({
+      user_id: userId,
+      type: data.type,
+      title: data.title,
+      message: data.message,
+      data: data.link ? { link: data.link } : null,
+      read_at: data.read ? new Date().toISOString() : null,
+    })
+    .select()
+    .single();
+
+  if (error) {
+    throw new Error(`Failed to create test notification: ${error.message}`);
+  }
+
+  return notification;
+}
+
+/**
+ * Delete all notifications for a user
+ */
+export async function deleteUserNotifications(userId: string) {
+  const { error } = await testDb
+    .from('notifications')
+    .delete()
+    .eq('user_id', userId);
+
+  if (error) {
+    throw new Error(`Failed to delete notifications: ${error.message}`);
+  }
+}
+
+/**
  * Wait for a condition to be true (polling with timeout)
  * Useful for waiting for async operations to complete
  */
