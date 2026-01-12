@@ -44,13 +44,26 @@ export default async function ProfilePage() {
   } : null;
 
   // Get certifications if worker
-  const { data: certifications } = profileWithMeta?.role === 'worker'
+  const { data: certificationsRaw } = profileWithMeta?.role === 'worker'
     ? await supabase
         .from('certifications')
         .select('*')
         .eq('worker_id', user.id)
         .order('created_at', { ascending: false })
     : { data: null };
+
+  // Map certification fields to component expected format
+  const certifications = (certificationsRaw || []).map((cert: any) => ({
+    id: cert.id,
+    credential_category: 'certification' as const,
+    certification_type: cert.name,
+    certification_number: cert.credential_id,
+    issued_by: cert.issuing_organization,
+    expires_at: cert.expiration_date,
+    is_verified: cert.verification_status === 'verified',
+    verification_status: cert.verification_status as 'pending' | 'verified' | 'rejected' | undefined,
+    rejection_reason: cert.rejection_reason,
+  }));
 
   // Get work experience if worker
   const { data: workExperience } = profileWithMeta?.role === 'worker'
@@ -197,9 +210,9 @@ export default async function ProfilePage() {
             </Link>
           }
         >
-          {certifications && certifications.length > 0 ? (
+          {certifications.length > 0 ? (
             <div className="space-y-3">
-              {certifications.map((cert: any) => (
+              {certifications.map((cert) => (
                 <CertificationItem key={cert.id} cert={cert} />
               ))}
             </div>

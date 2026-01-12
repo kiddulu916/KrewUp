@@ -46,10 +46,10 @@ Track your progress through the complete rebuild. Check off items as you complet
 - [x] Test database reset and recreation
 - [ ] Enable real-time for messages table (using polling instead - cost-free)
 - [ ] Enable real-time for conversations table (using polling instead - cost-free)
-- [ ] Set up email templates in Supabase Auth (optional)
-- [ ] Create "certification-photos" bucket in Supabase Storage (code ready, needs dashboard config)
-- [ ] Set up storage RLS policies for certification-photos bucket (code ready, needs dashboard config)
-- [ ] Generate TypeScript types from schema (optional, manual types created)
+- [x] Set up email templates in Supabase Auth (see docs/supabase-email-templates.md)
+- [x] Create "certification-photos" bucket in Supabase Storage
+- [x] Set up storage RLS policies for certification-photos bucket
+- [x] Generate TypeScript types from schema (notification_preferences added Jan 12, 2026)
 - [x] Create lib/supabase/client.ts
 - [x] Create lib/supabase/server.ts
 - [x] Create lib/supabase/middleware.ts
@@ -84,8 +84,8 @@ Track your progress through the complete rebuild. Check off items as you complet
 
 ### Core Layout & Navigation ✅
 - [x] Create header.tsx component (integrated in dashboard layout)
-- [ ] Create footer.tsx component (not needed for dashboard)
-- [ ] Create mobile-nav.tsx component (mobile review doc created, implementation pending)
+- [x] Create footer.tsx component (skipped - not needed for dashboard)
+- [x] Create mobile-nav.tsx component (bottom-nav.tsx with role-based navigation)
 - [x] Create root layout (app/layout.tsx)
 - [x] Create providers.tsx (TanStack Query provider)
 - [x] Create globals.css with Tailwind
@@ -117,8 +117,8 @@ Track your progress through the complete rebuild. Check off items as you complet
 - [x] Create integration tests for server actions (profile, jobs)
 - [x] Set up test database seeding and cleanup utilities
 - [x] Create test suite documentation (TEST_SUITE_README.md)
-- [ ] Set up GitHub Actions CI workflow (optional for now)
-- [ ] Verify tests pass in CI (optional for now)
+- [x] Set up GitHub Actions CI workflow (.github/workflows/ci.yml)
+- [ ] Verify tests pass in CI (configure secrets in GitHub repo settings)
 
 ---
 
@@ -183,8 +183,8 @@ Track your progress through the complete rebuild. Check off items as you complet
 - [x] Add certification number input field to certification form
 - [x] Add upload progress states and loading indicators
 - [x] Add remove photo button
-- [ ] Create "certification-photos" bucket in Supabase Storage (needs dashboard config)
-- [ ] Set up storage RLS policies for certification photos (needs dashboard config)
+- [x] Create "certification-photos" bucket in Supabase Storage
+- [x] Set up storage RLS policies for certification photos
 
 **Implementation Details**:
 - ✅ Server action validates file type and size before upload
@@ -355,7 +355,7 @@ Track your progress through the complete rebuild. Check off items as you complet
 - ✅ Conditional pay rate logic implemented
 - ✅ PostGIS coordinate conversion fixed
 - ✅ Certification photo upload code complete
-- ⏳ Pending: Supabase Storage bucket creation for certification photos
+- ✅ Supabase Storage bucket created for certification photos
 
 **Recent Features Added**:
 - ✅ Google Places Autocomplete for location selection (onboarding, profile, jobs)
@@ -365,17 +365,16 @@ Track your progress through the complete rebuild. Check off items as you complet
 - ✅ PostGIS POINT format conversion (fixed "invalid geometry" errors)
 - ✅ Navigation improvements (color-coded, narrower sidebar)
 
-**Pending Configuration**:
-- ⏳ Create "certification-photos" storage bucket in Supabase Dashboard
-- ⏳ Set up Row Level Security policies for certification photos
-- ⏳ Add certification_number column to certifications table (if not exists)
-- ⏳ Add photo_url column to certifications table (if not exists)
+**Configuration Complete**:
+- ✅ Created "certification-photos" storage bucket in Supabase Dashboard
+- ✅ Set up Row Level Security policies for certification photos
+- ✅ certification_number column in certifications table
+- ✅ photo_url column in certifications table
 
 **Next Steps**:
-1. Configure Supabase Storage bucket for certification photos
-2. Test all new features in production
-3. Fix any bugs discovered during testing
-4. Invite beta users!
+1. Test all new features in production
+2. Fix any bugs discovered during testing
+3. Invite beta users!
 
 ---
 
@@ -426,7 +425,7 @@ Track your progress through the complete rebuild. Check off items as you complet
 - [ ] Test profile boost functionality (ready for testing)
 
 #### Certification Filtering (Employers) ✅
-- [ ] Add verified certification badge to profiles (optional)
+- [x] Add verified certification badge to profiles (VerifiedCertificationBadge component)
 - [x] Create Pro-only filter for verified certifications (certification-filter-actions.ts)
 - [x] Gate filter with FeatureGate component
 - [ ] Create POST /api/certifications/verify route (optional - manual admin verification)
@@ -459,21 +458,21 @@ Track your progress through the complete rebuild. Check off items as you complet
 - [x] Set up cron job (Vercel Cron)
 - [x] Implement proximity query (PostGIS within radius)
 - [x] Create notifications for matching jobs
-- [ ] Create notification-bell.tsx component - NEEDS IMPLEMENTATION
-- [ ] Show unread notification count - NEEDS IMPLEMENTATION
-- [ ] Create notification-list.tsx component - NEEDS IMPLEMENTATION
-- [ ] Create notification page route - NEEDS IMPLEMENTATION
-- [ ] Create server actions for reading notifications - NEEDS IMPLEMENTATION
+- [x] Create notification-bell.tsx component
+- [x] Show unread notification count
+- [x] Create notification-list.tsx component
+- [x] Create notification page route
+- [x] Create server actions for reading notifications
 - [ ] Test proximity alert setup
 - [ ] Test notification creation
 - [ ] Test notification viewing
 
-#### Push Notifications (Optional)
-- [ ] Set up Firebase Cloud Messaging or Supabase push
-- [ ] Request notification permissions
-- [ ] Send push notifications for proximity alerts
-- [ ] Handle notification clicks (navigate to job)
-- [ ] Test push notifications
+#### Push Notifications ✅
+- [x] Set up Web Push with Supabase (push_subscriptions table, service worker)
+- [x] Request notification permissions (use-push-notifications hook)
+- [x] Send push notifications infrastructure (push-subscription-actions.ts)
+- [x] Handle notification clicks (sw.js service worker)
+- [ ] Test push notifications (requires VAPID keys - see docs/push-notifications-setup.md)
 
 ### Analytics Dashboard
 
@@ -491,14 +490,14 @@ Track your progress through the complete rebuild. Check off items as you complet
 - [x] Test job view tracking
 - [x] Test analytics display
 
-#### Profile Analytics (Workers)
-- [ ] Enhance profile view aggregation
-- [ ] Create profile-views-chart.tsx component
-- [ ] Show views over time
-- [ ] Show recent viewers list
-- [ ] Create GET /api/analytics/profile-views route
-- [ ] Add profile analytics to analytics page
-- [ ] Test profile analytics
+#### Profile Analytics (Workers) ✅
+- [x] Enhance profile view aggregation (profile-analytics-actions.ts)
+- [x] Create profile-views-chart.tsx component
+- [x] Show views over time (LineChart with date range filters)
+- [x] Show recent viewers list (ProfileViewsList component)
+- [x] Create server action for profile analytics (replaced API route with server action)
+- [x] Add profile analytics page (/dashboard/analytics/profile)
+- [ ] Test profile analytics in production
 
 #### Candidate Analytics (Employers) ✅
 - [x] Create candidate-analytics.tsx component (candidate-pipeline-dashboard.tsx)

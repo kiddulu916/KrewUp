@@ -1,6 +1,6 @@
 // * Auto-generated Supabase database types
 // * Generated using mcp_supabase_generate_typescript_types
-// * Last updated: January 6, 2026
+// * Last updated: January 12, 2026
 
 export type Json =
   | string
@@ -796,6 +796,67 @@ export type Database = {
           },
         ]
       }
+      notification_preferences: {
+        Row: {
+          id: string
+          user_id: string
+          application_status_changes: boolean
+          new_applications: boolean
+          new_messages: boolean
+          job_matches: boolean
+          endorsement_requests: boolean
+          profile_views: boolean
+          email_notifications: boolean
+          email_digest: string | null
+          push_notifications: boolean
+          desktop_notifications: boolean
+          notification_sound: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          application_status_changes?: boolean
+          new_applications?: boolean
+          new_messages?: boolean
+          job_matches?: boolean
+          endorsement_requests?: boolean
+          profile_views?: boolean
+          email_notifications?: boolean
+          email_digest?: string | null
+          push_notifications?: boolean
+          desktop_notifications?: boolean
+          notification_sound?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          application_status_changes?: boolean
+          new_applications?: boolean
+          new_messages?: boolean
+          job_matches?: boolean
+          endorsement_requests?: boolean
+          profile_views?: boolean
+          email_notifications?: boolean
+          email_digest?: string | null
+          push_notifications?: boolean
+          desktop_notifications?: boolean
+          notification_sound?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_preferences_user_id_fkey"
+            columns: ["user_id"]
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notifications: {
         Row: {
           created_at: string | null
@@ -862,6 +923,46 @@ export type Database = {
           {
             foreignKeyName: "platform_settings_updated_by_fkey"
             columns: ["updated_by"]
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      push_subscriptions: {
+        Row: {
+          id: string
+          user_id: string
+          endpoint: string
+          p256dh: string
+          auth: string
+          user_agent: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          endpoint: string
+          p256dh: string
+          auth: string
+          user_agent?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          endpoint?: string
+          p256dh?: string
+          auth?: string
+          user_agent?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "push_subscriptions_user_id_fkey"
+            columns: ["user_id"]
             referencedRelation: "users"
             referencedColumns: ["id"]
           },
@@ -1419,4 +1520,6 @@ export type ProfessionalReference = Tables<'professional_references'>
 export type ProximityAlert = Tables<'proximity_alerts'>
 export type ProfileView = Tables<'profile_views'>
 export type JobView = Tables<'job_views'>
+export type NotificationPreference = Tables<'notification_preferences'>
+export type PushSubscription = Tables<'push_subscriptions'>
 

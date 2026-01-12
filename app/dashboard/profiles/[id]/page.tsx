@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle, Badge, Button } from '@/compo
 import { MessageButton } from '@/features/messaging/components/message-button';
 import { BoostBadge } from '@/features/subscriptions/components/boost-badge';
 import { ProfileViewTracker } from '@/features/subscriptions/components/profile-view-tracker';
+import { VerifiedCertificationBadge } from '@/components/common';
 import { SidebarAd } from '@/components/ads/sidebar-ad';
 import { notFound, redirect } from 'next/navigation';
 import Link from 'next/link';
@@ -210,7 +211,7 @@ export default async function PublicProfilePage({ params }: Props) {
                       )}
                     </div>
                   </div>
-                  <Badge variant="success">Verified</Badge>
+                  <VerifiedCertificationBadge size="sm" />
                 </div>
               ))}
             </div>
