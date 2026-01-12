@@ -1,5 +1,8 @@
 # KrewUp
 
+[![Tests](https://github.com/your-repo/krewup/actions/workflows/test.yml/badge.svg)](https://github.com/your-repo/krewup/actions/workflows/test.yml)
+[![codecov](https://codecov.io/gh/your-repo/krewup/branch/main/graph/badge.svg)](https://codecov.io/gh/your-repo/krewup)
+
 KrewUp is a modern platform designed to connect workers and employers in the trades industry. It features a domain-driven architecture, real-time messaging, geolocation-based job searches, and a robust subscription system.
 
 ## 🚀 Tech Stack

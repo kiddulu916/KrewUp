@@ -52,15 +52,15 @@ export default defineConfig({
         'node_modules/**',
       ],
 
-      // Gradual thresholds - ratchet these up over time
-      // Current baseline: ~3-5% (2025-01-09)
-      // Ratchet up as service extraction progresses
+      // Coverage thresholds - ratcheted up after Phase 4 completion
+      // Last updated: 2025-01-11 (Phase 6)
+      // Services: 80%+ | Utilities: 70%+ | Global: 25%+
       thresholds: {
-        // Global baseline - start below current, increase as tests are added
-        statements: 3,
-        branches: 4,
-        functions: 1,
-        lines: 3,
+        // Global baseline - conservative to avoid CI failures
+        statements: 25,
+        branches: 25,
+        functions: 18,
+        lines: 25,
       },
     },
   },
