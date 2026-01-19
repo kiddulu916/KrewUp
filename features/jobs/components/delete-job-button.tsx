@@ -23,8 +23,8 @@ export function DeleteJobButton({ jobId }: DeleteJobButtonProps) {
     try {
       await deleteJob(jobId);
       // Redirect happens in the action
-    } catch (error: any) {
-      toast.error(error.message || 'Failed to delete job');
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : 'Failed to delete job');
       setIsDeleting(false);
     }
   }

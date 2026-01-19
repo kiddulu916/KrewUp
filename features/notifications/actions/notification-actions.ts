@@ -10,7 +10,7 @@ export interface Notification {
   type: 'proximity_alert' | 'application_status' | 'new_message' | 'profile_view';
   title: string;
   message: string;
-  data?: any;
+  data?: Record<string, unknown> | null;
   read_at: string | null;
   created_at: string;
 }
@@ -32,7 +32,7 @@ export async function getMyNotifications() {
 
     const { data, error } = await supabase
       .from('notifications')
-      .select('*')
+      .select('id, user_id, type, title, message, data, read_at, created_at')
       .eq('user_id', user.id)
       .order('created_at', { ascending: false });
 
@@ -42,9 +42,9 @@ export async function getMyNotifications() {
     }
 
     return { success: true, notifications: data as Notification[] };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error in getMyNotifications:', error);
-    return { success: false, error: error.message || 'Failed to fetch notifications' };
+    return { success: false, error: error instanceof Error ? error.message : 'Failed to fetch notifications' };
   }
 }
 
@@ -75,9 +75,9 @@ export async function getUnreadCount() {
     }
 
     return { success: true, count: count || 0 };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error in getUnreadCount:', error);
-    return { success: false, error: error.message || 'Failed to fetch unread count', count: 0 };
+    return { success: false, error: error instanceof Error ? error.message : 'Failed to fetch unread count', count: 0 };
   }
 }
 
@@ -109,9 +109,9 @@ export async function markNotificationAsRead(notificationId: string) {
 
     revalidatePath('/dashboard/notifications');
     return { success: true };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error in markNotificationAsRead:', error);
-    return { success: false, error: error.message || 'Failed to mark notification as read' };
+    return { success: false, error: error instanceof Error ? error.message : 'Failed to mark notification as read' };
   }
 }
 
@@ -143,9 +143,9 @@ export async function markAllNotificationsAsRead() {
 
     revalidatePath('/dashboard/notifications');
     return { success: true };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error in markAllNotificationsAsRead:', error);
-    return { success: false, error: error.message || 'Failed to mark all notifications as read' };
+    return { success: false, error: error instanceof Error ? error.message : 'Failed to mark all notifications as read' };
   }
 }
 
@@ -177,8 +177,8 @@ export async function deleteNotification(notificationId: string) {
 
     revalidatePath('/dashboard/notifications');
     return { success: true };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error in deleteNotification:', error);
-    return { success: false, error: error.message || 'Failed to delete notification' };
+    return { success: false, error: error instanceof Error ? error.message : 'Failed to delete notification' };
   }
 }

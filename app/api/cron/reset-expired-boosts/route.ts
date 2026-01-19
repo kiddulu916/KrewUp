@@ -1,6 +1,7 @@
 // app/api/cron/reset-expired-boosts/route.ts
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { logger, sanitizeUserId } from '@/lib/utils/logger';
 
 // Create Supabase admin client for cron job (server-side, bypasses RLS)
 const supabaseAdmin = createClient(
@@ -26,7 +27,7 @@ export async function GET(request: Request) {
     // Verify cron secret to prevent unauthorized access
     const authHeader = request.headers.get('authorization');
     if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
-      console.error('Unauthorized cron job access attempt');
+      logger.error('Unauthorized cron job access attempt');
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -73,7 +74,9 @@ export async function GET(request: Request) {
     });
 
     if (workersToReset.length === 0) {
-      console.log('All boosted workers have active Pro subscriptions');
+      logger.info('All boosted workers have active Pro subscriptions', {
+        checked: boostedWorkers.length,
+      });
       return NextResponse.json({
         success: true,
         message: 'All boosts are valid',
@@ -101,7 +104,10 @@ export async function GET(request: Request) {
       );
     }
 
-    console.log(`Successfully reset ${workersToReset.length} invalid boosts`);
+    logger.info('Successfully reset invalid boosts', {
+      count: workersToReset.length,
+      checked: boostedWorkers.length,
+    });
     return NextResponse.json({
       success: true,
       message: `Reset ${workersToReset.length} boosts (workers without active Pro)`,
@@ -117,7 +123,9 @@ export async function GET(request: Request) {
       }),
     });
   } catch (error) {
-    console.error('Cron job error:', error);
+    logger.error('Cron job error', { 
+      error: error instanceof Error ? error.message : String(error), 
+    });
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

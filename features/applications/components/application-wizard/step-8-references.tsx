@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { UseFormReturn, Controller, useFieldArray } from 'react-hook-form';
 import { ApplicationFormData } from '../../types/application.types';
 import { Input, Textarea } from '@/components/ui';
+import { formatPhoneNumber } from '@/lib/utils/phone';
 
 type Props = {
   form: UseFormReturn<Partial<ApplicationFormData>>;
@@ -37,17 +38,6 @@ const UserGroupIcon = ({ className }: { className?: string }) => (
     />
   </svg>
 );
-
-/**
- * Format phone number to (XXX) XXX-XXXX format
- */
-function formatPhoneNumber(value: string): string {
-  const numbers = value.replace(/\D/g, '');
-  if (numbers.length === 0) return '';
-  if (numbers.length <= 3) return `(${numbers}`;
-  if (numbers.length <= 6) return `(${numbers.slice(0, 3)}) ${numbers.slice(3)}`;
-  return `(${numbers.slice(0, 3)}) ${numbers.slice(3, 6)}-${numbers.slice(6, 10)}`;
-}
 
 const HOW_HEARD_OPTIONS = [
   'Indeed',
@@ -249,8 +239,8 @@ export function Step8References({ form }: Props) {
                           <Input
                             {...field}
                             type="tel"
-                            placeholder="(555) 123-4567"
-                            maxLength={14}
+                            placeholder="(555)123-4567"
+                            maxLength={13}
                             onChange={(e) => {
                               const formatted = formatPhoneNumber(e.target.value);
                               field.onChange(formatted);
@@ -456,8 +446,8 @@ export function Step8References({ form }: Props) {
               <Input
                 {...field}
                 type="tel"
-                placeholder="(555) 123-4567"
-                maxLength={14}
+                placeholder="(555)123-4567"
+                maxLength={13}
                 onChange={(e) => {
                   const formatted = formatPhoneNumber(e.target.value);
                   field.onChange(formatted);

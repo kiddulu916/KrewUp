@@ -147,8 +147,8 @@ export function CertificationForm({ role = 'worker', employerType, onSuccess, on
         router.push('/dashboard/profile');
         router.refresh();
       }
-    } catch (err: any) {
-      const errorMsg = err.message || 'Failed to add certification';
+    } catch (err: unknown) {
+      const errorMsg = err instanceof Error ? err.message : 'Failed to add certification';
       setError(errorMsg);
       toast.error(errorMsg);
       setIsLoading(false);

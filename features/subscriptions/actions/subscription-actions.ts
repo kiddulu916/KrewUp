@@ -5,6 +5,7 @@ import { stripe } from '@/lib/stripe/server';
 import { revalidatePath } from 'next/cache';
 import { cookies } from 'next/headers';
 import type { Subscription } from '@/types/subscription';
+import { safeLogger } from '@/lib/utils/safe-logger';
 
 export type SubscriptionResult = {
   success: boolean;
@@ -98,13 +99,13 @@ export async function createCheckoutSession(priceId: string): Promise<CheckoutRe
 
   // Validate priceId format
   if (!priceId || !priceId.startsWith('price_')) {
-    console.error('Invalid priceId format:', { priceId, userId: user.id });
+    safeLogger.error(new Error('Invalid priceId format'), { priceId });
     return { success: false, error: 'Invalid price ID format' };
   }
 
   // Validate environment variable
   if (!process.env.NEXT_PUBLIC_APP_URL) {
-    console.error('Missing NEXT_PUBLIC_APP_URL environment variable', { userId: user.id, priceId });
+    safeLogger.error(new Error('Missing NEXT_PUBLIC_APP_URL environment variable'), { priceId });
     return { success: false, error: 'Application URL not configured' };
   }
 

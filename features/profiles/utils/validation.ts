@@ -1,8 +1,9 @@
 import { z } from 'zod';
+import { PHONE_REGEX } from '@/lib/utils/phone';
 
 export const profileSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters').max(100, 'Name must be less than 100 characters'),
-  phone: z.string().optional().refine((val) => !val || /^\(\d{3}\)\d{3}-\d{4}$/.test(val), {
+  phone: z.string().optional().refine((val) => !val || PHONE_REGEX.test(val), {
     message: 'Phone must be in (XXX)XXX-XXXX format',
   }),
   location: z.string().min(1, 'Location is required'),

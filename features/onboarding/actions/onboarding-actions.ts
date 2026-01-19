@@ -5,6 +5,7 @@ import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
 import { cookies } from 'next/headers';
 import { addCertification } from '@/features/profiles/actions/certification-actions';
+import { safeLogger } from '@/lib/utils/safe-logger';
 
 export type OnboardingData = {
   name: string;
@@ -57,11 +58,11 @@ export async function completeOnboarding(data: OnboardingData): Promise<Onboardi
     .eq('id', user.id)
     .maybeSingle();
 
-  console.log('[onboarding] Check existing profile:', { exists: !!existingProfile, error: checkError });
+  safeLogger.debug('[onboarding] Check existing profile:', { exists: !!existingProfile });
 
   // If profile doesn't exist, create it first
   if (!existingProfile) {
-    console.log('[onboarding] Profile does not exist, creating it...');
+    safeLogger.debug('[onboarding] Profile does not exist, creating it...');
     const [firstName, ...lastNameParts] = data.name.trim().split(' ');
     const lastName = lastNameParts.join(' ') || '';
 
@@ -80,10 +81,10 @@ export async function completeOnboarding(data: OnboardingData): Promise<Onboardi
       });
 
     if (insertError) {
-      console.error('[onboarding] Error creating profile:', insertError);
+      safeLogger.error(insertError, { action: 'onboarding:createProfile' });
       return { success: false, error: `Failed to create profile: ${insertError.message}` };
     }
-    console.log('[onboarding] Profile created successfully');
+    safeLogger.info('[onboarding] Profile created successfully');
   }
 
   // Set default location if not provided
@@ -94,7 +95,7 @@ export async function completeOnboarding(data: OnboardingData): Promise<Onboardi
   const [firstName, ...lastNameParts] = data.name.trim().split(' ');
   const lastName = lastNameParts.join(' ') || '';
 
-  const userUpdate: any = {
+  const userUpdate: Record<string, unknown> = {
     first_name: firstName,
     last_name: lastName,
     phone: data.phone,
@@ -125,7 +126,7 @@ export async function completeOnboarding(data: OnboardingData): Promise<Onboardi
       .eq('user_id', user.id);
 
     if (workerError) {
-      console.error('[onboarding] Worker table update error:', workerError);
+      safeLogger.error(workerError, { action: 'onboarding:updateWorker' });
     }
   } else if (data.role === 'employer') {
     if (data.employer_type === 'contractor') {
@@ -137,7 +138,7 @@ export async function completeOnboarding(data: OnboardingData): Promise<Onboardi
         .eq('user_id', user.id);
 
       if (contractorError) {
-        console.error('[onboarding] Contractor table update error:', contractorError);
+        safeLogger.error(contractorError, { action: 'onboarding:updateContractor' });
       }
     } else if (data.employer_type === 'recruiter') {
       const { error: recruiterError } = await supabase
@@ -148,7 +149,7 @@ export async function completeOnboarding(data: OnboardingData): Promise<Onboardi
         .eq('user_id', user.id);
 
       if (recruiterError) {
-        console.error('[onboarding] Recruiter table update error:', recruiterError);
+        safeLogger.error(recruiterError, { action: 'onboarding:updateRecruiter' });
       }
     }
   }
@@ -163,7 +164,7 @@ export async function completeOnboarding(data: OnboardingData): Promise<Onboardi
     });
 
     if (coordsError) {
-      console.error('Coords update error:', coordsError);
+      safeLogger.error(coordsError, { action: 'onboarding:updateCoords' });
     }
   }
 
@@ -185,7 +186,7 @@ export async function completeOnboarding(data: OnboardingData): Promise<Onboardi
       return { success: false, error: certResult.error || 'Failed to save license' };
     }
 
-    console.log('[onboarding] Contractor license saved');
+    safeLogger.info('[onboarding] Contractor license saved');
   }
 
   // Verify the profile was updated correctly
@@ -200,13 +201,14 @@ export async function completeOnboarding(data: OnboardingData): Promise<Onboardi
     name: `${updatedProfile.first_name} ${updatedProfile.last_name}`.trim()
   } : null;
 
-  console.log('[onboarding-actions] Profile updated successfully');
-  console.log('[onboarding-actions] User ID:', user.id);
-  console.log('[onboarding-actions] Verify error:', verifyError);
-  console.log('[onboarding-actions] Updated profile data:', profile);
-  console.log('[onboarding-actions] Checking onboarding completion:');
-  console.log('  - Name starts with User-?:', profile?.name?.startsWith('User-'));
-  console.log('  - Location is "Update Location"?:', profile?.location === 'Update Location');
+  safeLogger.debug('[onboarding-actions] Profile updated successfully');
+  if (verifyError) {
+    safeLogger.error(verifyError, { action: 'onboarding:verifyProfile' });
+  }
+  safeLogger.debug('[onboarding-actions] Onboarding completion check:', {
+    hasDefaultName: profile?.name?.startsWith('User-') || false,
+    hasDefaultLocation: profile?.location === 'Update Location' || false,
+  });
 
   revalidatePath('/', 'layout');
   return { success: true };

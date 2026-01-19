@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
 import { cookies } from 'next/headers';
+import type { Education } from '@/types/database';
 
 export type EducationData = {
   institution: string;
@@ -12,9 +13,9 @@ export type EducationData = {
   end_date?: string;
 };
 
-export type EducationResult = {
+export type EducationResult<T = Education | Education[]> = {
   success: boolean;
-  data?: any;
+  data?: T;
   error?: string;
 };
 

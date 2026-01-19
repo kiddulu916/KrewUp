@@ -6,6 +6,7 @@ import { requestEndorsement } from '../actions/endorsement-actions';
 import { Button } from '@/components/ui/button';
 import { useIsPro } from '@/features/subscriptions/hooks/use-subscription';
 import { useRouter } from 'next/navigation';
+import { useAsyncAction } from '@/hooks/use-async-action';
 
 interface RequestEndorsementButtonProps {
   experienceId: string;
@@ -20,9 +21,16 @@ export function RequestEndorsementButton({
   const isPro = useIsPro();
   const [isOpen, setIsOpen] = useState(false);
   const [employerEmail, setEmployerEmail] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState(false);
+  const { execute, isLoading, error, success } = useAsyncAction({
+    showToast: false, // Handle success/error manually for better UX
+    onSuccess: () => {
+      setTimeout(() => {
+        setIsOpen(false);
+        setEmployerEmail('');
+        onSuccess?.();
+      }, 2000);
+    },
+  });
 
   // Free user - redirect to pricing
   if (!isPro) {
@@ -39,25 +47,14 @@ export function RequestEndorsementButton({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
-    setIsLoading(true);
 
-    const result = await requestEndorsement(experienceId, employerEmail);
-
-    setIsLoading(false);
-
-    if (!result.success) {
-      setError(result.error || 'Failed to send request');
-      return;
-    }
-
-    setSuccess(true);
-    setTimeout(() => {
-      setIsOpen(false);
-      setSuccess(false);
-      setEmployerEmail('');
-      onSuccess?.();
-    }, 2000);
+    await execute(async () => {
+      const result = await requestEndorsement(experienceId, employerEmail);
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to send request');
+      }
+      return result;
+    });
   };
 
   if (!isOpen) {

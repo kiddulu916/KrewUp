@@ -4,11 +4,13 @@ import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
 import { cookies } from 'next/headers';
 
+import type { GeoCoords } from '@/types';
+
 export type ProfileUpdateData = {
   name?: string;
   phone?: string | null;
   location?: string;
-  coords?: { lat: number; lng: number } | null;
+  coords?: GeoCoords | null;
   trade?: string;
   sub_trade?: string | null;
   bio?: string | null;
@@ -17,9 +19,9 @@ export type ProfileUpdateData = {
   profile_image_url?: string | null;
 };
 
-export type ProfileResult = {
+export type ProfileResult<T = unknown> = {
   success: boolean;
-  data?: any;
+  data?: T;
   error?: string;
 };
 
@@ -71,7 +73,7 @@ export async function updateProfile(data: ProfileUpdateData): Promise<ProfileRes
   }
 
   // Update other profile fields (excluding coords)
-  const updateData: any = {};
+  const updateData: Record<string, unknown> = {};
   if (data.name) {
     const [firstName, ...lastNameParts] = data.name.trim().split(' ');
     updateData.first_name = firstName;
@@ -98,7 +100,7 @@ export async function updateProfile(data: ProfileUpdateData): Promise<ProfileRes
 
   // Update workers table if trade/sub_trade provided
   if (data.trade !== undefined || data.sub_trade !== undefined) {
-    const workerUpdate: any = {};
+    const workerUpdate: Record<string, unknown> = {};
     if (data.trade !== undefined) workerUpdate.trade = data.trade;
     if (data.sub_trade !== undefined) workerUpdate.sub_trade = data.sub_trade;
 

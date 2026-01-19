@@ -67,9 +67,9 @@ export async function activateProfileBoost() {
     revalidatePath('/dashboard/profile');
     revalidatePath('/dashboard/settings');
     return { success: true, expiresAt: expiresAt.toISOString() };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error in activateProfileBoost:', error);
-    return { success: false, error: error.message || 'Failed to activate profile boost' };
+    return { success: false, error: error instanceof Error ? error.message : 'Failed to activate profile boost' };
   }
 }
 
@@ -104,9 +104,9 @@ export async function deactivateProfileBoost() {
     revalidatePath('/dashboard/profile');
     revalidatePath('/dashboard/settings');
     return { success: true };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error in deactivateProfileBoost:', error);
-    return { success: false, error: error.message || 'Failed to deactivate profile boost' };
+    return { success: false, error: error instanceof Error ? error.message : 'Failed to deactivate profile boost' };
   }
 }
 
@@ -147,8 +147,8 @@ export async function getBoostStatus() {
       isActive,
       expiresAt: profile.boost_expires_at,
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error in getBoostStatus:', error);
-    return { success: false, error: error.message || 'Failed to fetch boost status' };
+    return { success: false, error: error instanceof Error ? error.message : 'Failed to fetch boost status' };
   }
 }

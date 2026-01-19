@@ -282,7 +282,17 @@ export async function getPipelineApplications(
 
     // Calculate time in stage for each application
     const now = new Date();
-    const result: ApplicationWithMetrics[] = applications.map((app: any) => {
+    type ApplicationQueryResult = {
+      id: string;
+      status: string;
+      created_at: string;
+      status_updated_at: string | null;
+      hired_at: string | null;
+      jobs: { title: string } | null;
+      users: { first_name: string | null; last_name: string | null } | null;
+    };
+    
+    const result: ApplicationWithMetrics[] = (applications as ApplicationQueryResult[]).map((app) => {
       const statusDate = app.status_updated_at
         ? new Date(app.status_updated_at)
         : new Date(app.created_at);
@@ -290,7 +300,7 @@ export async function getPipelineApplications(
 
       return {
         id: app.id,
-        status: app.status,
+        status: app.status as PipelineStage,
         created_at: app.created_at,
         status_updated_at: app.status_updated_at,
         hired_at: app.hired_at,

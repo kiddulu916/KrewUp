@@ -1,6 +1,7 @@
 // app/api/cron/check-proximity-alerts/route.ts
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { safeLogger } from '@/lib/utils/safe-logger';
 
 // Create Supabase admin client for cron job
 const supabaseAdmin = createClient(
@@ -19,7 +20,7 @@ export async function GET(request: Request) {
     // Verify cron secret
     const authHeader = request.headers.get('authorization');
     if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
-      console.error('Unauthorized cron job access attempt');
+      safeLogger.warn('Unauthorized cron job access attempt', { action: 'cron:check-proximity-alerts' });
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -40,7 +41,7 @@ export async function GET(request: Request) {
       .eq('status', 'active');
 
     if (jobsError) {
-      console.error('Error fetching new jobs:', jobsError);
+      safeLogger.error(jobsError, { action: 'cron:fetchJobs' });
       return NextResponse.json(
         { error: 'Failed to fetch jobs' },
         { status: 500 }
@@ -48,7 +49,7 @@ export async function GET(request: Request) {
     }
 
     if (!newJobs || newJobs.length === 0) {
-      console.log('No new jobs found');
+      safeLogger.debug('No new jobs found');
       return NextResponse.json({
         success: true,
         message: 'No new jobs to process',
@@ -56,7 +57,7 @@ export async function GET(request: Request) {
       });
     }
 
-    console.log(`Found ${newJobs.length} new jobs`);
+    safeLogger.debug(`Found ${newJobs.length} new jobs`);
 
     // Get all active proximity alerts
     const { data: alerts, error: alertsError } = await supabaseAdmin
@@ -68,7 +69,7 @@ export async function GET(request: Request) {
       .eq('is_active', true);
 
     if (alertsError) {
-      console.error('Error fetching alerts:', alertsError);
+      safeLogger.error(alertsError, { action: 'cron:fetchAlerts' });
       return NextResponse.json(
         { error: 'Failed to fetch alerts' },
         { status: 500 }
@@ -76,7 +77,7 @@ export async function GET(request: Request) {
     }
 
     if (!alerts || alerts.length === 0) {
-      console.log('No active alerts found');
+      safeLogger.debug('No active alerts found');
       return NextResponse.json({
         success: true,
         message: 'No active alerts to process',
@@ -84,7 +85,7 @@ export async function GET(request: Request) {
       });
     }
 
-    console.log(`Found ${alerts.length} active alerts`);
+    safeLogger.debug(`Found ${alerts.length} active alerts`);
 
     let notificationsCreated = 0;
 
@@ -134,15 +135,18 @@ export async function GET(request: Request) {
 
           if (!notifError) {
             notificationsCreated++;
-            console.log(`Created notification for user ${alert.user_id}, job ${job.id}`);
+            safeLogger.debug('Created proximity alert notification', { jobId: job.id });
           } else {
-            console.error('Error creating notification:', notifError);
+            safeLogger.error(notifError, { action: 'cron:createNotification', jobId: job.id });
           }
         }
       }
     }
 
-    console.log(`Created ${notificationsCreated} notifications`);
+    safeLogger.info('Proximity alerts cron job completed', {
+      jobsProcessed: newJobs.length,
+      notificationsCreated,
+    });
 
     return NextResponse.json({
       success: true,
@@ -151,7 +155,7 @@ export async function GET(request: Request) {
       notificationsCreated,
     });
   } catch (error) {
-    console.error('Cron job error:', error);
+    safeLogger.error(error, { action: 'cron:check-proximity-alerts' });
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

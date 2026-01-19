@@ -5,10 +5,12 @@ import { createClient as createServiceClient } from '@supabase/supabase-js';
 import { revalidatePath } from 'next/cache';
 import { cookies } from 'next/headers';
 import { rateLimit, RATE_LIMITS } from '@/lib/security/rate-limit';
+import { safeLogger } from '@/lib/utils/safe-logger';
+import type { Message } from '@/types/database';
 
-export type MessageResult = {
+export type MessageResult<T = Message | void> = {
   success: boolean;
-  data?: any;
+  data?: T;
   error?: string;
 };
 
@@ -75,7 +77,7 @@ export async function sendMessage(
     .single();
 
   if (insertError) {
-    console.error('Send message error:', insertError);
+    safeLogger.error(insertError, { action: 'sendMessage', conversationId });
     return { success: false, error: 'Failed to send message' };
   }
 
@@ -95,7 +97,7 @@ export async function sendMessage(
  * Uses service role to bypass RLS since users can't update messages they didn't send
  */
 export async function markMessagesAsRead(conversationId: string): Promise<MessageResult> {
-  console.log('[markMessagesAsRead] Marking messages as read for conversation:', conversationId);
+  safeLogger.debug('[markMessagesAsRead] Marking messages as read for conversation:', conversationId);
 
   // Get authenticated user first
   const supabase = await createClient(await cookies());
@@ -104,11 +106,9 @@ export async function markMessagesAsRead(conversationId: string): Promise<Messag
   } = await supabase.auth.getUser();
 
   if (!user) {
-    console.error('[markMessagesAsRead] Not authenticated');
+    safeLogger.warn('[markMessagesAsRead] Not authenticated', { conversationId });
     return { success: false, error: 'Not authenticated' };
   }
-
-  console.log('[markMessagesAsRead] User ID:', user.id);
 
   // Use service role client to bypass RLS for updating read_at
   const supabaseAdmin = createServiceClient(
@@ -124,7 +124,7 @@ export async function markMessagesAsRead(conversationId: string): Promise<Messag
     .neq('sender_id', user.id)
     .is('read_at', null);
 
-  console.log('[markMessagesAsRead] Found unread messages:', unreadCount || 0);
+  safeLogger.debug('[markMessagesAsRead] Found unread messages:', { unreadCount: unreadCount || 0 });
 
   // Mark all messages from other participant as read (using admin client to bypass RLS)
   const { data, error } = await supabaseAdmin
@@ -136,11 +136,11 @@ export async function markMessagesAsRead(conversationId: string): Promise<Messag
     .select();
 
   if (error) {
-    console.error('[markMessagesAsRead] Error:', error);
+    safeLogger.error(error, { action: 'markMessagesAsRead', conversationId });
     return { success: false, error: 'Failed to mark messages as read' };
   }
 
-  console.log('[markMessagesAsRead] Marked as read:', data?.length || 0, 'messages');
+  safeLogger.debug('[markMessagesAsRead] Marked as read:', { messageCount: data?.length || 0 });
 
   revalidatePath('/dashboard/messages');
 

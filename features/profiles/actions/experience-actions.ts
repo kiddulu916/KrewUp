@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
 import { cookies } from 'next/headers';
+import type { Experience } from '@/types/database';
 
 export type ExperienceData = {
   job_title: string;
@@ -13,9 +14,9 @@ export type ExperienceData = {
   description?: string;
 };
 
-export type ExperienceResult = {
+export type ExperienceResult<T = Experience | Experience[]> = {
   success: boolean;
-  data?: any;
+  data?: T;
   error?: string;
 };
 

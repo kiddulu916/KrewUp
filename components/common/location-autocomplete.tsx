@@ -62,7 +62,6 @@ export function LocationAutocomplete({
   error,
 }: Props) {
   const [inputValue, setInputValue] = useState(value);
-  const [isLoading, setIsLoading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
 
@@ -124,6 +123,16 @@ export function LocationAutocomplete({
     };
   }, [onChange]);
 
+  const { execute, isLoading } = useAsyncAction({
+    showToast: false, // Use alerts for better UX in this context
+    formatError: (error) => {
+      if (error instanceof Error) {
+        return error.message;
+      }
+      return 'Failed to get your location. Please try typing it manually.';
+    },
+  });
+
   const handleGetCurrentLocation = async () => {
     if (!navigator.geolocation) {
       alert('Geolocation is not supported by your browser');
@@ -136,62 +145,65 @@ export function LocationAutocomplete({
       return;
     }
 
-    setIsLoading(true);
+    await execute(async () => {
+      return new Promise<void>((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(
+          async (position) => {
+            const { latitude, longitude } = position.coords;
 
-    navigator.geolocation.getCurrentPosition(
-      async (position) => {
-        const { latitude, longitude } = position.coords;
+            try {
+              // Double check Google Maps is still available
+              if (!window.google?.maps?.Geocoder) {
+                throw new Error('Maps service not available');
+              }
 
-        try {
-          // Double check Google Maps is still available
-          if (!window.google?.maps?.Geocoder) {
-            throw new Error('Maps service not available');
+              // Reverse geocode to get address
+              const geocoder = new google.maps.Geocoder();
+              const response = await geocoder.geocode({
+                location: { lat: latitude, lng: longitude },
+              });
+
+              if (response.results[0]) {
+                const address = response.results[0].formatted_address;
+                const locationData: LocationData = {
+                  address,
+                  coords: { lat: latitude, lng: longitude },
+                };
+
+                setInputValue(address);
+                onChange(locationData);
+                resolve();
+              } else {
+                reject(new Error('Could not determine address from your location'));
+              }
+            } catch (error) {
+              console.error('Geocoding error:', error);
+              reject(new Error('Failed to get address from location. Please try typing it manually.'));
+            }
+          },
+          (error) => {
+            console.error('Geolocation error:', error);
+            let errorMessage = 'Failed to get your location. ';
+            if (error.code === error.PERMISSION_DENIED) {
+              errorMessage += 'Please grant location permission and try again.';
+            } else if (error.code === error.TIMEOUT) {
+              errorMessage += 'Location request timed out. Please try again.';
+            } else {
+              errorMessage += 'Please enter your location manually.';
+            }
+            reject(new Error(errorMessage));
+          },
+          {
+            enableHighAccuracy: true,
+            timeout: 10000, // Increased from 5s to 10s
+            maximumAge: 0,
           }
-
-          // Reverse geocode to get address
-          const geocoder = new google.maps.Geocoder();
-          const response = await geocoder.geocode({
-            location: { lat: latitude, lng: longitude },
-          });
-
-          if (response.results[0]) {
-            const address = response.results[0].formatted_address;
-            const locationData: LocationData = {
-              address,
-              coords: { lat: latitude, lng: longitude },
-            };
-
-            setInputValue(address);
-            onChange(locationData);
-          } else {
-            alert('Could not determine address from your location');
-          }
-        } catch (error) {
-          console.error('Geocoding error:', error);
-          alert('Failed to get address from location. Please try typing it manually.');
-        } finally {
-          setIsLoading(false);
-        }
-      },
-      (error) => {
-        console.error('Geolocation error:', error);
-        let errorMessage = 'Failed to get your location. ';
-        if (error.code === error.PERMISSION_DENIED) {
-          errorMessage += 'Please grant location permission and try again.';
-        } else if (error.code === error.TIMEOUT) {
-          errorMessage += 'Location request timed out. Please try again.';
-        } else {
-          errorMessage += 'Please enter your location manually.';
-        }
-        alert(errorMessage);
-        setIsLoading(false);
-      },
-      {
-        enableHighAccuracy: true,
-        timeout: 10000, // Increased from 5s to 10s
-        maximumAge: 0,
-      }
-    );
+        );
+      });
+    }).catch((error) => {
+      // Show alert for location errors
+      alert(error instanceof Error ? error.message : 'Failed to get your location');
+    });
   };
 
   return (

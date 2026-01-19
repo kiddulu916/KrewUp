@@ -4,6 +4,7 @@ import { stripe } from '@/lib/stripe/server';
 import { createClient } from '@supabase/supabase-js';
 import Stripe from 'stripe';
 import * as Sentry from '@sentry/nextjs';
+import { logger, sanitizeUserId } from '@/lib/utils/logger';
 
 // Create Supabase admin client for webhook (server-side, bypasses RLS)
 const supabaseAdmin = createClient(
@@ -32,8 +33,13 @@ async function logWebhookEvent(
       created_at: new Date().toISOString(),
     });
   } catch (err) {
-    // ! Don't fail webhook if logging fails, just log to console
-    console.error('Failed to log webhook event:', err);
+    // ! Don't fail webhook if logging fails, just log to structured logger
+    logger.error('Failed to log webhook event', {
+      eventId,
+      eventType,
+      status,
+      error: err instanceof Error ? err.message : String(err),
+    });
   }
 }
 
@@ -81,12 +87,16 @@ export async function POST(req: NextRequest) {
     // ! Security: Log signature verification failures (potential attack)
     Sentry.captureException(err, {
       tags: { webhook: 'stripe', error_type: 'signature_verification' },
-      extra: { 
+      extra: {
         ip: headersList.get('x-forwarded-for'),
         userAgent: headersList.get('user-agent'),
       },
     });
-    console.error('Webhook signature verification failed:', err);
+    logger.error('Webhook signature verification failed', {
+      error: err instanceof Error ? err.message : String(err),
+      ip: headersList.get('x-forwarded-for') || 'unknown',
+      userAgent: headersList.get('user-agent') || 'unknown',
+    });
     return NextResponse.json({ error: 'Invalid signature' }, { status: 400 });
   }
 
@@ -101,7 +111,7 @@ export async function POST(req: NextRequest) {
     .maybeSingle();
 
   if (existingEvent) {
-    console.log(`Event ${event.id} already processed, skipping`);
+    logger.info('Event already processed, skipping', { eventId: event.id, eventType: event.type });
     return NextResponse.json({ received: true });
   }
 
@@ -112,7 +122,10 @@ export async function POST(req: NextRequest) {
         const userId = session.metadata?.user_id;
 
         if (!userId) {
-          console.error('No user_id in session metadata');
+          logger.error('No user_id in session metadata', {
+            sessionId: session.id,
+            customerId: session.customer as string,
+          });
           return NextResponse.json({ error: 'Missing user_id in session metadata' }, { status: 500 });
         }
 
@@ -128,7 +141,11 @@ export async function POST(req: NextRequest) {
         } else if (priceId === process.env.STRIPE_PRICE_ID_PRO_ANNUAL) {
           planType = 'annual';
         } else {
-          console.error('Unknown price ID:', priceId);
+          logger.error('Unknown price ID', {
+            priceId,
+            subscriptionId,
+            userId: sanitizeUserId(userId),
+          });
           return NextResponse.json({ error: 'Unknown price ID' }, { status: 500 });
         }
 
@@ -153,7 +170,11 @@ export async function POST(req: NextRequest) {
         });
 
         if (error) {
-          console.error('Database error upserting subscription:', error);
+          logger.error('Database error upserting subscription', {
+            userId: sanitizeUserId(userId),
+            subscriptionId,
+            error: error.message,
+          });
           return NextResponse.json({ error: 'Database operation failed' }, { status: 500 });
         }
 
@@ -178,7 +199,9 @@ export async function POST(req: NextRequest) {
 
         // Protect lifetime Pro users - they already have Pro access
         if (profile?.is_lifetime_pro) {
-          console.log(`User ${userId} has lifetime Pro - skipping subscription_status update`);
+          logger.info('User has lifetime Pro - skipping subscription_status update', {
+            userId: sanitizeUserId(userId),
+          });
         } else {
           // Update subscription status on users table
           const { error: profileError } = await supabaseAdmin
@@ -187,7 +210,10 @@ export async function POST(req: NextRequest) {
             .eq('id', userId);
 
           if (profileError) {
-            console.error('Database error updating profile subscription status:', profileError);
+            logger.error('Database error updating profile subscription status', {
+              userId: sanitizeUserId(userId),
+              error: profileError.message,
+            });
             // Don't fail the webhook for this, just log the error
           }
 
@@ -203,7 +229,10 @@ export async function POST(req: NextRequest) {
               .eq('user_id', userId);
 
             if (workerError) {
-              console.error('Database error updating worker boost:', workerError);
+              logger.error('Database error updating worker boost', {
+                userId: sanitizeUserId(userId),
+                error: workerError.message,
+              });
             }
           }
         }
@@ -223,7 +252,11 @@ export async function POST(req: NextRequest) {
           .single();
 
         if (fetchError || !existingSubscription) {
-          console.error('No subscription found for customer:', customerId, fetchError);
+          logger.error('No subscription found for customer', {
+            customerId,
+            subscriptionId: subscription.id,
+            error: fetchError?.message || 'Subscription not found',
+          });
           return NextResponse.json({ error: 'Subscription not found' }, { status: 500 });
         }
 
@@ -236,7 +269,11 @@ export async function POST(req: NextRequest) {
         } else if (priceId === process.env.STRIPE_PRICE_ID_PRO_ANNUAL) {
           planType = 'annual';
         } else {
-          console.error('Unknown price ID:', priceId);
+          logger.error('Unknown price ID', {
+            priceId,
+            subscriptionId: subscription.id,
+            customerId,
+          });
           return NextResponse.json({ error: 'Unknown price ID' }, { status: 500 });
         }
 
@@ -262,7 +299,11 @@ export async function POST(req: NextRequest) {
           .eq('user_id', existingSubscription.user_id);
 
         if (updateError) {
-          console.error('Database error updating subscription:', updateError);
+          logger.error('Database error updating subscription', {
+            userId: sanitizeUserId(existingSubscription.user_id),
+            subscriptionId: subscription.id,
+            error: updateError.message,
+          });
           return NextResponse.json({ error: 'Database operation failed' }, { status: 500 });
         }
 
@@ -289,7 +330,9 @@ export async function POST(req: NextRequest) {
 
           // Protect lifetime Pro users - don't modify their status
           if (profile?.is_lifetime_pro) {
-            console.log(`User ${existingSubscription.user_id} has lifetime Pro - skipping subscription renewal updates`);
+            logger.info('User has lifetime Pro - skipping subscription renewal updates', {
+              userId: sanitizeUserId(existingSubscription.user_id),
+            });
           } else if (profile?.role === 'worker') {
             // Update workers table - ensure boost is active (continuous while subscribed)
             await supabaseAdmin
@@ -316,7 +359,11 @@ export async function POST(req: NextRequest) {
           .single();
 
         if (fetchError || !existingSubscription) {
-          console.error('No subscription found for customer:', customerId, fetchError);
+          logger.error('No subscription found for customer', {
+            customerId,
+            subscriptionId: subscription.id,
+            error: fetchError?.message || 'Subscription not found',
+          });
           return NextResponse.json({ error: 'Subscription not found' }, { status: 500 });
         }
 
@@ -329,7 +376,11 @@ export async function POST(req: NextRequest) {
           .eq('user_id', existingSubscription.user_id);
 
         if (updateError) {
-          console.error('Database error updating subscription:', updateError);
+          logger.error('Database error updating subscription', {
+            userId: sanitizeUserId(existingSubscription.user_id),
+            subscriptionId: subscription.id,
+            error: updateError.message,
+          });
           return NextResponse.json({ error: 'Database operation failed' }, { status: 500 });
         }
 
@@ -353,7 +404,9 @@ export async function POST(req: NextRequest) {
           .single();
 
         if (profile?.is_lifetime_pro) {
-          console.log(`User ${existingSubscription.user_id} has lifetime Pro - keeping Pro access despite cancellation`);
+          logger.info('User has lifetime Pro - keeping Pro access despite cancellation', {
+            userId: sanitizeUserId(existingSubscription.user_id),
+          });
         } else {
           // Update subscription status on users table
           const { error: profileError } = await supabaseAdmin
@@ -362,7 +415,10 @@ export async function POST(req: NextRequest) {
             .eq('id', existingSubscription.user_id);
 
           if (profileError) {
-            console.error('Database error updating profile subscription status:', profileError);
+            logger.error('Database error updating profile subscription status', {
+              userId: sanitizeUserId(existingSubscription.user_id),
+              error: profileError.message,
+            });
             // Don't fail the webhook for this, just log the error
           }
 
@@ -376,7 +432,10 @@ export async function POST(req: NextRequest) {
             .eq('user_id', existingSubscription.user_id);
 
           if (workerError) {
-            console.error('Database error removing worker boost:', workerError);
+            logger.error('Database error removing worker boost', {
+              userId: sanitizeUserId(existingSubscription.user_id),
+              error: workerError.message,
+            });
           }
         }
 
@@ -394,7 +453,11 @@ export async function POST(req: NextRequest) {
           .single();
 
         if (fetchError || !existingSubscription) {
-          console.error('No subscription found for customer:', customerId, fetchError);
+          logger.error('No subscription found for customer', {
+            customerId,
+            invoiceId: invoice.id,
+            error: fetchError?.message || 'Subscription not found',
+          });
           return NextResponse.json({ error: 'Subscription not found' }, { status: 500 });
         }
 
@@ -406,7 +469,11 @@ export async function POST(req: NextRequest) {
           .eq('user_id', existingSubscription.user_id);
 
         if (updateError) {
-          console.error('Database error updating subscription:', updateError);
+          logger.error('Database error updating subscription', {
+            userId: sanitizeUserId(existingSubscription.user_id),
+            invoiceId: invoice.id,
+            error: updateError.message,
+          });
           return NextResponse.json({ error: 'Database operation failed' }, { status: 500 });
         }
 
@@ -458,7 +525,7 @@ export async function POST(req: NextRequest) {
       }
 
       default:
-        console.log(`Unhandled event type: ${event.type}`);
+        logger.info('Unhandled event type', { eventType: event.type, eventId: event.id });
     }
 
     // Mark event as processed for idempotency
@@ -487,13 +554,18 @@ export async function POST(req: NextRequest) {
     // ! Log error to Sentry with full context
     Sentry.captureException(err, {
       tags: { webhook: 'stripe', event_type: eventType },
-      extra: { 
+      extra: {
         eventId,
         processingTimeMs: Date.now() - startTime,
       },
     });
-    console.error('Webhook handler error:', err);
-    
+    logger.error('Webhook handler error', {
+      eventId,
+      eventType,
+      processingTimeMs: Date.now() - startTime,
+      error: err instanceof Error ? err.message : String(err),
+    });
+
     // * Log failed webhook
     await logWebhookEvent(eventId, eventType, 'failed', { error: String(err) });
     

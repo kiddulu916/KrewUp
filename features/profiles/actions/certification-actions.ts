@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
 import { cookies } from 'next/headers';
+import type { Certification, License } from '@/types/database';
 
 export type CertificationData = {
   credential_category: 'license' | 'certification';
@@ -15,9 +16,9 @@ export type CertificationData = {
   photo_url?: string;
 };
 
-export type CertificationResult = {
+export type CertificationResult<T = Certification | License | { url: string; path: string } | Array<Certification | License>> = {
   success: boolean;
-  data?: any;
+  data?: T;
   error?: string;
 };
 
@@ -105,12 +106,12 @@ export async function addCertification(data: CertificationData): Promise<Certifi
     if (insertError) throw insertError;
     return { success: true, data: license };
   }
-} catch (error: any) {
+} catch (error: unknown) {
   console.error('Add credential error:', error);
   let errorMessage = 'Failed to add credential';
-  if (error.code === '23505') {
+  if (error && typeof error === 'object' && 'code' in error && error.code === '23505') {
     errorMessage = 'This credential already exists in your profile';
-  } else if (error.message) {
+  } else if (error instanceof Error && error.message) {
     errorMessage = `Failed to add credential: ${error.message}`;
   }
   return { success: false, error: errorMessage };

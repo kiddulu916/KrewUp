@@ -7,6 +7,7 @@ import { ProfileViewsList } from '@/features/subscriptions/components/profile-vi
 import { CollapsibleSection, LicensePreviewCard } from '@/components/common';
 import Link from 'next/link';
 import { cookies } from 'next/headers';
+import type { Certification, Experience, Education } from '@/types/database';
 
       
 
@@ -53,7 +54,7 @@ export default async function ProfilePage() {
     : { data: null };
 
   // Map certification fields to component expected format
-  const certifications = (certificationsRaw || []).map((cert: any) => ({
+  const certifications = (certificationsRaw || []).map((cert: Certification) => ({
     id: cert.id,
     credential_category: 'certification' as const,
     certification_type: cert.name,
@@ -242,7 +243,7 @@ export default async function ProfilePage() {
         >
           {workExperience && workExperience.length > 0 ? (
             <div className="space-y-4">
-              {workExperience.map((exp: any) => (
+              {workExperience.map((exp) => (
                 <ExperienceItem key={exp.id} exp={exp} />
               ))}
             </div>
@@ -272,7 +273,7 @@ export default async function ProfilePage() {
         >
           {education && education.length > 0 ? (
             <div className="space-y-3">
-              {education.map((edu: any) => (
+              {education.map((edu) => (
                 <EducationItem key={edu.id} education={edu} />
               ))}
             </div>

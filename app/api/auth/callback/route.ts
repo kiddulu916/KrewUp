@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
+import { logger } from '@/lib/utils/logger';
 
 /**
  * OAuth callback handler
@@ -19,7 +20,10 @@ export async function GET(request: Request) {
     const { error } = await supabase.auth.exchangeCodeForSession(code);
 
     if (error) {
-      console.error('Error exchanging code for session:', error);
+      logger.error('Error exchanging code for session', {
+        error: error.message,
+        code: error.code,
+      });
       return NextResponse.redirect(`${origin}/login?error=auth_callback_error`);
     }
 

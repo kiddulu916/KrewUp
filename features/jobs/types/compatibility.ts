@@ -10,6 +10,8 @@ export type CompatibilityScore = {
   isPerfectMatch: boolean; // totalScore >= 90
 };
 
+import type { GeoCoords } from '@/types';
+
 export type CompatibilityInput = {
   job: {
     trade: string;
@@ -17,13 +19,13 @@ export type CompatibilityInput = {
     required_certifications: string[];
     years_experience_required: number | null;
     location: string;
-    coords: any; // PostGIS point
+    coords: GeoCoords | null;
   };
   worker: {
     trade: string;
     sub_trade: string | null;
     location: string;
-    coords: any; // PostGIS point
+    coords: GeoCoords | null;
   };
   workerCerts: string[]; // certification types worker has
   workerExperience: number; // total years of experience

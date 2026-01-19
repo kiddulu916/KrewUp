@@ -11,6 +11,7 @@ import { useUserLocation } from '@/hooks/use-user-location';
 import { useToast } from '@/components/providers/toast-provider';
 import { TRADES, TRADE_SUBCATEGORIES, EMPLOYER_TYPES } from '@/lib/constants';
 import { profileSchema, type ProfileSchema } from '../utils/validation';
+import { formatPhoneNumber } from '@/lib/utils/phone';
 import { CertificationForm } from './certification-form';
 import { CertificationItem } from './certification-item';
 import { ExperienceForm } from './experience-form';
@@ -19,6 +20,8 @@ import { EducationForm } from './education-form';
 import { EducationItem } from './education-item';
 import { ProfileAvatarUpload } from './profile-avatar-upload';
 import { uploadProfilePicture } from '../actions/profile-picture-actions';
+import type { Certification, WorkExperience, Education } from '../types';
+import type { GeoCoords } from '@/types';
 
 type ProfileFormProps = {
   initialData: {
@@ -27,7 +30,7 @@ type ProfileFormProps = {
     email: string;
     phone?: string | null;
     location?: string | null;
-    coords?: { lat: number; lng: number } | null;
+    coords?: GeoCoords | null;
     trade: string;
     sub_trade?: string | null;
     bio?: string | null;
@@ -36,9 +39,9 @@ type ProfileFormProps = {
     company_name?: string | null;
     profile_image_url?: string | null;
   };
-  certifications?: any[];
-  workExperience?: any[];
-  education?: any[];
+  certifications?: Certification[];
+  workExperience?: WorkExperience[];
+  education?: Education[];
 };
 
 export function ProfileForm({ initialData, certifications = [], workExperience = [], education = [] }: ProfileFormProps) {
@@ -127,8 +130,8 @@ export function ProfileForm({ initialData, certifications = [], workExperience =
 
       toast.success('Profile updated successfully!');
       router.push('/dashboard/profile');
-    } catch (err: any) {
-      const errorMsg = err.message || 'Failed to update profile';
+    } catch (err: unknown) {
+      const errorMsg = err instanceof Error ? err.message : 'Failed to update profile';
       setError(errorMsg);
       toast.error(errorMsg);
     }
@@ -136,25 +139,6 @@ export function ProfileForm({ initialData, certifications = [], workExperience =
 
   const handleGetLocation = () => {
     locationState.requestLocation();
-  };
-
-  const formatPhoneNumber = (value: string): string => {
-    // Remove all non-numeric characters
-    const phoneNumber = value.replace(/\D/g, '');
-
-    // Limit to 10 digits
-    const limited = phoneNumber.slice(0, 10);
-
-    // Format as (XXX)XXX-XXXX
-    if (limited.length === 0) {
-      return '';
-    } else if (limited.length <= 3) {
-      return `(${limited}`;
-    } else if (limited.length <= 6) {
-      return `(${limited.slice(0, 3)})${limited.slice(3)}`;
-    } else {
-      return `(${limited.slice(0, 3)})${limited.slice(3, 6)}-${limited.slice(6)}`;
-    }
   };
 
   const availableSubTrades = watchTrade ? TRADE_SUBCATEGORIES[watchTrade] || [] : [];
@@ -214,7 +198,7 @@ export function ProfileForm({ initialData, certifications = [], workExperience =
                   {...field}
                   label="Phone Number"
                   type="tel"
-                  placeholder="(555) 123-4567"
+                  placeholder="(555)123-4567"
                   onChange={(e) => {
                     const formatted = formatPhoneNumber(e.target.value);
                     field.onChange(formatted);
@@ -352,7 +336,7 @@ export function ProfileForm({ initialData, certifications = [], workExperience =
 
                 {certifications && certifications.length > 0 ? (
                   <div className="space-y-3">
-                    {certifications.map((cert: any) => (
+                    {certifications.map((cert) => (
                       <CertificationItem key={cert.id} cert={cert} />
                     ))}
                   </div>
@@ -436,7 +420,7 @@ export function ProfileForm({ initialData, certifications = [], workExperience =
 
             {certifications && certifications.length > 0 ? (
               <div className="space-y-3">
-                {certifications.map((cert: any) => (
+                {certifications.map((cert) => (
                   <CertificationItem key={cert.id} cert={cert} />
                 ))}
               </div>
@@ -485,7 +469,7 @@ export function ProfileForm({ initialData, certifications = [], workExperience =
 
             {workExperience && workExperience.length > 0 ? (
               <div className="space-y-4">
-                {workExperience.map((exp: any) => (
+                {workExperience.map((exp) => (
                   <ExperienceItem key={exp.id} exp={exp} />
                 ))}
               </div>
@@ -534,7 +518,7 @@ export function ProfileForm({ initialData, certifications = [], workExperience =
 
             {education && education.length > 0 ? (
               <div className="space-y-3">
-                {education.map((edu: any) => (
+                {education.map((edu) => (
                   <EducationItem key={edu.id} education={edu} />
                 ))}
               </div>
