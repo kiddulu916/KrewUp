@@ -13,6 +13,7 @@ export function SignupForm() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [success, setSuccess] = useState(false);
+  const [validationError, setValidationError] = useState<string | null>(null);
   const { execute, isLoading, error } = useAsyncAction({
     showToast: false, // Handle errors manually for better UX
     onSuccess: () => {
@@ -22,16 +23,17 @@ export function SignupForm() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    setValidationError(null); // Clear previous validation errors
 
     // Validate passwords match
     if (password !== confirmPassword) {
-      setError('Passwords do not match');
+      setValidationError('Passwords do not match');
       return;
     }
 
     // Validate password length
     if (password.length < 8) {
-      setError('Password must be at least 8 characters');
+      setValidationError('Password must be at least 8 characters');
       return;
     }
 
@@ -96,9 +98,9 @@ export function SignupForm() {
         </p>
       </div>
 
-      {error && (
+      {(error || validationError) && (
         <div className="rounded-lg bg-red-50 border border-red-200 p-3">
-          <p className="text-sm text-red-800">{error}</p>
+          <p className="text-sm text-red-800">{error || validationError}</p>
         </div>
       )}
 
