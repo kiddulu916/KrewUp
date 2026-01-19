@@ -61,3 +61,6 @@ test-results
 scripts/output/*.json
 .junie
 
+
+# Auto Claude data directory
+.auto-claude/

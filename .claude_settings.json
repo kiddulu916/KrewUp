@@ -1,0 +1,39 @@
+{
+  "sandbox": {
+    "enabled": true,
+    "autoAllowBashIfSandboxed": true
+  },
+  "permissions": {
+    "defaultMode": "acceptEdits",
+    "allow": [
+      "Read(./**)",
+      "Write(./**)",
+      "Edit(./**)",
+      "Glob(./**)",
+      "Grep(./**)",
+      "Read(/home/kiddulu/Projects/krewup/.auto-claude/worktrees/tasks/017-dynamic-import-recharts-for-admin-only-charts/**)",
+      "Write(/home/kiddulu/Projects/krewup/.auto-claude/worktrees/tasks/017-dynamic-import-recharts-for-admin-only-charts/**)",
+      "Edit(/home/kiddulu/Projects/krewup/.auto-claude/worktrees/tasks/017-dynamic-import-recharts-for-admin-only-charts/**)",
+      "Glob(/home/kiddulu/Projects/krewup/.auto-claude/worktrees/tasks/017-dynamic-import-recharts-for-admin-only-charts/**)",
+      "Grep(/home/kiddulu/Projects/krewup/.auto-claude/worktrees/tasks/017-dynamic-import-recharts-for-admin-only-charts/**)",
+      "Read(/home/kiddulu/Projects/krewup/.auto-claude/worktrees/tasks/017-dynamic-import-recharts-for-admin-only-charts/.auto-claude/specs/017-dynamic-import-recharts-for-admin-only-charts/**)",
+      "Write(/home/kiddulu/Projects/krewup/.auto-claude/worktrees/tasks/017-dynamic-import-recharts-for-admin-only-charts/.auto-claude/specs/017-dynamic-import-recharts-for-admin-only-charts/**)",
+      "Edit(/home/kiddulu/Projects/krewup/.auto-claude/worktrees/tasks/017-dynamic-import-recharts-for-admin-only-charts/.auto-claude/specs/017-dynamic-import-recharts-for-admin-only-charts/**)",
+      "Read(/home/kiddulu/Projects/krewup/.auto-claude/**)",
+      "Write(/home/kiddulu/Projects/krewup/.auto-claude/**)",
+      "Edit(/home/kiddulu/Projects/krewup/.auto-claude/**)",
+      "Glob(/home/kiddulu/Projects/krewup/.auto-claude/**)",
+      "Grep(/home/kiddulu/Projects/krewup/.auto-claude/**)",
+      "Bash(*)",
+      "WebFetch(*)",
+      "WebSearch(*)",
+      "mcp__context7__resolve-library-id(*)",
+      "mcp__context7__get-library-docs(*)",
+      "mcp__graphiti-memory__search_nodes(*)",
+      "mcp__graphiti-memory__search_facts(*)",
+      "mcp__graphiti-memory__add_episode(*)",
+      "mcp__graphiti-memory__get_episodes(*)",
+      "mcp__graphiti-memory__get_entity_edge(*)"
+    ]
+  }
+}
