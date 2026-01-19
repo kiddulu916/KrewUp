@@ -1,0 +1,39 @@
+{
+  "sandbox": {
+    "enabled": true,
+    "autoAllowBashIfSandboxed": true
+  },
+  "permissions": {
+    "defaultMode": "acceptEdits",
+    "allow": [
+      "Read(./**)",
+      "Write(./**)",
+      "Edit(./**)",
+      "Glob(./**)",
+      "Grep(./**)",
+      "Read(/home/kiddulu/Projects/krewup/.auto-claude/worktrees/tasks/014-sanitize-sensitive-data-from-production-logs/**)",
+      "Write(/home/kiddulu/Projects/krewup/.auto-claude/worktrees/tasks/014-sanitize-sensitive-data-from-production-logs/**)",
+      "Edit(/home/kiddulu/Projects/krewup/.auto-claude/worktrees/tasks/014-sanitize-sensitive-data-from-production-logs/**)",
+      "Glob(/home/kiddulu/Projects/krewup/.auto-claude/worktrees/tasks/014-sanitize-sensitive-data-from-production-logs/**)",
+      "Grep(/home/kiddulu/Projects/krewup/.auto-claude/worktrees/tasks/014-sanitize-sensitive-data-from-production-logs/**)",
+      "Read(/home/kiddulu/Projects/krewup/.auto-claude/worktrees/tasks/014-sanitize-sensitive-data-from-production-logs/.auto-claude/specs/014-sanitize-sensitive-data-from-production-logs/**)",
+      "Write(/home/kiddulu/Projects/krewup/.auto-claude/worktrees/tasks/014-sanitize-sensitive-data-from-production-logs/.auto-claude/specs/014-sanitize-sensitive-data-from-production-logs/**)",
+      "Edit(/home/kiddulu/Projects/krewup/.auto-claude/worktrees/tasks/014-sanitize-sensitive-data-from-production-logs/.auto-claude/specs/014-sanitize-sensitive-data-from-production-logs/**)",
+      "Read(/home/kiddulu/Projects/krewup/.auto-claude/**)",
+      "Write(/home/kiddulu/Projects/krewup/.auto-claude/**)",
+      "Edit(/home/kiddulu/Projects/krewup/.auto-claude/**)",
+      "Glob(/home/kiddulu/Projects/krewup/.auto-claude/**)",
+      "Grep(/home/kiddulu/Projects/krewup/.auto-claude/**)",
+      "Bash(*)",
+      "WebFetch(*)",
+      "WebSearch(*)",
+      "mcp__context7__resolve-library-id(*)",
+      "mcp__context7__get-library-docs(*)",
+      "mcp__graphiti-memory__search_nodes(*)",
+      "mcp__graphiti-memory__search_facts(*)",
+      "mcp__graphiti-memory__add_episode(*)",
+      "mcp__graphiti-memory__get_episodes(*)",
+      "mcp__graphiti-memory__get_entity_edge(*)"
+    ]
+  }
+}

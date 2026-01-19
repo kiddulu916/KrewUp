@@ -3,6 +3,7 @@
 // https://docs.sentry.io/platforms/javascript/guides/nextjs/
 
 import * as Sentry from "@sentry/nextjs";
+import { sanitizeUserId, sanitizeEmail, sanitizeMetadata } from "@/lib/utils/logger";
 
 const { nodeProfilingIntegration } = require("@sentry/profiling-node");
 
@@ -20,9 +21,59 @@ Sentry.init({
   // Enable logs to be sent to Sentry
   enableLogs: true,
 
-  // Enable sending user PII (Personally Identifiable Information)
+  // * Disable sending user PII (Personally Identifiable Information)
+  // * We sanitize user data manually in beforeSend hook for GDPR/CCPA compliance
   // https://docs.sentry.io/platforms/javascript/guides/nextjs/configuration/options/#sendDefaultPii
-  sendDefaultPii: true,
+  sendDefaultPii: false,
+
+  beforeSend(event) {
+    try {
+      // * Sanitize user context if present
+      if (event.user) {
+        if (event.user.id) {
+          event.user.id = sanitizeUserId(event.user.id as string);
+        }
+        if (event.user.email) {
+          event.user.email = sanitizeEmail(event.user.email);
+        }
+        // Remove other potentially sensitive user fields
+        delete event.user.username;
+        delete event.user.ip_address;
+      }
+
+      // * Sanitize extra context data
+      if (event.extra && typeof event.extra === 'object') {
+        event.extra = sanitizeMetadata(event.extra as Record<string, unknown>);
+      }
+
+      // * Sanitize contexts (may contain user data)
+      if (event.contexts) {
+        for (const [key, context] of Object.entries(event.contexts)) {
+          if (context && typeof context === 'object') {
+            event.contexts[key] = sanitizeMetadata(context as Record<string, unknown>);
+          }
+        }
+      }
+
+      // * Sanitize breadcrumbs (may contain user IDs in data)
+      if (event.breadcrumbs) {
+        event.breadcrumbs = event.breadcrumbs.map((breadcrumb) => {
+          if (breadcrumb.data && typeof breadcrumb.data === 'object') {
+            return {
+              ...breadcrumb,
+              data: sanitizeMetadata(breadcrumb.data as Record<string, unknown>),
+            };
+          }
+          return breadcrumb;
+        });
+      }
+    } catch (error) {
+      // ! Silently fail if sanitization fails - better to send event than drop it
+      console.warn('Failed to sanitize Sentry event:', error);
+    }
+
+    return event;
+  },
 });
 
 Sentry.startSpan({
