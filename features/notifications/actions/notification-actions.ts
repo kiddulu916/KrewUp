@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { cookies } from 'next/headers';
 import { revalidatePath } from 'next/cache';
+import { logger, sanitizeUserId } from '@/lib/utils/logger';
 
 export interface Notification {
   id: string;
@@ -37,13 +38,18 @@ export async function getMyNotifications() {
       .order('created_at', { ascending: false });
 
     if (error) {
-      console.error('Error fetching notifications:', error);
+      logger.error('Error fetching notifications', {
+        userId: sanitizeUserId(user.id),
+        error: error.message,
+      });
       return { success: false, error: error.message };
     }
 
     return { success: true, notifications: data as Notification[] };
   } catch (error: any) {
-    console.error('Error in getMyNotifications:', error);
+    logger.error('Error in getMyNotifications', {
+      error: error?.message || String(error),
+    });
     return { success: false, error: error.message || 'Failed to fetch notifications' };
   }
 }
@@ -70,13 +76,18 @@ export async function getUnreadCount() {
       .is('read_at', null);
 
     if (error) {
-      console.error('Error fetching unread count:', error);
+      logger.error('Error fetching unread count', {
+        userId: sanitizeUserId(user.id),
+        error: error.message,
+      });
       return { success: false, error: error.message, count: 0 };
     }
 
     return { success: true, count: count || 0 };
   } catch (error: any) {
-    console.error('Error in getUnreadCount:', error);
+    logger.error('Error in getUnreadCount', {
+      error: error?.message || String(error),
+    });
     return { success: false, error: error.message || 'Failed to fetch unread count', count: 0 };
   }
 }
@@ -103,14 +114,20 @@ export async function markNotificationAsRead(notificationId: string) {
       .eq('user_id', user.id); // Ensure user owns the notification
 
     if (error) {
-      console.error('Error marking notification as read:', error);
+      logger.error('Error marking notification as read', {
+        userId: sanitizeUserId(user.id),
+        notificationId,
+        error: error.message,
+      });
       return { success: false, error: error.message };
     }
 
     revalidatePath('/dashboard/notifications');
     return { success: true };
   } catch (error: any) {
-    console.error('Error in markNotificationAsRead:', error);
+    logger.error('Error in markNotificationAsRead', {
+      error: error?.message || String(error),
+    });
     return { success: false, error: error.message || 'Failed to mark notification as read' };
   }
 }
@@ -137,14 +154,19 @@ export async function markAllNotificationsAsRead() {
       .is('read_at', null);
 
     if (error) {
-      console.error('Error marking all notifications as read:', error);
+      logger.error('Error marking all notifications as read', {
+        userId: sanitizeUserId(user.id),
+        error: error.message,
+      });
       return { success: false, error: error.message };
     }
 
     revalidatePath('/dashboard/notifications');
     return { success: true };
   } catch (error: any) {
-    console.error('Error in markAllNotificationsAsRead:', error);
+    logger.error('Error in markAllNotificationsAsRead', {
+      error: error?.message || String(error),
+    });
     return { success: false, error: error.message || 'Failed to mark all notifications as read' };
   }
 }
@@ -171,14 +193,20 @@ export async function deleteNotification(notificationId: string) {
       .eq('user_id', user.id); // Ensure user owns the notification
 
     if (error) {
-      console.error('Error deleting notification:', error);
+      logger.error('Error deleting notification', {
+        userId: sanitizeUserId(user.id),
+        notificationId,
+        error: error.message,
+      });
       return { success: false, error: error.message };
     }
 
     revalidatePath('/dashboard/notifications');
     return { success: true };
   } catch (error: any) {
-    console.error('Error in deleteNotification:', error);
+    logger.error('Error in deleteNotification', {
+      error: error?.message || String(error),
+    });
     return { success: false, error: error.message || 'Failed to delete notification' };
   }
 }

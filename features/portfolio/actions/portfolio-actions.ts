@@ -5,6 +5,7 @@ import { revalidatePath } from 'next/cache';
 import { cookies } from 'next/headers';
 import { rateLimit, RATE_LIMITS } from '@/lib/security/rate-limit';
 import { validateFile, ALLOWED_IMAGE_TYPES, FILE_SIZE_LIMITS } from '@/lib/security/file-validation';
+import { logger, sanitizeUserId } from '@/lib/utils/logger';
 
 /**
  * Upload a portfolio photo
@@ -153,7 +154,12 @@ export async function deletePortfolioPhoto(imageId: string): Promise<{ success: 
     .remove([filePath]);
 
   if (storageError) {
-    console.error('Failed to delete storage file:', storageError);
+    logger.error('Failed to delete storage file', {
+      userId: sanitizeUserId(user.id),
+      imageId,
+      filePath,
+      error: storageError.message,
+    });
     // Continue with DB deletion - orphaned files can be cleaned up later
   }
 

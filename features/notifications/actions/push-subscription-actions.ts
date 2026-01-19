@@ -4,6 +4,7 @@ import { createClient, createServiceClient } from '@/lib/supabase/server';
 import { cookies } from 'next/headers';
 // @ts-ignore - web-push doesn't have type declarations
 import webpush from 'web-push';
+import { logger, sanitizeUserId } from '@/lib/utils/logger';
 
 // Web Push VAPID keys - these should be in environment variables
 const VAPID_PUBLIC_KEY = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || '';
@@ -58,13 +59,19 @@ export async function savePushSubscription(
     );
 
     if (error) {
-      console.error('Error saving push subscription:', error);
+      logger.error('Error saving push subscription', {
+        userId: sanitizeUserId(user.id),
+        endpoint: subscription.endpoint,
+        error: error.message,
+      });
       return { success: false, error: error.message };
     }
 
     return { success: true };
   } catch (error) {
-    console.error('Error in savePushSubscription:', error);
+    logger.error('Error in savePushSubscription', {
+      error: error instanceof Error ? error.message : String(error),
+    });
     return { success: false, error: 'Failed to save subscription' };
   }
 }
@@ -94,13 +101,19 @@ export async function removePushSubscription(
       .eq('endpoint', endpoint);
 
     if (error) {
-      console.error('Error removing push subscription:', error);
+      logger.error('Error removing push subscription', {
+        userId: sanitizeUserId(user.id),
+        endpoint,
+        error: error.message,
+      });
       return { success: false, error: error.message };
     }
 
     return { success: true };
   } catch (error) {
-    console.error('Error in removePushSubscription:', error);
+    logger.error('Error in removePushSubscription', {
+      error: error instanceof Error ? error.message : String(error),
+    });
     return { success: false, error: 'Failed to remove subscription' };
   }
 }
@@ -131,13 +144,18 @@ export async function getUserPushSubscriptions(): Promise<{
       .eq('user_id', user.id);
 
     if (error) {
-      console.error('Error fetching push subscriptions:', error);
+      logger.error('Error fetching push subscriptions', {
+        userId: sanitizeUserId(user.id),
+        error: error.message,
+      });
       return { success: false, error: error.message };
     }
 
     return { success: true, subscriptions: data };
   } catch (error) {
-    console.error('Error in getUserPushSubscriptions:', error);
+    logger.error('Error in getUserPushSubscriptions', {
+      error: error instanceof Error ? error.message : String(error),
+    });
     return { success: false, error: 'Failed to fetch subscriptions' };
   }
 }
@@ -158,7 +176,9 @@ export async function sendPushNotification(
   }
 ): Promise<{ success: boolean; sent: number; failed: number; error?: string }> {
   if (!VAPID_PUBLIC_KEY || !VAPID_PRIVATE_KEY) {
-    console.warn('VAPID keys not configured - skipping push notification');
+    logger.warn('VAPID keys not configured - skipping push notification', {
+      userId: sanitizeUserId(userId),
+    });
     return { success: false, sent: 0, failed: 0, error: 'VAPID keys not configured' };
   }
 
@@ -172,7 +192,10 @@ export async function sendPushNotification(
       .eq('user_id', userId);
 
     if (error) {
-      console.error('Error fetching push subscriptions:', error);
+      logger.error('Error fetching push subscriptions', {
+        userId: sanitizeUserId(userId),
+        error: error.message,
+      });
       return { success: false, sent: 0, failed: 0, error: error.message };
     }
 
@@ -217,7 +240,12 @@ export async function sendPushNotification(
           if (err.statusCode === 404 || err.statusCode === 410) {
             expiredEndpoints.push(sub.endpoint);
           }
-          console.error('Push notification failed:', err.message);
+          logger.error('Push notification failed', {
+            userId: sanitizeUserId(userId),
+            endpoint: sub.endpoint,
+            statusCode: err.statusCode,
+            error: err.message,
+          });
         }
       })
     );
@@ -233,7 +261,10 @@ export async function sendPushNotification(
 
     return { success: true, sent, failed };
   } catch (error) {
-    console.error('Error in sendPushNotification:', error);
+    logger.error('Error in sendPushNotification', {
+      userId: sanitizeUserId(userId),
+      error: error instanceof Error ? error.message : String(error),
+    });
     return { success: false, sent: 0, failed: 0, error: 'Failed to send notifications' };
   }
 }
