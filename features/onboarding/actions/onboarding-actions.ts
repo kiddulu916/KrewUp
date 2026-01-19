@@ -5,6 +5,7 @@ import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
 import { cookies } from 'next/headers';
 import { addCertification } from '@/features/profiles/actions/certification-actions';
+import { logger, sanitizeUserId, sanitizeEmail } from '@/lib/utils/logger';
 
 export type OnboardingData = {
   name: string;
@@ -57,11 +58,18 @@ export async function completeOnboarding(data: OnboardingData): Promise<Onboardi
     .eq('id', user.id)
     .maybeSingle();
 
-  console.log('[onboarding] Check existing profile:', { exists: !!existingProfile, error: checkError });
+  logger.info('Checking existing profile', {
+    userId: sanitizeUserId(user.id),
+    exists: !!existingProfile,
+    error: checkError?.message,
+  });
 
   // If profile doesn't exist, create it first
   if (!existingProfile) {
-    console.log('[onboarding] Profile does not exist, creating it...');
+    logger.info('Profile does not exist, creating new profile', {
+      userId: sanitizeUserId(user.id),
+      role: data.role,
+    });
     const [firstName, ...lastNameParts] = data.name.trim().split(' ');
     const lastName = lastNameParts.join(' ') || '';
 
@@ -80,10 +88,17 @@ export async function completeOnboarding(data: OnboardingData): Promise<Onboardi
       });
 
     if (insertError) {
-      console.error('[onboarding] Error creating profile:', insertError);
+      logger.error('Error creating profile', {
+        userId: sanitizeUserId(user.id),
+        error: insertError.message,
+        code: insertError.code,
+      });
       return { success: false, error: `Failed to create profile: ${insertError.message}` };
     }
-    console.log('[onboarding] Profile created successfully');
+    logger.info('Profile created successfully', {
+      userId: sanitizeUserId(user.id),
+      role: data.role,
+    });
   }
 
   // Set default location if not provided
@@ -125,7 +140,11 @@ export async function completeOnboarding(data: OnboardingData): Promise<Onboardi
       .eq('user_id', user.id);
 
     if (workerError) {
-      console.error('[onboarding] Worker table update error:', workerError);
+      logger.error('Worker table update error', {
+        userId: sanitizeUserId(user.id),
+        error: workerError.message,
+        code: workerError.code,
+      });
     }
   } else if (data.role === 'employer') {
     if (data.employer_type === 'contractor') {
@@ -137,7 +156,11 @@ export async function completeOnboarding(data: OnboardingData): Promise<Onboardi
         .eq('user_id', user.id);
 
       if (contractorError) {
-        console.error('[onboarding] Contractor table update error:', contractorError);
+        logger.error('Contractor table update error', {
+          userId: sanitizeUserId(user.id),
+          error: contractorError.message,
+          code: contractorError.code,
+        });
       }
     } else if (data.employer_type === 'recruiter') {
       const { error: recruiterError } = await supabase
@@ -148,7 +171,11 @@ export async function completeOnboarding(data: OnboardingData): Promise<Onboardi
         .eq('user_id', user.id);
 
       if (recruiterError) {
-        console.error('[onboarding] Recruiter table update error:', recruiterError);
+        logger.error('Recruiter table update error', {
+          userId: sanitizeUserId(user.id),
+          error: recruiterError.message,
+          code: recruiterError.code,
+        });
       }
     }
   }
@@ -163,7 +190,12 @@ export async function completeOnboarding(data: OnboardingData): Promise<Onboardi
     });
 
     if (coordsError) {
-      console.error('Coords update error:', coordsError);
+      logger.error('Coords update error', {
+        userId: sanitizeUserId(user.id),
+        error: coordsError.message,
+        lat: coords.lat,
+        lng: coords.lng,
+      });
     }
   }
 
@@ -185,7 +217,11 @@ export async function completeOnboarding(data: OnboardingData): Promise<Onboardi
       return { success: false, error: certResult.error || 'Failed to save license' };
     }
 
-    console.log('[onboarding] Contractor license saved');
+    logger.info('Contractor license saved', {
+      userId: sanitizeUserId(user.id),
+      licenseType: data.licenseData.license_type,
+      issuingState: data.licenseData.issuing_state,
+    });
   }
 
   // Verify the profile was updated correctly
@@ -200,13 +236,15 @@ export async function completeOnboarding(data: OnboardingData): Promise<Onboardi
     name: `${updatedProfile.first_name} ${updatedProfile.last_name}`.trim()
   } : null;
 
-  console.log('[onboarding-actions] Profile updated successfully');
-  console.log('[onboarding-actions] User ID:', user.id);
-  console.log('[onboarding-actions] Verify error:', verifyError);
-  console.log('[onboarding-actions] Updated profile data:', profile);
-  console.log('[onboarding-actions] Checking onboarding completion:');
-  console.log('  - Name starts with User-?:', profile?.name?.startsWith('User-'));
-  console.log('  - Location is "Update Location"?:', profile?.location === 'Update Location');
+  logger.info('Onboarding completed successfully', {
+    userId: sanitizeUserId(user.id),
+    role: data.role,
+    hasName: !!profile?.name,
+    hasLocation: !!profile?.location,
+    nameStartsWithUser: profile?.name?.startsWith('User-'),
+    locationIsDefault: profile?.location === 'Update Location',
+    verifyError: verifyError?.message,
+  });
 
   revalidatePath('/', 'layout');
   return { success: true };
