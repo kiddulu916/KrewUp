@@ -1,6 +1,7 @@
 // app/api/cron/check-proximity-alerts/route.ts
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { logger, sanitizeUserId } from '@/lib/utils/logger';
 
 // Create Supabase admin client for cron job
 const supabaseAdmin = createClient(
@@ -19,7 +20,7 @@ export async function GET(request: Request) {
     // Verify cron secret
     const authHeader = request.headers.get('authorization');
     if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
-      console.error('Unauthorized cron job access attempt');
+      logger.error('Unauthorized cron job access attempt');
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -40,7 +41,7 @@ export async function GET(request: Request) {
       .eq('status', 'active');
 
     if (jobsError) {
-      console.error('Error fetching new jobs:', jobsError);
+      logger.error('Error fetching new jobs', { error: jobsError.message });
       return NextResponse.json(
         { error: 'Failed to fetch jobs' },
         { status: 500 }
@@ -48,7 +49,7 @@ export async function GET(request: Request) {
     }
 
     if (!newJobs || newJobs.length === 0) {
-      console.log('No new jobs found');
+      logger.info('No new jobs found');
       return NextResponse.json({
         success: true,
         message: 'No new jobs to process',
@@ -56,7 +57,7 @@ export async function GET(request: Request) {
       });
     }
 
-    console.log(`Found ${newJobs.length} new jobs`);
+    logger.info('Found new jobs', { count: newJobs.length });
 
     // Get all active proximity alerts
     const { data: alerts, error: alertsError } = await supabaseAdmin
@@ -68,7 +69,7 @@ export async function GET(request: Request) {
       .eq('is_active', true);
 
     if (alertsError) {
-      console.error('Error fetching alerts:', alertsError);
+      logger.error('Error fetching alerts', { error: alertsError.message });
       return NextResponse.json(
         { error: 'Failed to fetch alerts' },
         { status: 500 }
@@ -76,7 +77,7 @@ export async function GET(request: Request) {
     }
 
     if (!alerts || alerts.length === 0) {
-      console.log('No active alerts found');
+      logger.info('No active alerts found');
       return NextResponse.json({
         success: true,
         message: 'No active alerts to process',
@@ -84,7 +85,7 @@ export async function GET(request: Request) {
       });
     }
 
-    console.log(`Found ${alerts.length} active alerts`);
+    logger.info('Found active alerts', { count: alerts.length });
 
     let notificationsCreated = 0;
 
@@ -134,15 +135,21 @@ export async function GET(request: Request) {
 
           if (!notifError) {
             notificationsCreated++;
-            console.log(`Created notification for user ${alert.user_id}, job ${job.id}`);
+            logger.info('Created proximity notification', {
+              userId: sanitizeUserId(alert.user_id),
+              jobId: job.id,
+            });
           } else {
-            console.error('Error creating notification:', notifError);
+            logger.error('Error creating notification', { error: notifError.message });
           }
         }
       }
     }
 
-    console.log(`Created ${notificationsCreated} notifications`);
+    logger.info('Proximity alerts check completed', {
+      jobsProcessed: newJobs.length,
+      notificationsCreated,
+    });
 
     return NextResponse.json({
       success: true,
@@ -151,7 +158,9 @@ export async function GET(request: Request) {
       notificationsCreated,
     });
   } catch (error) {
-    console.error('Cron job error:', error);
+    logger.error('Cron job error', {
+      error: error instanceof Error ? error.message : String(error),
+    });
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
