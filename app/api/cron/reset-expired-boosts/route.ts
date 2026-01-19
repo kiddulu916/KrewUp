@@ -2,7 +2,7 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { logger, sanitizeUserId } from '@/lib/utils/logger';
-import { logger, sanitizeUserId } from '@/lib/utils/logger';
+
 
 // Create Supabase admin client for cron job (server-side, bypasses RLS)
 const supabaseAdmin = createClient(
