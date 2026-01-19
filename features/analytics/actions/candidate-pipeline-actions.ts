@@ -288,15 +288,19 @@ export async function getPipelineApplications(
       created_at: string;
       status_updated_at: string | null;
       hired_at: string | null;
-      jobs: { title: string } | null;
-      users: { first_name: string | null; last_name: string | null } | null;
+      jobs: { title: string }[] | null;
+      users: { first_name: string | null; last_name: string | null }[] | null;
     };
     
-    const result: ApplicationWithMetrics[] = (applications as ApplicationQueryResult[]).map((app) => {
+    const result: ApplicationWithMetrics[] = (applications as unknown as ApplicationQueryResult[]).map((app) => {
       const statusDate = app.status_updated_at
         ? new Date(app.status_updated_at)
         : new Date(app.created_at);
       const timeInStageDays = (now.getTime() - statusDate.getTime()) / (1000 * 60 * 60 * 24);
+
+      // * Supabase returns joined relations as arrays, so we access the first element
+      const job = Array.isArray(app.jobs) ? app.jobs[0] : app.jobs;
+      const user = Array.isArray(app.users) ? app.users[0] : app.users;
 
       return {
         id: app.id,
@@ -304,8 +308,8 @@ export async function getPipelineApplications(
         created_at: app.created_at,
         status_updated_at: app.status_updated_at,
         hired_at: app.hired_at,
-        job_title: app.jobs?.title || 'Unknown Job',
-        applicant_name: `${app.users?.first_name || ''} ${app.users?.last_name || ''}`.trim(),
+        job_title: job?.title || 'Unknown Job',
+        applicant_name: `${user?.first_name || ''} ${user?.last_name || ''}`.trim(),
         time_in_stage_days: Math.round(timeInStageDays * 10) / 10,
       };
     });
