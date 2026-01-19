@@ -21,7 +21,7 @@ export function RequestEndorsementButton({
   const isPro = useIsPro();
   const [isOpen, setIsOpen] = useState(false);
   const [employerEmail, setEmployerEmail] = useState('');
-  const { execute, isLoading, error, success } = useAsyncAction({
+  const { execute, isLoading, error, success, clearError } = useAsyncAction({
     showToast: false, // Handle success/error manually for better UX
     onSuccess: () => {
       setTimeout(() => {
@@ -119,7 +119,7 @@ export function RequestEndorsementButton({
               variant="outline"
               onClick={() => {
                 setIsOpen(false);
-                setError('');
+                clearError();
                 setEmployerEmail('');
               }}
             >
