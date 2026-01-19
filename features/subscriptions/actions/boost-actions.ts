@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { cookies } from 'next/headers';
 import { revalidatePath } from 'next/cache';
+import { logger, sanitizeUserId } from '@/lib/utils/logger';
 
 /**
  * Activate profile boost for the current user (Pro feature)
@@ -28,7 +29,10 @@ export async function activateProfileBoost() {
       .single();
 
     if (profileError) {
-      console.error('Error fetching profile:', profileError);
+      logger.error('Error fetching profile for boost activation', {
+        userId: sanitizeUserId(user.id),
+        error: profileError.message
+      });
       return { success: false, error: 'Failed to fetch profile' };
     }
 
@@ -60,7 +64,10 @@ export async function activateProfileBoost() {
       .eq('id', user.id);
 
     if (updateError) {
-      console.error('Error activating boost:', updateError);
+      logger.error('Error activating boost', {
+        userId: sanitizeUserId(user.id),
+        error: updateError.message
+      });
       return { success: false, error: 'Failed to activate profile boost' };
     }
 
@@ -68,7 +75,10 @@ export async function activateProfileBoost() {
     revalidatePath('/dashboard/settings');
     return { success: true, expiresAt: expiresAt.toISOString() };
   } catch (error: any) {
-    console.error('Error in activateProfileBoost:', error);
+    logger.error('Error in activateProfileBoost', {
+      userId: sanitizeUserId(user.id),
+      error: error.message || String(error)
+    });
     return { success: false, error: error.message || 'Failed to activate profile boost' };
   }
 }
@@ -97,7 +107,10 @@ export async function deactivateProfileBoost() {
       .eq('id', user.id);
 
     if (updateError) {
-      console.error('Error deactivating boost:', updateError);
+      logger.error('Error deactivating boost', {
+        userId: sanitizeUserId(user.id),
+        error: updateError.message
+      });
       return { success: false, error: 'Failed to deactivate profile boost' };
     }
 
@@ -105,7 +118,10 @@ export async function deactivateProfileBoost() {
     revalidatePath('/dashboard/settings');
     return { success: true };
   } catch (error: any) {
-    console.error('Error in deactivateProfileBoost:', error);
+    logger.error('Error in deactivateProfileBoost', {
+      userId: sanitizeUserId(user.id),
+      error: error.message || String(error)
+    });
     return { success: false, error: error.message || 'Failed to deactivate profile boost' };
   }
 }
@@ -132,7 +148,10 @@ export async function getBoostStatus() {
       .single();
 
     if (error) {
-      console.error('Error fetching boost status:', error);
+      logger.error('Error fetching boost status', {
+        userId: sanitizeUserId(user.id),
+        error: error.message
+      });
       return { success: false, error: 'Failed to fetch boost status' };
     }
 
@@ -148,7 +167,10 @@ export async function getBoostStatus() {
       expiresAt: profile.boost_expires_at,
     };
   } catch (error: any) {
-    console.error('Error in getBoostStatus:', error);
+    logger.error('Error in getBoostStatus', {
+      userId: sanitizeUserId(user.id),
+      error: error.message || String(error)
+    });
     return { success: false, error: error.message || 'Failed to fetch boost status' };
   }
 }

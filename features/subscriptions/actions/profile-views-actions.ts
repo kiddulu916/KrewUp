@@ -3,6 +3,7 @@
 
 import { createClient } from '@/lib/supabase/server';
 import { cookies } from 'next/headers';
+import { logger, sanitizeUserId } from '@/lib/utils/logger';
 
 export type ProfileView = {
   id: string;
@@ -49,13 +50,19 @@ export async function trackProfileView(viewedProfileId: string): Promise<{ succe
       });
 
     if (error) {
-      console.error('Error tracking profile view:', error);
+      logger.error('Error tracking profile view', {
+        viewerId: sanitizeUserId(user.id),
+        viewedProfileId: sanitizeUserId(viewedProfileId),
+        error: error.message
+      });
       return { success: false, error: 'Failed to track view' };
     }
 
     return { success: true };
   } catch (error) {
-    console.error('Error in trackProfileView:', error);
+    logger.error('Error in trackProfileView', {
+      error: error instanceof Error ? error.message : String(error)
+    });
     return { success: false, error: 'Unexpected error occurred' };
   }
 }
@@ -106,7 +113,10 @@ export async function getMyProfileViews(): Promise<ProfileViewsResult> {
       .limit(50); // Limit to last 50 views
 
     if (error) {
-      console.error('Error fetching profile views:', error);
+      logger.error('Error fetching profile views', {
+        userId: sanitizeUserId(user.id),
+        error: error.message
+      });
       return { success: false, error: 'Failed to fetch profile views' };
     }
 
@@ -124,7 +134,9 @@ export async function getMyProfileViews(): Promise<ProfileViewsResult> {
       weeklyCount,
     };
   } catch (error) {
-    console.error('Error in getMyProfileViews:', error);
+    logger.error('Error in getMyProfileViews', {
+      error: error instanceof Error ? error.message : String(error)
+    });
     return { success: false, error: 'Unexpected error occurred' };
   }
 }
@@ -147,13 +159,18 @@ export async function getProfileViewCount(): Promise<{ success: boolean; count?:
       .eq('viewed_profile_id', user.id);
 
     if (error) {
-      console.error('Error fetching profile view count:', error);
+      logger.error('Error fetching profile view count', {
+        userId: sanitizeUserId(user.id),
+        error: error.message
+      });
       return { success: false, error: 'Failed to fetch count' };
     }
 
     return { success: true, count: count || 0 };
   } catch (error) {
-    console.error('Error in getProfileViewCount:', error);
+    logger.error('Error in getProfileViewCount', {
+      error: error instanceof Error ? error.message : String(error)
+    });
     return { success: false, error: 'Unexpected error occurred' };
   }
 }
