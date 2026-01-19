@@ -3,7 +3,6 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { logger, sanitizeUserId } from '@/lib/utils/logger';
 
-
 // Create Supabase admin client for cron job (server-side, bypasses RLS)
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -28,7 +27,6 @@ export async function GET(request: Request) {
     // Verify cron secret to prevent unauthorized access
     const authHeader = request.headers.get('authorization');
     if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
-      logger.error('Unauthorized cron job access attempt');
       logger.error('Unauthorized cron job access attempt');
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -79,9 +77,6 @@ export async function GET(request: Request) {
       logger.info('All boosted workers have active Pro subscriptions', {
         checked: boostedWorkers.length,
       });
-      logger.info('All boosted workers have active Pro subscriptions', {
-        checked: boostedWorkers.length,
-      });
       return NextResponse.json({
         success: true,
         message: 'All boosts are valid',
@@ -109,10 +104,6 @@ export async function GET(request: Request) {
       );
     }
 
-    logger.info('Successfully reset invalid boosts', {
-      count: workersToReset.length,
-      checked: boostedWorkers.length,
-    });
     logger.info('Successfully reset invalid boosts', {
       count: workersToReset.length,
       checked: boostedWorkers.length,

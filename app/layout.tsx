@@ -5,6 +5,7 @@ import { ToastProvider } from "@/components/providers/toast-provider";
 import { Analytics } from "@vercel/analytics/next";
 import { ConsentBanner, AdScripts } from "@/components/ads";
 import Script from "next/script";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 export const metadata: Metadata = {
   title: "KrewUp - Connecting Skilled Trade Workers with Employers",
@@ -21,15 +22,9 @@ export default function RootLayout({
       <body className="antialiased">
         <QueryProvider>
           <ToastProvider>
+            <SpeedInsights />
             {children}
             <Analytics />
-            <Script
-              id="google-adsense"
-              async
-              strategy="beforeInteractive"
-              src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4807961095325796"
-              crossOrigin="anonymous"
-            />
             <ConsentBanner />
             <AdScripts />
           </ToastProvider>

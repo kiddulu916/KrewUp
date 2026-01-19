@@ -63,4 +63,9 @@ scripts/output/*.json
 
 
 # Auto Claude data directory
+.claude/
 .auto-claude/
+.auto-claude*.json
+.claude*.json
+.auto-claude*.status
+.venv/

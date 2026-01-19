@@ -24,6 +24,12 @@ yarn-error.log*
 *.log
 
 # Development
+.auto-claude/
+.claude_settings.json
+.auto-claude-security.json
+.cursorrules
+.auto-claude-status
+.claude/
 .vscode
 .idea
 *.swp
@@ -42,3 +48,4 @@ README.md
 
 # Legacy
 krewup.jsx
+
