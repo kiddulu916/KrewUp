@@ -1,5 +1,6 @@
 'use client';
 
+import React from 'react';
 import Link from 'next/link';
 import { Badge, Avatar } from '@/components/ui';
 import type { ConversationWithDetails } from '../types';
@@ -9,7 +10,7 @@ type Props = {
   isActive?: boolean;
 };
 
-export function ConversationItem({ conversation, isActive = false }: Props) {
+function ConversationItemComponent({ conversation, isActive = false }: Props) {
   const formatRelativeTime = (timestamp: string | null) => {
     if (!timestamp) return '';
 
@@ -71,3 +72,16 @@ export function ConversationItem({ conversation, isActive = false }: Props) {
     </Link>
   );
 }
+
+// * Memoized to prevent re-renders when parent state changes but conversation props are unchanged
+export const ConversationItem = React.memo(ConversationItemComponent, (prevProps, nextProps) => {
+  return (
+    prevProps.conversation.id === nextProps.conversation.id &&
+    prevProps.conversation.lastMessageAt === nextProps.conversation.lastMessageAt &&
+    prevProps.conversation.unreadCount === nextProps.conversation.unreadCount &&
+    prevProps.isActive === nextProps.isActive &&
+    prevProps.conversation.otherParticipant.id === nextProps.conversation.otherParticipant.id &&
+    prevProps.conversation.otherParticipant.name === nextProps.conversation.otherParticipant.name &&
+    prevProps.conversation.otherParticipant.profile_image_url === nextProps.conversation.otherParticipant.profile_image_url
+  );
+});

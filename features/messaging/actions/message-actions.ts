@@ -7,9 +7,9 @@ import { cookies } from 'next/headers';
 import { rateLimit, RATE_LIMITS } from '@/lib/security/rate-limit';
 import { logger, sanitizeUserId } from '@/lib/utils/logger';
 
-export type MessageResult = {
+export type MessageResult<T = Message | void> = {
   success: boolean;
-  data?: any;
+  data?: T;
   error?: string;
 };
 

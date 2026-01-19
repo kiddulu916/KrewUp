@@ -16,9 +16,9 @@ export type CertificationData = {
   photo_url?: string;
 };
 
-export type CertificationResult = {
+export type CertificationResult<T = Certification | License | { url: string; path: string } | Array<Certification | License>> = {
   success: boolean;
-  data?: any;
+  data?: T;
   error?: string;
 };
 
@@ -114,9 +114,9 @@ export async function addCertification(data: CertificationData): Promise<Certifi
     errorMessage: error.message,
   });
   let errorMessage = 'Failed to add credential';
-  if (error.code === '23505') {
+  if (error && typeof error === 'object' && 'code' in error && error.code === '23505') {
     errorMessage = 'This credential already exists in your profile';
-  } else if (error.message) {
+  } else if (error instanceof Error && error.message) {
     errorMessage = `Failed to add credential: ${error.message}`;
   }
   return { success: false, error: errorMessage };

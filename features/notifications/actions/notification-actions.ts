@@ -11,7 +11,7 @@ export interface Notification {
   type: 'proximity_alert' | 'application_status' | 'new_message' | 'profile_view';
   title: string;
   message: string;
-  data?: any;
+  data?: Record<string, unknown> | null;
   read_at: string | null;
   created_at: string;
 }
@@ -33,7 +33,7 @@ export async function getMyNotifications() {
 
     const { data, error } = await supabase
       .from('notifications')
-      .select('*')
+      .select('id, user_id, type, title, message, data, read_at, created_at')
       .eq('user_id', user.id)
       .order('created_at', { ascending: false });
 

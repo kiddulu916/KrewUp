@@ -13,9 +13,9 @@ export type EducationData = {
   end_date?: string;
 };
 
-export type EducationResult = {
+export type EducationResult<T = Education | Education[]> = {
   success: boolean;
-  data?: any;
+  data?: T;
   error?: string;
 };
 

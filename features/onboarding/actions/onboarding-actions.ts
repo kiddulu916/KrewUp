@@ -109,7 +109,7 @@ export async function completeOnboarding(data: OnboardingData): Promise<Onboardi
   const [firstName, ...lastNameParts] = data.name.trim().split(' ');
   const lastName = lastNameParts.join(' ') || '';
 
-  const userUpdate: any = {
+  const userUpdate: Record<string, unknown> = {
     first_name: firstName,
     last_name: lastName,
     phone: data.phone,

@@ -7,6 +7,7 @@
 
 import { TRADES, TRADE_SUBCATEGORIES, EMPLOYER_TYPES } from '@/lib/constants';
 import type { Trade, EmployerType } from '@/lib/constants';
+import { PHONE_REGEX } from '@/lib/utils/phone';
 
 // ============================================================================
 // Types
@@ -51,8 +52,6 @@ export const MAX_COMPANY_NAME_LENGTH = 100;
 export const MAX_TOOLS = 100;
 export const MAX_TOOL_NAME_LENGTH = 100;
 
-// Phone regex: (XXX) XXX-XXXX
-export const PHONE_REGEX = /^\(\d{3}\) \d{3}-\d{4}$/;
 // Email regex (basic)
 export const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -157,7 +156,7 @@ export function validatePhone(phone: string): ValidationResult {
   if (!PHONE_REGEX.test(phone)) {
     return {
       valid: false,
-      error: 'Phone must be in (XXX) XXX-XXXX format',
+      error: 'Phone must be in (XXX)XXX-XXXX format',
       field: 'phone',
     };
   }
@@ -382,7 +381,7 @@ export function parseNameParts(fullName: string): NameParts {
 }
 
 /**
- * Formats a phone number to (XXX) XXX-XXXX format.
+ * Formats a phone number to (XXX)XXX-XXXX format.
  * @param phone - Raw phone number input
  * @returns Formatted phone number or empty string if invalid
  */
@@ -395,7 +394,7 @@ export function formatPhoneNumber(phone: string): string {
     return '';
   }
 
-  return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
+  return `(${digits.slice(0, 3)})${digits.slice(3, 6)}-${digits.slice(6)}`;
 }
 
 /**

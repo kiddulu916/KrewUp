@@ -4,45 +4,36 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button, Input } from '@/components/ui';
 import { signIn, signInWithGoogle } from '../actions/auth-actions';
+import { useAsyncAction } from '@/hooks/use-async-action';
 
 export function LoginForm() {
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const { execute, isLoading, error } = useAsyncAction({
+    showToast: false, // Handle errors manually for better UX
+  });
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setError('');
-    setIsLoading(true);
 
-    const result = await signIn(email, password);
-
-    if (!result.success) {
-      setError(result.error || 'Failed to sign in');
-      setIsLoading(false);
-    }
-    // If successful, user will be redirected by the action
+    await execute(async () => {
+      const result = await signIn(email, password);
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to sign in');
+      }
+      return result;
+      // If successful, user will be redirected by the action
+    });
   }
 
   async function handleGoogleSignIn() {
-    setError('');
-    setIsLoading(true);
-
-    try {
+    await execute(async () => {
       await signInWithGoogle();
       // Redirect to Google OAuth happens automatically
       // The redirect() call in the server action will throw, which is expected
-    } catch (error) {
-      // Next.js redirect() throws a NEXT_REDIRECT error, which is expected - ignore it
-      // Only show errors for actual failures
-      if (error instanceof Error && !error.message.includes('NEXT_REDIRECT')) {
-        setError(error.message || 'Failed to sign in with Google');
-        setIsLoading(false);
-      }
-      // If it's a NEXT_REDIRECT, let it propagate (don't set loading to false)
-    }
+      // The hook will re-throw NEXT_REDIRECT errors for Next.js to handle
+    });
   }
 
   return (

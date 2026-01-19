@@ -188,7 +188,7 @@ export async function sendPushNotification(
     // Get all push subscriptions for the user
     const { data: subscriptions, error } = await supabase
       .from('push_subscriptions')
-      .select('*')
+      .select('endpoint, p256dh, auth')
       .eq('user_id', userId);
 
     if (error) {
@@ -234,10 +234,10 @@ export async function sendPushNotification(
             notificationPayload
           );
           sent++;
-        } catch (err: any) {
+        } catch (err: unknown) {
           failed++;
           // If subscription is expired/invalid, mark for removal
-          if (err.statusCode === 404 || err.statusCode === 410) {
+          if (err && typeof err === 'object' && 'statusCode' in err && (err.statusCode === 404 || err.statusCode === 410)) {
             expiredEndpoints.push(sub.endpoint);
           }
           logger.error('Push notification failed', {

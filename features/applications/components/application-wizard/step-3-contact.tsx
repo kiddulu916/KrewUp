@@ -3,24 +3,11 @@
 import { UseFormReturn, Controller } from 'react-hook-form';
 import { ApplicationFormData } from '../../types/application.types';
 import { Input } from '@/components/ui';
+import { formatPhoneNumber } from '@/lib/utils/phone';
 
 type Props = {
   form: UseFormReturn<Partial<ApplicationFormData>>;
 };
-
-/**
- * Format phone number to (XXX) XXX-XXXX format
- */
-function formatPhoneNumber(value: string): string {
-  // Remove all non-numeric characters
-  const numbers = value.replace(/\D/g, '');
-
-  // Format as (XXX) XXX-XXXX
-  if (numbers.length === 0) return '';
-  if (numbers.length <= 3) return `(${numbers}`;
-  if (numbers.length <= 6) return `(${numbers.slice(0, 3)}) ${numbers.slice(3)}`;
-  return `(${numbers.slice(0, 3)}) ${numbers.slice(3, 6)}-${numbers.slice(6, 10)}`;
-}
 
 /**
  * Get minimum date (tomorrow) in local timezone
@@ -76,8 +63,8 @@ export function Step3Contact({ form }: Props) {
               {...field}
               id="phoneNumber"
               type="tel"
-              placeholder="(555) 123-4567"
-              maxLength={14}
+              placeholder="(555)123-4567"
+              maxLength={13}
               onChange={(e) => {
                 const formatted = formatPhoneNumber(e.target.value);
                 field.onChange(formatted);

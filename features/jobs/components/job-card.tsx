@@ -9,6 +9,7 @@ import { useIsWorker } from '@/features/auth/hooks/use-auth';
 import { calculateCompatibility, getScoreBadgeColor } from '../utils/compatibility-scoring';
 import type { CompatibilityInput } from '../types/compatibility';
 import type { Certification } from '@/features/profiles/types';
+import type { GeoCoords } from '@/types';
 
 type JobCardProps = {
   job: {
@@ -18,25 +19,25 @@ type JobCardProps = {
     sub_trades?: string[] | null;
     job_type: string;
     location: string;
-    coords?: { lat: number; lng: number } | string | null;
+    coords?: GeoCoords | string | null;
     pay_rate: string;
     employer_name: string;
     required_certs?: string[];
     created_at: string;
     status: string;
   };
-  userCoords?: { lat: number; lng: number } | null;
+  userCoords?: GeoCoords | null;
   currentUser?: {
     trade?: string | null;
     sub_trade?: string | null;
     location?: string | null;
-    coords?: any; // PostGIS point
+    coords?: GeoCoords | null;
     years_of_experience?: number | null;
     certifications?: Certification[];
   } | null;
 };
 
-export function JobCard({ job, userCoords, currentUser }: JobCardProps) {
+function JobCardComponent({ job, userCoords, currentUser }: JobCardProps) {
   const distance = calculateDistance(userCoords || null, job.coords || null);
   const distanceText = formatDistance(distance);
 
@@ -147,3 +148,47 @@ export function JobCard({ job, userCoords, currentUser }: JobCardProps) {
     </Link>
   );
 }
+
+// * Custom comparison function for React.memo to prevent unnecessary re-renders
+// * Compares job by id, userCoords by lat/lng, and currentUser by relevant fields
+function arePropsEqual(prevProps: JobCardProps, nextProps: JobCardProps): boolean {
+  // Compare job - only re-render if job id changes or job data changes
+  if (prevProps.job.id !== nextProps.job.id) return false;
+  if (prevProps.job.title !== nextProps.job.title) return false;
+  if (prevProps.job.status !== nextProps.job.status) return false;
+  if (JSON.stringify(prevProps.job.trades) !== JSON.stringify(nextProps.job.trades)) return false;
+  if (JSON.stringify(prevProps.job.sub_trades) !== JSON.stringify(nextProps.job.sub_trades)) return false;
+  if (JSON.stringify(prevProps.job.required_certs) !== JSON.stringify(nextProps.job.required_certs)) return false;
+
+  // Compare userCoords
+  if (prevProps.userCoords?.lat !== nextProps.userCoords?.lat) return false;
+  if (prevProps.userCoords?.lng !== nextProps.userCoords?.lng) return false;
+  if (prevProps.userCoords === null && nextProps.userCoords !== null) return false;
+  if (prevProps.userCoords !== null && nextProps.userCoords === null) return false;
+
+  // Compare currentUser - only relevant fields for compatibility calculation
+  if (prevProps.currentUser?.trade !== nextProps.currentUser?.trade) return false;
+  if (prevProps.currentUser?.sub_trade !== nextProps.currentUser?.sub_trade) return false;
+  if (prevProps.currentUser?.years_of_experience !== nextProps.currentUser?.years_of_experience) return false;
+  
+  // Compare certifications array
+  const prevCerts = prevProps.currentUser?.certifications || [];
+  const nextCerts = nextProps.currentUser?.certifications || [];
+  if (prevCerts.length !== nextCerts.length) return false;
+  if (prevCerts.some((cert, i) => cert.id !== nextCerts[i]?.id)) return false;
+
+  // Compare currentUser coords
+  if (prevProps.currentUser?.coords !== nextProps.currentUser?.coords) {
+    const prevCoords = prevProps.currentUser?.coords as GeoCoords | null | undefined;
+    const nextCoords = nextProps.currentUser?.coords as GeoCoords | null | undefined;
+    if (prevCoords?.lat !== nextCoords?.lat || prevCoords?.lng !== nextCoords?.lng) return false;
+  }
+
+  // Handle null/undefined currentUser
+  if (prevProps.currentUser === null && nextProps.currentUser !== null) return false;
+  if (prevProps.currentUser !== null && nextProps.currentUser === null) return false;
+
+  return true;
+}
+
+export const JobCard = React.memo(JobCardComponent, arePropsEqual);

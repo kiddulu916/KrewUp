@@ -14,9 +14,9 @@ export type ExperienceData = {
   description?: string;
 };
 
-export type ExperienceResult = {
+export type ExperienceResult<T = Experience | Experience[]> = {
   success: boolean;
-  data?: any;
+  data?: T;
   error?: string;
 };
 

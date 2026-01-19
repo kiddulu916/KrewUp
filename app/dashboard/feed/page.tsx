@@ -29,45 +29,68 @@ export default async function FeedPage() {
 
   // Fetch quick stats
   const isWorker = profile?.role === 'worker';
-
-  // Count applications (workers) or applications to employer's jobs
+  
   let applicationsCount = 0;
+  let conversationsCount = 0;
+  let profileViewsCount = 0;
+
   if (isWorker) {
-    const { count } = await supabase
-      .from('job_applications')
-      .select('*', { count: 'exact', head: true })
-      .eq('applicant_id', user.id);
-    applicationsCount = count || 0;
+    const [
+      { count: applications },
+      { count: conversations },
+      { count: profileViews },
+    ] = await Promise.all([
+      supabase
+        .from('job_applications')
+        .select('*', { count: 'exact', head: true })
+        .eq('applicant_id', user.id),
+      supabase
+        .from('conversations')
+        .select('*', { count: 'exact', head: true })
+        .or(`participant_1_id.eq.${user.id},participant_2_id.eq.${user.id}`), 
+      supabase
+        .from('profile_views')
+        .select('*', { count: 'exact', head: true })
+        .eq('viewed_profile_id', user.id),
+    ]);  
+
+    applicationsCount = applications || 0;
+    conversationsCount = conversations || 0;
+    profileViewsCount = profileViews || 0;
   } else {
-    // Count applications to all jobs posted by this employer
     const { data: employerJobs } = await supabase
       .from('jobs')
       .select('id')
       .eq('employer_id', user.id);
 
-    if (employerJobs && employerJobs.length > 0) {
-      const jobIds = employerJobs.map(job => job.id);
-      const { count } = await supabase
-        .from('job_applications')
+    const jobIds = employerJobs?.map(job => job.id) || [];
+
+    const[
+      { count: applications },
+      { count: conversations },
+      { count: profileViews },
+    ] = await Promise.all([
+      jobIds.length > 0
+        ? supabase
+            .from('job_applications')
+            .select('*', { count: 'exact', head: true })
+            .in('job_id', jobIds)
+        : Promise.resolve({ count: 0 }),
+      supabase
+        .from('conversations')
         .select('*', { count: 'exact', head: true })
-        .in('job_id', jobIds);
-      applicationsCount = count || 0;
-    }
+        .or(`participant_1_id.eq.${user.id},participant_2_id.eq.${user.id}`),
+      supabase
+        .from('profile_views')
+        .select('*', { count: 'exact', head: true })
+        .eq('viewed_profile_id', user.id),
+    ]);
+
+    applicationsCount = applications || 0;
+    conversationsCount = conversations || 0;
+    profileViewsCount = profileViews || 0;
   }
 
-  // Count conversations
-  const { count: conversationsCount } = await supabase
-    .from('conversations')
-    .select('*', { count: 'exact', head: true })
-    .or(`participant_1_id.eq.${user.id},participant_2_id.eq.${user.id}`);
-
-  // Count profile views
-  const { count: profileViewsCount } = await supabase
-    .from('profile_views')
-    .select('*', { count: 'exact', head: true })
-    .eq('viewed_profile_id', user.id);
-
-  // Get full name for display
   const fullName = profile ? getFullName(profile) : '';
 
   return (

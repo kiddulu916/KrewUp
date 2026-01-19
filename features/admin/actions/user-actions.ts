@@ -409,7 +409,7 @@ export async function getUserModerationStatus(userId: string) {
   // Get the most recent ban or active suspension
   const { data: actions } = await supabase
     .from('user_moderation_actions')
-    .select('*')
+    .select('action_type, expires_at, created_at')
     .eq('user_id', userId)
     .in('action_type', ['ban', 'suspension'])
     .order('created_at', { ascending: false })

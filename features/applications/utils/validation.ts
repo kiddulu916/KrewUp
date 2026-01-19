@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { PHONE_REGEX } from '@/lib/utils/phone';
 
 // Step 1: Documents (optional)
 export const step1Schema = z.object({
@@ -20,7 +21,7 @@ export const step2Schema = z.object({
 
 // Step 3: Contact & Availability
 export const step3Schema = z.object({
-  phoneNumber: z.string().regex(/^\(\d{3}\) \d{3}-\d{4}$/, 'Phone must be (XXX) XXX-XXXX format'),
+  phoneNumber: z.string().regex(PHONE_REGEX, 'Phone must be (XXX)XXX-XXXX format'),
   availableStartDate: z.string().min(1, 'Start date is required'),
 });
 
@@ -81,7 +82,7 @@ export const referenceEntrySchema = z.object({
   id: z.string(),
   name: z.string().min(1, 'Reference name is required'),
   company: z.string().min(1, 'Company is required'),
-  phone: z.string().regex(/^\(\d{3}\) \d{3}-\d{4}$/, 'Phone must be (XXX) XXX-XXXX format'),
+  phone: z.string().regex(PHONE_REGEX, 'Phone must be (XXX)XXX-XXXX format'),
   email: z.string().email('Invalid email address'),
   relationship: z.string().min(1, 'Relationship is required'),
 });
@@ -94,7 +95,7 @@ export const step8Schema = z.object({
   emergencyContact: z.object({
     name: z.string().min(1, 'Emergency contact name required'),
     relationship: z.string().min(1, 'Relationship required'),
-    phone: z.string().regex(/^\(\d{3}\) \d{3}-\d{4}$/, 'Phone must be (XXX) XXX-XXXX format'),
+    phone: z.string().regex(PHONE_REGEX, 'Phone must be (XXX)XXX-XXXX format'),
   }),
   consents: z.object({
     physicalRequirements: z.boolean().refine((val) => val === true, {

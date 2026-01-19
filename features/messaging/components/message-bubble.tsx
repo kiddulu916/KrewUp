@@ -1,5 +1,6 @@
 'use client';
 
+import React from 'react';
 import type { Message } from '../types';
 import { Avatar } from '@/components/ui';
 
@@ -8,7 +9,7 @@ type Props = {
   isOwnMessage: boolean;
 };
 
-export function MessageBubble({ message, isOwnMessage }: Props) {
+function MessageBubbleComponent({ message, isOwnMessage }: Props) {
   const formatTime = (timestamp: string) => {
     const date = new Date(timestamp);
     return date.toLocaleTimeString('en-US', {
@@ -57,3 +58,17 @@ export function MessageBubble({ message, isOwnMessage }: Props) {
     </div>
   );
 }
+
+// * Memoized to prevent re-renders when parent state changes but message props are unchanged
+export const MessageBubble = React.memo(MessageBubbleComponent, (prevProps, nextProps) => {
+  return (
+    prevProps.message.id === nextProps.message.id &&
+    prevProps.message.content === nextProps.message.content &&
+    prevProps.message.created_at === nextProps.message.created_at &&
+    prevProps.message.sender_id === nextProps.message.sender_id &&
+    prevProps.isOwnMessage === nextProps.isOwnMessage &&
+    prevProps.message.sender?.id === nextProps.message.sender?.id &&
+    prevProps.message.sender?.name === nextProps.message.sender?.name &&
+    prevProps.message.sender?.profile_image_url === nextProps.message.sender?.profile_image_url
+  );
+});

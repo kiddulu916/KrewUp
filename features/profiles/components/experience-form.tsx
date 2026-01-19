@@ -66,8 +66,8 @@ export function ExperienceForm({ onSuccess, onCancel }: Props) {
         router.push('/dashboard/profile');
         router.refresh();
       }
-    } catch (err: any) {
-      const errorMsg = err.message || 'Failed to add work experience';
+    } catch (err: unknown) {
+      const errorMsg = err instanceof Error ? err.message : 'Failed to add work experience';
       setError(errorMsg);
       toast.error(errorMsg);
     }

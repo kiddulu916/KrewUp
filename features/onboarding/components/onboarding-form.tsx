@@ -5,6 +5,7 @@ import { Button, Input, Select, Card, CardContent } from '@/components/ui';
 import { TRADES, TRADE_SUBCATEGORIES, EMPLOYER_TYPES } from '@/lib/constants';
 import { completeOnboarding, type OnboardingData } from '../actions/onboarding-actions';
 import { uploadCertificationPhoto } from '@/features/profiles/actions/certification-actions';
+import { formatPhoneNumber } from '@/lib/utils/phone';
 
 type Props = {
   initialName?: string;
@@ -164,25 +165,6 @@ export function OnboardingForm({ initialName = '', initialEmail = '' }: Props) {
     setFormData((prev) => ({ ...prev, ...updates }));
   }
 
-  function formatPhoneNumber(value: string): string {
-    // Remove all non-numeric characters
-    const phoneNumber = value.replace(/\D/g, '');
-
-    // Limit to 10 digits
-    const limited = phoneNumber.slice(0, 10);
-
-    // Format as (XXX)XXX-XXXX
-    if (limited.length === 0) {
-      return '';
-    } else if (limited.length <= 3) {
-      return `(${limited}`;
-    } else if (limited.length <= 6) {
-      return `(${limited.slice(0, 3)})${limited.slice(3)}`;
-    } else {
-      return `(${limited.slice(0, 3)})${limited.slice(3, 6)}-${limited.slice(6)}`;
-    }
-  }
-
   function handlePhoneChange(e: React.ChangeEvent<HTMLInputElement>) {
     const formatted = formatPhoneNumber(e.target.value);
     updateFormData({ phone: formatted });
@@ -232,8 +214,8 @@ export function OnboardingForm({ initialName = '', initialEmail = '' }: Props) {
 
       // Success! Redirect to dashboard
       window.location.href = '/dashboard/feed';
-    } catch (err: any) {
-      setError(err.message || 'An unexpected error occurred');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'An unexpected error occurred');
       setIsLoading(false);
     }
   }
@@ -303,7 +285,7 @@ export function OnboardingForm({ initialName = '', initialEmail = '' }: Props) {
             <Input
               label="Phone Number"
               type="tel"
-              placeholder="(555) 123-4567"
+              placeholder="(555)123-4567"
               value={formData.phone}
               onChange={handlePhoneChange}
               required
