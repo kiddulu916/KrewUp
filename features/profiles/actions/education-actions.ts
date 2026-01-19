@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
 import { cookies } from 'next/headers';
+import { logger } from '@/lib/utils/logger';
 
 export type EducationData = {
   institution: string;
@@ -53,7 +54,11 @@ export async function addEducation(data: EducationData): Promise<EducationResult
     .single();
 
   if (insertError) {
-    console.error('Add education error:', insertError);
+    logger.error('Add education error', {
+      institution: data.institution,
+      errorMessage: insertError.message,
+      errorCode: insertError.code,
+    });
     return { success: false, error: 'Failed to add education entry' };
   }
 
@@ -84,7 +89,10 @@ export async function deleteEducation(educationId: string): Promise<EducationRes
     .eq('user_id', user.id);
 
   if (error) {
-    console.error('Delete education error:', error);
+    logger.error('Delete education error', {
+      educationId,
+      errorMessage: error.message,
+    });
     return { success: false, error: 'Failed to delete education entry' };
   }
 
@@ -114,7 +122,9 @@ export async function getMyEducation(): Promise<EducationResult> {
     .order('end_date', { ascending: false, nullsFirst: false });
 
   if (error) {
-    console.error('Get education error:', error);
+    logger.error('Get education error', {
+      errorMessage: error.message,
+    });
     return { success: false, error: 'Failed to get education entries' };
   }
 

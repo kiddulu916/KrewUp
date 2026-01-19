@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
 import { cookies } from 'next/headers';
+import { logger } from '@/lib/utils/logger';
 
 export type ExperienceData = {
   job_title: string;
@@ -72,7 +73,12 @@ export async function addExperience(data: ExperienceData): Promise<ExperienceRes
     .single();
 
   if (insertError) {
-    console.error('Add experience error:', insertError);
+    logger.error('Add experience error', {
+      jobTitle: data.job_title,
+      company: data.company,
+      errorCode: insertError.code,
+      errorMessage: insertError.message,
+    });
     // Provide more detailed error messages
     let errorMessage = 'Failed to add work experience';
     if (insertError.code === '23505') {
@@ -110,7 +116,10 @@ export async function deleteExperience(experienceId: string): Promise<Experience
     .eq('user_id', user.id);
 
   if (error) {
-    console.error('Delete experience error:', error);
+    logger.error('Delete experience error', {
+      experienceId,
+      errorMessage: error.message,
+    });
     return { success: false, error: 'Failed to delete work experience' };
   }
 
@@ -140,7 +149,9 @@ export async function getMyExperience(): Promise<ExperienceResult> {
     .order('start_date', { ascending: false });
 
   if (error) {
-    console.error('Get experience error:', error);
+    logger.error('Get experience error', {
+      errorMessage: error.message,
+    });
     return { success: false, error: 'Failed to get work experience' };
   }
 

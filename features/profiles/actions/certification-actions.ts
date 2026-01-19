@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
 import { cookies } from 'next/headers';
+import { logger } from '@/lib/utils/logger';
 
 export type CertificationData = {
   credential_category: 'license' | 'certification';
@@ -106,7 +107,12 @@ export async function addCertification(data: CertificationData): Promise<Certifi
     return { success: true, data: license };
   }
 } catch (error: any) {
-  console.error('Add credential error:', error);
+  logger.error('Add credential error', {
+    credentialCategory: data.credential_category,
+    certificationType: data.certification_type,
+    errorCode: error.code,
+    errorMessage: error.message,
+  });
   let errorMessage = 'Failed to add credential';
   if (error.code === '23505') {
     errorMessage = 'This credential already exists in your profile';
@@ -145,7 +151,11 @@ export async function deleteCertification(
     .eq(idField, user.id);
 
   if (error) {
-    console.error('Delete certification error:', error);
+    logger.error('Delete certification error', {
+      certificationId,
+      category,
+      errorMessage: error.message,
+    });
     return { success: false, error: 'Failed to delete certification' };
   }
 
@@ -193,7 +203,11 @@ export async function uploadCertificationPhoto(file: File): Promise<Certificatio
     });
 
   if (error) {
-    console.error('Upload certification photo error:', error);
+    logger.error('Upload certification photo error', {
+      fileType: file.type,
+      fileSize: file.size,
+      errorMessage: error.message,
+    });
     // Provide more detailed error messages
     let errorMessage = 'Failed to upload photo';
     if (error.message.includes('bucket')) {
@@ -241,12 +255,16 @@ export async function getMyCertifications(): Promise<CertificationResult> {
   ]);
 
   if (certsResponse.error) {
-    console.error('Get certifications error:', certsResponse.error);
+    logger.error('Get certifications error', {
+      errorMessage: certsResponse.error.message,
+    });
     return { success: false, error: 'Failed to get certifications' };
   }
 
   if (licensesResponse.error) {
-    console.error('Get licenses error:', licensesResponse.error);
+    logger.error('Get licenses error', {
+      errorMessage: licensesResponse.error.message,
+    });
     return { success: false, error: 'Failed to get licenses' };
   }
 
