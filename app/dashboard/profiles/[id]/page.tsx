@@ -9,6 +9,7 @@ import { notFound, redirect } from 'next/navigation';
 import Link from 'next/link';
 import { cookies } from 'next/headers';
 import { getFullName, getInitials } from '@/lib/utils';
+import type { Certification, Experience } from '@/types/database';
 
       
 
@@ -193,7 +194,7 @@ export default async function PublicProfilePage({ params }: Props) {
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {certifications.map((cert: any) => (
+              {certifications.map((cert) => (
                 <div
                   key={cert.id}
                   className="flex items-center justify-between rounded-lg border border-gray-200 p-4"
@@ -227,7 +228,7 @@ export default async function PublicProfilePage({ params }: Props) {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {workExperience.map((exp: any) => (
+              {workExperience.map((exp) => (
                 <div key={exp.id} className="border-l-2 border-krewup-blue pl-4">
                   <h3 className="font-semibold text-gray-900">{exp.job_title}</h3>
                   <p className="text-sm text-gray-600">{exp.company}</p>

@@ -5,6 +5,7 @@ import { stripe } from '@/lib/stripe/server';
 import { revalidatePath } from 'next/cache';
 import { cookies } from 'next/headers';
 import type { Subscription } from '@/types/subscription';
+import { logger, sanitizeUserId } from '@/lib/utils/logger';
 
 export type SubscriptionResult = {
   success: boolean;
@@ -98,13 +99,16 @@ export async function createCheckoutSession(priceId: string): Promise<CheckoutRe
 
   // Validate priceId format
   if (!priceId || !priceId.startsWith('price_')) {
-    console.error('Invalid priceId format:', { priceId, userId: user.id });
+    logger.error('Invalid priceId format', { priceId, userId: sanitizeUserId(user.id) });
     return { success: false, error: 'Invalid price ID format' };
   }
 
   // Validate environment variable
   if (!process.env.NEXT_PUBLIC_APP_URL) {
-    console.error('Missing NEXT_PUBLIC_APP_URL environment variable', { userId: user.id, priceId });
+    logger.error('Missing NEXT_PUBLIC_APP_URL environment variable', {
+      userId: sanitizeUserId(user.id),
+      priceId
+    });
     return { success: false, error: 'Application URL not configured' };
   }
 
@@ -157,9 +161,9 @@ export async function createCheckoutSession(priceId: string): Promise<CheckoutRe
 
     return { success: true, url: session.url || undefined };
   } catch (error) {
-    console.error('Checkout session error:', {
-      error,
-      userId: user.id,
+    logger.error('Checkout session error', {
+      error: error instanceof Error ? error.message : String(error),
+      userId: sanitizeUserId(user.id),
       priceId,
       customerId,
     });
@@ -210,9 +214,9 @@ export async function createPortalSession(): Promise<CheckoutResult> {
 
     return { success: true, url: session.url };
   } catch (error) {
-    console.error('Portal session error:', {
-      error,
-      userId: user.id,
+    logger.error('Portal session error', {
+      error: error instanceof Error ? error.message : String(error),
+      userId: sanitizeUserId(user.id),
       customerId,
     });
     return {

@@ -36,7 +36,7 @@ export default async function JobsPage() {
         .from('jobs')
         .select(
           `
-          *,
+          id, employer_id, title, location, job_type, trades, sub_trades, status, created_at, application_count,
           employer:users!employer_id(first_name, last_name, location)
         `
         )
@@ -47,7 +47,7 @@ export default async function JobsPage() {
         .from('jobs')
         .select(
           `
-          *,
+          id, employer_id, title, location, coords, job_type, trades, sub_trades, pay_rate, required_certs, status, created_at,
           employer:users!employer_id(first_name, last_name, location)
         `
         )

@@ -3,12 +3,15 @@
 import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
 import { cookies } from 'next/headers';
+import { logger } from '@/lib/utils/logger';
+
+import type { GeoCoords } from '@/types';
 
 export type ProfileUpdateData = {
   name?: string;
   phone?: string | null;
   location?: string;
-  coords?: { lat: number; lng: number } | null;
+  coords?: GeoCoords | null;
   trade?: string;
   sub_trade?: string | null;
   bio?: string | null;
@@ -17,9 +20,9 @@ export type ProfileUpdateData = {
   profile_image_url?: string | null;
 };
 
-export type ProfileResult = {
+export type ProfileResult<T = unknown> = {
   success: boolean;
-  data?: any;
+  data?: T;
   error?: string;
 };
 
@@ -66,12 +69,16 @@ export async function updateProfile(data: ProfileUpdateData): Promise<ProfileRes
     });
 
     if (coordsError) {
-      console.error('Coords update error:', coordsError);
+      logger.error('Coords update error', {
+        lat: data.coords.lat,
+        lng: data.coords.lng,
+        errorMessage: coordsError.message,
+      });
     }
   }
 
   // Update other profile fields (excluding coords)
-  const updateData: any = {};
+  const updateData: Record<string, unknown> = {};
   if (data.name) {
     const [firstName, ...lastNameParts] = data.name.trim().split(' ');
     updateData.first_name = firstName;
@@ -91,14 +98,17 @@ export async function updateProfile(data: ProfileUpdateData): Promise<ProfileRes
       .eq('id', user.id);
 
     if (updateError) {
-      console.error('Update profile error:', updateError);
+      logger.error('Update profile error', {
+        errorMessage: updateError.message,
+        errorCode: updateError.code,
+      });
       return { success: false, error: 'Failed to update base profile' };
     }
   }
 
   // Update workers table if trade/sub_trade provided
   if (data.trade !== undefined || data.sub_trade !== undefined) {
-    const workerUpdate: any = {};
+    const workerUpdate: Record<string, unknown> = {};
     if (data.trade !== undefined) workerUpdate.trade = data.trade;
     if (data.sub_trade !== undefined) workerUpdate.sub_trade = data.sub_trade;
 
@@ -108,7 +118,9 @@ export async function updateProfile(data: ProfileUpdateData): Promise<ProfileRes
       .eq('user_id', user.id);
 
     if (workerError) {
-      console.error('Update worker profile error:', workerError);
+      logger.error('Update worker profile error', {
+        errorMessage: workerError.message,
+      });
     }
   }
 
@@ -120,7 +132,9 @@ export async function updateProfile(data: ProfileUpdateData): Promise<ProfileRes
       .eq('user_id', user.id);
 
     if (contractorError) {
-      console.error('Update contractor profile error:', contractorError);
+      logger.error('Update contractor profile error', {
+        errorMessage: contractorError.message,
+      });
     }
   }
 
@@ -136,7 +150,9 @@ export async function updateProfile(data: ProfileUpdateData): Promise<ProfileRes
     .single();
 
   if (fetchError) {
-    console.error('Fetch profile error:', fetchError);
+    logger.error('Fetch profile error', {
+      errorMessage: fetchError.message,
+    });
     return { success: false, error: 'Failed to fetch updated profile' };
   }
 
@@ -238,7 +254,11 @@ export async function updateToolsOwned(
     .eq('user_id', user.id);
 
   if (error) {
-    console.error('Update tools error:', error);
+    logger.error('Update tools error', {
+      hasTools,
+      toolCount: uniqueTools.length,
+      errorMessage: error.message,
+    });
     return { success: false, error: 'Failed to update tools' };
   }
 
@@ -272,7 +292,9 @@ export async function getMyProfile(): Promise<ProfileResult> {
     .single();
 
   if (error) {
-    console.error('Get profile error:', error);
+    logger.error('Get profile error', {
+      errorMessage: error.message,
+    });
     return { success: false, error: 'Failed to get profile' };
   }
 

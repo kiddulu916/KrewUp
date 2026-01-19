@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { cookies } from 'next/headers';
 import { revalidatePath } from 'next/cache';
+import { logger, sanitizeUserId } from '@/lib/utils/logger';
 
 export interface NotificationPreferences {
   id: string;
@@ -87,7 +88,9 @@ export async function getNotificationPreferences(): Promise<{
 
     return { success: true, data };
   } catch (error) {
-    console.error('Error fetching notification preferences:', error);
+    logger.error('Error fetching notification preferences', {
+      error: error instanceof Error ? error.message : String(error),
+    });
     return { success: false, error: 'Failed to fetch preferences' };
   }
 }
@@ -135,7 +138,9 @@ export async function updateNotificationPreferences(
 
     return { success: true, data };
   } catch (error) {
-    console.error('Error updating notification preferences:', error);
+    logger.error('Error updating notification preferences', {
+      error: error instanceof Error ? error.message : String(error),
+    });
     return { success: false, error: 'Failed to update preferences' };
   }
 }

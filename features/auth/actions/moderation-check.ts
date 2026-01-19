@@ -29,7 +29,7 @@ export async function checkUserModerationStatus(): Promise<ModerationCheckResult
   const serviceSupabase = await createServiceClient(await cookies());
   const { data: actions } = await serviceSupabase
     .from('user_moderation_actions')
-    .select('*')
+    .select('action_type, expires_at, reason, created_at')
     .eq('user_id', user.id)
     .in('action_type', ['ban', 'suspension', 'warning'])
     .order('created_at', { ascending: false })

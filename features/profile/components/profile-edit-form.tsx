@@ -104,7 +104,7 @@ export function ProfileEditForm({ profile }: Props) {
         <Input
           label="Phone Number"
           type="tel"
-          placeholder="(555) 123-4567"
+          placeholder="(555)123-4567"
           {...register('phone')}
           disabled={isSubmitting}
           error={errors.phone?.message}

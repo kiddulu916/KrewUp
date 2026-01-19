@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import { cookies } from 'next/headers';
+import { logger, sanitizeUserId } from '@/lib/utils/logger';
 
 export type ConversationResult = {
   success: boolean;
@@ -59,7 +60,12 @@ export async function findOrCreateConversation(recipientId: string) {
     .single();
 
   if (createError) {
-    console.error('Create conversation error:', createError);
+    logger.error('Failed to create conversation', {
+      participant1: sanitizeUserId(participant1),
+      participant2: sanitizeUserId(participant2),
+      error: createError.message,
+      code: createError.code,
+    });
     throw new Error('Failed to create conversation');
   }
 

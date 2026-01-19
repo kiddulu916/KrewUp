@@ -39,7 +39,7 @@ export async function signIn(email: string, password: string): Promise<AuthResul
     const serviceSupabase = await createServiceClient(await cookies());
     const { data: actions } = await serviceSupabase
       .from('user_moderation_actions')
-      .select('*')
+      .select('action_type, expires_at, reason, created_at')
       .eq('user_id', data.user.id)
       .in('action_type', ['ban', 'suspension', 'warning'])
       .order('created_at', { ascending: false })

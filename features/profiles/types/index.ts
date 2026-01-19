@@ -1,3 +1,5 @@
+import type { GeoCoords } from '@/types';
+
 export type User = {
   id: string;
   first_name: string;
@@ -7,7 +9,7 @@ export type User = {
   role: 'worker' | 'employer';
   employer_type?: 'contractor' | 'developer' | 'homeowner' | 'recruiter' | null;
   location: string;
-  geo_coords?: any;
+  geo_coords?: GeoCoords | null;
   bio?: string | null;
   profile_image_url?: string | null;
   subscription_status: 'free' | 'pro';

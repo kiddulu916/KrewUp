@@ -116,9 +116,9 @@ export function usePushNotifications() {
       setSubscription(pushSubscription);
       setIsLoading(false);
       return true;
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error subscribing to push:', err);
-      setError(err.message || 'Failed to subscribe to push notifications');
+      setError(err instanceof Error ? err.message : 'Failed to subscribe to push notifications');
       setIsLoading(false);
       return false;
     }
@@ -145,9 +145,9 @@ export function usePushNotifications() {
       setSubscription(null);
       setIsLoading(false);
       return true;
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error unsubscribing from push:', err);
-      setError(err.message || 'Failed to unsubscribe');
+      setError(err instanceof Error ? err.message : 'Failed to unsubscribe');
       setIsLoading(false);
       return false;
     }

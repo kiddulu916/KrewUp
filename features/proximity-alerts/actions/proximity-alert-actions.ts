@@ -3,6 +3,7 @@
 
 import { createClient } from '@/lib/supabase/server';
 import { cookies } from 'next/headers';
+import { logger, sanitizeUserId } from '@/lib/utils/logger';
 
 export type ProximityAlert = {
   id: string;
@@ -38,7 +39,9 @@ export async function getMyProximityAlert(): Promise<{
 
     return { success: true, alert: alert || undefined };
   } catch (error) {
-    console.error('Error in getMyProximityAlert:', error);
+    logger.error('Error in getMyProximityAlert', {
+      error: error instanceof Error ? error.message : String(error),
+    });
     return { success: false, error: 'Unexpected error occurred' };
   }
 }
@@ -98,13 +101,20 @@ export async function updateProximityAlert(
       });
 
     if (error) {
-      console.error('Error updating proximity alert:', error);
+      logger.error('Error updating proximity alert', {
+        userId: sanitizeUserId(user.id),
+        radiusKm,
+        tradesCount: trades.length,
+        error: error.message,
+      });
       return { success: false, error: 'Failed to update alert settings' };
     }
 
     return { success: true };
   } catch (error) {
-    console.error('Error in updateProximityAlert:', error);
+    logger.error('Error in updateProximityAlert', {
+      error: error instanceof Error ? error.message : String(error),
+    });
     return { success: false, error: 'Unexpected error occurred' };
   }
 }

@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button, Input } from '@/components/ui';
 import { signUp, signInWithGoogle } from '../actions/auth-actions';
+import { useAsyncAction } from '@/hooks/use-async-action';
 
 export function SignupForm() {
   const router = useRouter();
@@ -11,57 +12,45 @@ export function SignupForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const { execute, isLoading, error } = useAsyncAction({
+    showToast: false, // Handle errors manually for better UX
+    onSuccess: () => {
+      setSuccess(true);
+    },
+  });
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setError('');
-    setIsLoading(true);
 
     // Validate passwords match
     if (password !== confirmPassword) {
       setError('Passwords do not match');
-      setIsLoading(false);
       return;
     }
 
     // Validate password length
     if (password.length < 8) {
       setError('Password must be at least 8 characters');
-      setIsLoading(false);
       return;
     }
 
-    const result = await signUp(email, password, name);
-
-    if (!result.success) {
-      setError(result.error || 'Failed to sign up');
-      setIsLoading(false);
-    } else {
-      setSuccess(true);
-      setIsLoading(false);
-    }
+    await execute(async () => {
+      const result = await signUp(email, password, name);
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to sign up');
+      }
+      return result;
+    });
   }
 
   async function handleGoogleSignIn() {
-    setError('');
-    setIsLoading(true);
-
-    try {
+    await execute(async () => {
       await signInWithGoogle();
       // Redirect to Google OAuth happens automatically
       // The redirect() call in the server action will throw, which is expected
-    } catch (error) {
-      // Next.js redirect() throws a NEXT_REDIRECT error, which is expected - ignore it
-      // Only show errors for actual failures
-      if (error instanceof Error && !error.message.includes('NEXT_REDIRECT')) {
-        setError(error.message || 'Failed to sign in with Google');
-        setIsLoading(false);
-      }
-      // If it's a NEXT_REDIRECT, let it propagate (don't set loading to false)
-    }
+      // The hook will re-throw NEXT_REDIRECT errors for Next.js to handle
+    });
   }
 
   if (success) {

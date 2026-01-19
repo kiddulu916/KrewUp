@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server';
 import { cookies } from 'next/headers';
+import { logger } from '@/lib/utils/logger';
 
 type UploadResult = {
   success: boolean;
@@ -45,7 +46,11 @@ export async function uploadProfilePicture(file: File): Promise<UploadResult> {
       .upload(filePath, file, { upsert: true });
 
     if (uploadError) {
-      console.error('Upload error:', uploadError);
+      logger.error('Upload error', {
+        fileType: file.type,
+        fileSize: file.size,
+        errorMessage: uploadError.message,
+      });
       return { success: false, error: 'Failed to upload image' };
     }
 
@@ -55,8 +60,10 @@ export async function uploadProfilePicture(file: File): Promise<UploadResult> {
       .getPublicUrl(filePath);
 
     return { success: true, url: publicUrl };
-  } catch (error) {
-    console.error('Error in uploadProfilePicture:', error);
+  } catch (error: any) {
+    logger.error('Error in uploadProfilePicture', {
+      errorMessage: error.message,
+    });
     return { success: false, error: 'An unexpected error occurred' };
   }
 }

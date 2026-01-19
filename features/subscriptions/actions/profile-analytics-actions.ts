@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server';
 import { cookies } from 'next/headers';
+import { logger, sanitizeUserId } from '@/lib/utils/logger';
 
 export type ProfileViewAnalytics = {
   date: string;
@@ -90,7 +91,11 @@ export async function getProfileAnalytics(
     const { data: views, error } = await query.order('viewed_at', { ascending: false });
 
     if (error) {
-      console.error('Error fetching profile views:', error);
+      logger.error('Error fetching profile views for analytics', {
+        userId: sanitizeUserId(user.id),
+        dateRange,
+        error: error.message
+      });
       return { success: false, error: 'Failed to fetch profile analytics' };
     }
 
@@ -165,7 +170,9 @@ export async function getProfileAnalytics(
       },
     };
   } catch (error) {
-    console.error('Error in getProfileAnalytics:', error);
+    logger.error('Error in getProfileAnalytics', {
+      error: error instanceof Error ? error.message : String(error)
+    });
     return { success: false, error: 'Unexpected error occurred' };
   }
 }

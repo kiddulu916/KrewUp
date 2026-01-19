@@ -7,6 +7,7 @@ import { calculateCompatibility } from '../utils/compatibility-scoring';
 import { CompatibilityBreakdown } from './compatibility-breakdown';
 import type { CompatibilityInput } from '../types/compatibility';
 import type { Certification } from '@/lib/types/profile.types';
+import type { GeoCoords } from '@/types';
 
 interface CompatibilityBreakdownWrapperProps {
   job: {
@@ -14,13 +15,13 @@ interface CompatibilityBreakdownWrapperProps {
     sub_trade: string | null;
     required_certs?: string[];
     location: string;
-    coords?: any;
+    coords?: GeoCoords | null;
   };
   currentUser: {
     trade?: string | null;
     sub_trade?: string | null;
     location?: string | null;
-    coords?: any;
+    coords?: GeoCoords | null;
     years_of_experience?: number | null;
     certifications?: Certification[];
   } | null;

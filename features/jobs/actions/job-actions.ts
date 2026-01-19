@@ -6,6 +6,8 @@ import { redirect } from 'next/navigation';
 import { cookies } from 'next/headers';
 import * as Sentry from '@sentry/nextjs';
 import { ALLOWED_JOB_POSTING_EMPLOYER_TYPES } from '@/lib/constants';
+import type { GeoCoords } from '@/types';
+import type { Job } from '@/types/database';
 
 export type TradeSelection = {
   trade: string;
@@ -24,7 +26,7 @@ export type JobData = {
   job_type: string;
   description: string;
   location: string;
-  coords?: { lat: number; lng: number } | null;
+  coords?: GeoCoords | null;
   pay_rate: string;
   pay_min?: number;
   pay_max?: number;
@@ -38,10 +40,11 @@ export type JobData = {
   custom_questions?: CustomQuestion[];
 };
 
-export type JobResult = {
+export type JobResult<T = void> = {
   success: boolean;
   error?: string;
   jobId?: string;
+  data?: T;
 };
 
 /**
@@ -276,7 +279,7 @@ export async function deleteJob(jobId: string): Promise<JobResult> {
 /**
  * Get a single job by ID
  */
-export async function getJob(jobId: string): Promise<JobResult & { data?: any }> {
+export async function getJob(jobId: string): Promise<JobResult<Job>> {
   const supabase = await createClient(await cookies());
 
   const { data: job, error } = await supabase
@@ -303,12 +306,12 @@ export async function getJobs(filters?: {
   status?: string;
   employerId?: string;
   minPay?: number;
-}): Promise<JobResult & { data?: any[] }> {
+}): Promise<JobResult<Job[]>> {
   const supabase = await createClient(await cookies());
 
   let query = supabase
     .from('jobs')
-    .select('*')
+    .select('id, employer_id, title, location, coords, job_type, pay_rate, pay_min, pay_max, trades, sub_trades, required_certs, status, created_at, updated_at')
     .order('created_at', { ascending: false });
 
   // Apply filters
