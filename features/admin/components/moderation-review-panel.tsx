@@ -22,6 +22,7 @@ import {
 import { useRouter } from 'next/navigation';
 import { getFullName } from '@/lib/utils';
 import { useAsyncAction } from '@/hooks/use-async-action';
+import { useCsrfToken } from '@/components/providers/csrf-provider';
 
 type ContentReport = {
   id: string;
@@ -66,6 +67,7 @@ export function ModerationReviewPanel({ report, onClose }: Props) {
   const { execute, isLoading: isActionLoading } = useAsyncAction({
     showToast: false,
   });
+  const csrfToken = useCsrfToken();
   const [adminNotes, setAdminNotes] = useState(report.admin_notes || '');
   const [showActionForm, setShowActionForm] = useState<string | null>(null);
   const [actionReason, setActionReason] = useState('');
@@ -105,7 +107,8 @@ export function ModerationReviewPanel({ report, onClose }: Props) {
         report.id,
         report.reported_content_type,
         report.reported_content_id,
-        adminNotes
+        adminNotes,
+        csrfToken || '',
       );
       if (result.success) {
         alert('Content removed successfully');
@@ -138,7 +141,8 @@ export function ModerationReviewPanel({ report, onClose }: Props) {
         report.id,
         report.reported_user.user_id,
         actionReason,
-        adminNotes
+        adminNotes,
+        csrfToken || '',
       );
       if (result.success) {
         alert('User warned successfully');
@@ -180,7 +184,8 @@ export function ModerationReviewPanel({ report, onClose }: Props) {
         report.reported_user.user_id,
         actionReason,
         suspensionDays,
-        adminNotes
+        adminNotes,
+        csrfToken || '',
       );
       if (result.success) {
         alert('User suspended successfully');
@@ -217,7 +222,8 @@ export function ModerationReviewPanel({ report, onClose }: Props) {
         report.id,
         report.reported_user.user_id,
         actionReason,
-        adminNotes
+        adminNotes,
+        csrfToken || '',
       );
       if (result.success) {
         alert('User banned successfully');

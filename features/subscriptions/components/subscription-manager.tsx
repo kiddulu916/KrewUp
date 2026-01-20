@@ -55,7 +55,7 @@ export function SubscriptionManager() {
   if (isLoading) {
     return (
       <Card className="p-6">
-        <div className="animate-pulse space-y-4">
+        <div className="motion-safe:animate-pulse motion-reduce:animate-none space-y-4">
           <div className="flex items-center justify-between">
             <div className="h-8 bg-gray-200 rounded w-1/2"></div>
             <div className="h-6 bg-gray-200 rounded w-16"></div>

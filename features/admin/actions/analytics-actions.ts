@@ -631,39 +631,36 @@ export async function getOperationalLoad(
     avgModerationResolutionTime = totalTime / reviewedReports.length / (1000 * 60 * 60);
   }
 
-  // Weekly trend (last 7 days)
-  const weeklyTrend = [];
-  for (let i = 6; i >= 0; i--) {
-    const date = new Date();
-    date.setDate(date.getDate() - i);
-    const dateStr = date.toISOString().split('T')[0];
+  // Weekly trend (last 7 days) using RPC aggregates instead of per-day queries
+  const [
+    { data: certTrend, error: certTrendError },
+    { data: reportTrend, error: reportTrendError },
+  ] = await Promise.all([
+    supabase.rpc('get_pending_certifications_trend', { p_days: 7 }),
+    supabase.rpc('get_pending_reports_trend', { p_days: 7 }),
+  ]);
 
-    const [certsResult, reportsResult] = await Promise.all([
-      supabase
-        .from('certifications')
-        .select('*', { count: 'exact', head: true })
-        .eq('verification_status', 'pending')
-        .lte('created_at', dateStr + 'T23:59:59'),
-      supabase
-        .from('content_reports')
-        .select('*', { count: 'exact', head: true })
-        .eq('status', 'pending')
-        .lte('created_at', dateStr + 'T23:59:59'),
-    ]);
-
-    if (certsResult.error) {
-      throw new Error(`Failed to fetch certification trend: ${certsResult.error.message}`);
-    }
-    if (reportsResult.error) {
-      throw new Error(`Failed to fetch reports trend: ${reportsResult.error.message}`);
-    }
-
-    weeklyTrend.push({
-      date: dateStr,
-      pendingCerts: certsResult.count || 0,
-      pendingReports: reportsResult.count || 0,
-    });
+  if (certTrendError) {
+    throw new Error(`Failed to fetch certification trend: ${certTrendError.message}`);
   }
+  if (reportTrendError) {
+    throw new Error(`Failed to fetch reports trend: ${reportTrendError.message}`);
+  }
+
+  const weeklyTrend =
+    certTrend?.map((certDay: { day: string; pending_count: number }) => {
+      const matchingReportDay =
+        reportTrend?.find(
+          (reportDay: { day: string; pending_count: number }) =>
+            reportDay.day === certDay.day
+        ) || null;
+
+      return {
+        date: certDay.day,
+        pendingCerts: certDay.pending_count ?? 0,
+        pendingReports: matchingReportDay?.pending_count ?? 0,
+      };
+    }) || [];
 
   return {
     pendingCertifications: pendingCertifications || 0,

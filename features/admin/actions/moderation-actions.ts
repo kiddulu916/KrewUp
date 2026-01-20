@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
 import { cookies } from 'next/headers';
+import { assertValidCsrfToken } from '@/lib/security/csrf';
 
 /**
  * Get all content reports with related data
@@ -143,8 +144,14 @@ export async function removeContent(
   reportId: string,
   contentType: string,
   contentId: string,
-  adminNotes: string
+  adminNotes: string,
+  csrfToken: string,
 ) {
+  const csrfResult = await assertValidCsrfToken(csrfToken);
+  if (!csrfResult.ok) {
+    return { success: false, error: csrfResult.error ?? 'Security validation failed' };
+  }
+
   const supabase = await createClient(await cookies());
   const {
     data: { user },
@@ -246,8 +253,14 @@ export async function warnUser(
   reportId: string,
   userId: string,
   reason: string,
-  adminNotes: string
+  adminNotes: string,
+  csrfToken: string,
 ) {
+  const csrfResult = await assertValidCsrfToken(csrfToken);
+  if (!csrfResult.ok) {
+    return { success: false, error: csrfResult.error ?? 'Security validation failed' };
+  }
+
   const supabase = await createClient(await cookies());
   const {
     data: { user },
@@ -335,8 +348,14 @@ export async function suspendUserFromReport(
   userId: string,
   reason: string,
   durationDays: number,
-  adminNotes: string
+  adminNotes: string,
+  csrfToken: string,
 ) {
+  const csrfResult = await assertValidCsrfToken(csrfToken);
+  if (!csrfResult.ok) {
+    return { success: false, error: csrfResult.error ?? 'Security validation failed' };
+  }
+
   const supabase = await createClient(await cookies());
   const {
     data: { user },
@@ -432,8 +451,14 @@ export async function banUserFromReport(
   reportId: string,
   userId: string,
   reason: string,
-  adminNotes: string
+  adminNotes: string,
+  csrfToken: string,
 ) {
+  const csrfResult = await assertValidCsrfToken(csrfToken);
+  if (!csrfResult.ok) {
+    return { success: false, error: csrfResult.error ?? 'Security validation failed' };
+  }
+
   const supabase = await createClient(await cookies());
   const {
     data: { user },
@@ -516,7 +541,16 @@ export async function banUserFromReport(
 /**
  * Dismiss a report (no action needed)
  */
-export async function dismissReport(reportId: string, adminNotes: string) {
+export async function dismissReport(
+  reportId: string,
+  adminNotes: string,
+  csrfToken: string,
+) {
+  const csrfResult = await assertValidCsrfToken(csrfToken);
+  if (!csrfResult.ok) {
+    return { success: false, error: csrfResult.error ?? 'Security validation failed' };
+  }
+
   const supabase = await createClient(await cookies());
   const {
     data: { user },

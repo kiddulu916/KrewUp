@@ -297,7 +297,7 @@ export function Step1Documents({
           >
             {isUploadingResume ? (
               <div className="space-y-3">
-                <Loader2Icon className="h-12 w-12 mx-auto text-krewup-blue animate-spin" />
+                <Loader2Icon className="h-12 w-12 mx-auto text-krewup-blue motion-safe:animate-spin motion-reduce:animate-none" />
                 <p className="text-gray-600">Uploading and extracting text...</p>
               </div>
             ) : (
@@ -462,7 +462,7 @@ export function Step1Documents({
               >
                 {isUploadingCoverLetter ? (
                   <div className="space-y-3">
-                    <Loader2Icon className="h-12 w-12 mx-auto text-krewup-blue animate-spin" />
+                    <Loader2Icon className="h-12 w-12 mx-auto text-krewup-blue motion-safe:animate-spin motion-reduce:animate-none" />
                     <p className="text-gray-600">Uploading cover letter...</p>
                   </div>
                 ) : (

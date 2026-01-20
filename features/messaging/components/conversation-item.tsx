@@ -61,7 +61,10 @@ function ConversationItemComponent({ conversation, isActive = false }: Props) {
               )}
 
               {conversation.unreadCount > 0 && (
-                <Badge variant="danger" className="animate-pulse">
+                <Badge
+                  variant="danger"
+                  className="motion-safe:animate-pulse motion-reduce:animate-none"
+                >
                   {conversation.unreadCount}
                 </Badge>
               )}

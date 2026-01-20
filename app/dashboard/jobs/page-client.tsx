@@ -7,6 +7,7 @@ import { useJobs } from '@/features/jobs/hooks/use-jobs';
 import { useAutoUserLocation } from '@/hooks/use-user-location';
 import { sortJobsByDistance } from '@/features/jobs/utils/distance';
 import { InFeedAd, shouldShowInFeedAd } from '@/components/ads';
+import { ListSkeleton } from '@/components/ui';
 
 type Job = {
   id: string;
@@ -78,10 +79,12 @@ export function JobsPageClient({ initialJobs, subscriptionStatus, isLifetimePro 
       {/* Jobs List */}
       <div className="lg:col-span-3 space-y-3">
         {isLoading ? (
-          <div className="text-center py-12">
-            <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-krewup-blue border-r-transparent"></div>
-            <p className="mt-2 text-sm text-gray-500">Loading jobs...</p>
-          </div>
+          <ListSkeleton
+            count={6}
+            showAvatar={false}
+            className="mt-2"
+            itemClassName="py-4"
+          />
         ) : sortedJobs.length === 0 ? (
           <div className="text-center py-12">
             <div className="mx-auto flex h-24 w-24 items-center justify-center rounded-full bg-gradient-to-br from-gray-100 to-gray-200 mb-6">

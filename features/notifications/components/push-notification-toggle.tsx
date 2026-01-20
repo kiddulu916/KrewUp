@@ -95,7 +95,7 @@ export function PushNotificationToggle() {
           size="sm"
         >
           {isLoading ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
+            <Loader2 className="h-4 w-4 motion-safe:animate-spin motion-reduce:animate-none" />
           ) : isSubscribed ? (
             'Disable'
           ) : (

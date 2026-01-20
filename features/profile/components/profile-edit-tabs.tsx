@@ -8,6 +8,7 @@ import { ToolsSelector } from '@/features/profile/components/tools-selector';
 import { updateToolsOwned } from '@/features/profiles/actions/profile-actions';
 import { useToast } from '@/components/providers/toast-provider';
 import { Briefcase, Image as ImageIcon, Award, User } from 'lucide-react';
+import { useCsrfToken } from '@/components/providers/csrf-provider';
 
 export interface ProfileEditTabsProps {
   profile: ProfileWithWorkerData;
@@ -34,6 +35,7 @@ export function ProfileEditTabs({ profile }: ProfileEditTabsProps) {
   const toast = useToast();
   const [activeTab, setActiveTab] = useState<TabId>('basic');
   const [isSavingTools, setIsSavingTools] = useState(false);
+  const csrfToken = useCsrfToken();
 
   // Sync activeTab with URL on mount and URL changes
   useEffect(() => {
@@ -53,7 +55,7 @@ export function ProfileEditTabs({ profile }: ProfileEditTabsProps) {
   const handleToolsChange = async (hasTools: boolean, toolsOwned: string[]) => {
     setIsSavingTools(true);
     try {
-      const result = await updateToolsOwned(hasTools, toolsOwned);
+      const result = await updateToolsOwned(hasTools, toolsOwned, csrfToken || '');
       if (result.success) {
         toast.success('Tools updated successfully');
       } else {

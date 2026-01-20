@@ -32,7 +32,7 @@ describe('AutoSaveIndicator Component', () => {
     it('should have a spinning animation icon when saving', () => {
       const { container } = render(<AutoSaveIndicator isSaving={true} lastSaved={null} />);
 
-      const spinningIcon = container.querySelector('.animate-spin');
+      const spinningIcon = container.querySelector('[class*="animate-spin"]');
       expect(spinningIcon).toBeInTheDocument();
     });
   });

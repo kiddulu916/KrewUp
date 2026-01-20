@@ -311,7 +311,7 @@ export function PortfolioManager({ profile }: PortfolioManagerProps) {
     return (
       <div className="flex items-center justify-center p-8">
         <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-krewup-blue"></div>
+          <div className="inline-block motion-safe:animate-spin motion-reduce:animate-none rounded-full h-12 w-12 border-b-2 border-krewup-blue"></div>
           <p className="mt-4 text-gray-600">Loading portfolio...</p>
         </div>
       </div>
@@ -420,7 +420,7 @@ export function PortfolioManager({ profile }: PortfolioManagerProps) {
           {isReordering && (
             <div className="text-center text-sm text-gray-600">
               <span className="inline-flex items-center gap-2">
-                <div className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-krewup-blue"></div>
+                <div className="inline-block motion-safe:animate-spin motion-reduce:animate-none rounded-full h-4 w-4 border-b-2 border-krewup-blue"></div>
                 Saving new order...
               </span>
             </div>

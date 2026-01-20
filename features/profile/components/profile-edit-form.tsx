@@ -11,6 +11,7 @@ import { updateProfile } from '@/features/profiles/actions/profile-actions';
 import { ProfileAvatarUpload } from '@/features/profiles/components/profile-avatar-upload';
 import { uploadProfilePicture } from '@/features/profiles/actions/profile-picture-actions';
 import { profileSchema, type ProfileSchema } from '@/features/profiles/utils/validation';
+import { useCsrfToken } from '@/components/providers/csrf-provider';
 
 type Props = {
   profile: any;
@@ -20,6 +21,7 @@ export function ProfileEditForm({ profile }: Props) {
   const router = useRouter();
   const [error, setError] = useState('');
   const [selectedProfilePicture, setSelectedProfilePicture] = useState<File | null>(null);
+  const csrfToken = useCsrfToken();
 
   const {
     register,
@@ -63,6 +65,7 @@ export function ProfileEditForm({ profile }: Props) {
         ...data,
         profile_image_url: profileImageUrl,
         employer_type: data.employer_type as 'contractor' | 'recruiter' | undefined,
+        csrfToken: csrfToken || '',
       });
 
       if (!result.success) {

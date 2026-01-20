@@ -42,6 +42,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             className="mb-1.5 block text-sm font-medium text-gray-700"
           >
             {label}
+            {props.required && <span className="ml-1 text-red-500">*</span>}
           </label>
         )}
         <input
@@ -68,3 +69,30 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
 );
 
 Input.displayName = 'Input';
+
+export interface InputSkeletonProps {
+  /** Whether to render a skeleton label above the input. */
+  showLabel?: boolean;
+  /** Additional classes applied to the wrapper element. */
+  className?: string;
+}
+
+/**
+ * InputSkeleton
+ *
+ * A reusable skeleton state for text inputs with an optional label.
+ * Matches the visual footprint of `Input` to prevent layout shifts while loading.
+ */
+export function InputSkeleton({ showLabel = true, className }: InputSkeletonProps) {
+  return (
+    <div
+      className={cn(
+        'w-full space-y-2 motion-safe:animate-pulse motion-reduce:animate-none',
+        className
+      )}
+    >
+      {showLabel && <div className="h-4 w-24 rounded bg-gray-200" />}
+      <div className="h-10 w-full rounded-lg bg-gray-200" />
+    </div>
+  );
+}

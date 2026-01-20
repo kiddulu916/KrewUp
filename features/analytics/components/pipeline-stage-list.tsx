@@ -16,7 +16,10 @@ export function PipelineStageList({ applications, isLoading }: PipelineStageList
     return (
       <div className="space-y-3">
         {[1, 2, 3].map((i) => (
-          <div key={i} className="animate-pulse h-16 bg-gray-200 rounded-lg"></div>
+          <div
+            key={i}
+            className="motion-safe:animate-pulse motion-reduce:animate-none h-16 bg-gray-200 rounded-lg"
+          ></div>
         ))}
       </div>
     );

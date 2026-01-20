@@ -64,7 +64,7 @@ export function JobAnalyticsDashboard({ jobId, jobTitle }: JobAnalyticsDashboard
   if (isLoading) {
     return (
       <Card className="p-6">
-        <div className="animate-pulse space-y-4">
+        <div className="motion-safe:animate-pulse motion-reduce:animate-none space-y-4">
           <div className="h-6 bg-gray-200 rounded w-1/2"></div>
           <div className="grid grid-cols-3 gap-4">
             {[1, 2, 3].map((i) => (

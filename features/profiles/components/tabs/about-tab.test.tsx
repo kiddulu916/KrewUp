@@ -29,7 +29,7 @@ describe('AboutTab', () => {
     render(<AboutTab userId="user-123" />);
 
     // Loading spinner should be present
-    expect(document.querySelector('.animate-spin')).toBeInTheDocument();
+    expect(document.querySelector('[class*="animate-spin"]')).toBeInTheDocument();
   });
 
   it('should show error state', () => {

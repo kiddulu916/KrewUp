@@ -23,7 +23,7 @@ describe('ExperienceTab', () => {
 
     render(<ExperienceTab userId="user-123" />);
 
-    expect(document.querySelector('.animate-spin')).toBeInTheDocument();
+    expect(document.querySelector('[class*="animate-spin"]')).toBeInTheDocument();
   });
 
   it('should show error state', () => {

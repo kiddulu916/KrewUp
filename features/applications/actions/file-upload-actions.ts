@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { cookies } from 'next/headers';
 import { extractTextFromFile } from '@/lib/resume-parser/text-extractor';
+import { validateFile, FILE_SIZE_LIMITS } from '@/lib/security/file-validation';
 
 type UploadResult = {
   success: boolean;
@@ -28,24 +29,24 @@ export async function uploadResumeToDraft(
       return { success: false, error: 'Not authenticated' };
     }
 
-    // Validate file size (max 5MB)
-    const maxSize = 5 * 1024 * 1024; // 5MB
-    if (file.size > maxSize) {
-      return { success: false, error: 'File size must be under 5MB' };
-    }
-
-    // Validate file type
+    // * Server-side file validation (type, size, name, magic bytes)
     const allowedTypes = [
       'application/pdf',
       'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
       'text/plain',
-    ];
-    if (!allowedTypes.includes(file.type)) {
-      return { success: false, error: 'Please upload PDF, DOCX, or TXT files only' };
+    ] as const;
+    const validation = await validateFile(file, {
+      allowedTypes,
+      maxSize: FILE_SIZE_LIMITS.resume,
+    });
+
+    if (!validation.valid) {
+      return { success: false, error: validation.error ?? 'Invalid file' };
     }
 
     // Extract file extension
-    const ext = file.name.split('.').pop() || 'pdf';
+    const safeName = validation.sanitizedName ?? file.name;
+    const ext = safeName.split('.').pop() || 'pdf';
 
     // Upload to application-drafts storage bucket
     const filePath = `${user.id}/${jobId}/resume.${ext}`;
@@ -100,24 +101,24 @@ export async function uploadCoverLetterToDraft(
       return { success: false, error: 'Not authenticated' };
     }
 
-    // Validate file size (max 5MB)
-    const maxSize = 5 * 1024 * 1024; // 5MB
-    if (file.size > maxSize) {
-      return { success: false, error: 'File size must be under 5MB' };
-    }
-
-    // Validate file type
+    // * Server-side file validation (type, size, name, magic bytes)
     const allowedTypes = [
       'application/pdf',
       'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
       'text/plain',
-    ];
-    if (!allowedTypes.includes(file.type)) {
-      return { success: false, error: 'Please upload PDF, DOCX, or TXT files only' };
+    ] as const;
+    const validation = await validateFile(file, {
+      allowedTypes,
+      maxSize: FILE_SIZE_LIMITS.resume,
+    });
+
+    if (!validation.valid) {
+      return { success: false, error: validation.error ?? 'Invalid file' };
     }
 
     // Extract file extension
-    const ext = file.name.split('.').pop() || 'pdf';
+    const safeName = validation.sanitizedName ?? file.name;
+    const ext = safeName.split('.').pop() || 'pdf';
 
     // Upload to application-drafts storage bucket
     const filePath = `${user.id}/${jobId}/cover-letter.${ext}`;

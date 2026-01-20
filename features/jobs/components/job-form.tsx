@@ -12,11 +12,13 @@ import { useAsyncAction } from '@/hooks/use-async-action';
 import { useTradeSelections } from '../hooks/use-trade-selections';
 import { usePayRate } from '../hooks/use-pay-rate';
 import { useCertificationSelection } from '../hooks/use-certification-selection';
+import { useCsrfToken } from '@/components/providers/csrf-provider';
 
 export function JobForm() {
   const { execute, isLoading, error } = useAsyncAction({
     showToast: false, // Handle errors manually for better UX
   });
+  const csrfToken = useCsrfToken();
 
   const [formData, setFormData] = useState<JobData>({
     title: '',
@@ -93,7 +95,10 @@ export function JobForm() {
         sub_trade: validTradeSelections[0].subTrades[0] || undefined,
       };
 
-      const result = await createJob(jobData);
+      const result = await createJob({
+        ...jobData,
+        csrfToken: csrfToken || '',
+      });
       if (!result.success) {
         throw new Error(result.error || 'Failed to create job');
       }

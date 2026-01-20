@@ -3,7 +3,7 @@
 
 import { useRouter } from 'next/navigation';
 import { useSubscription } from '../hooks/use-subscription';
-import { Card } from '@/components/ui/card';
+import { Card, CardSkeleton } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ProBadge } from './pro-badge';
 
@@ -19,15 +19,7 @@ export function FeatureGate({ children, feature, fallback }: FeatureGateProps) {
 
   // Show loading skeleton while checking subscription status
   if (isLoading) {
-    return (
-      <Card className="p-6">
-        <div className="animate-pulse space-y-4">
-          <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-          <div className="h-4 bg-gray-200 rounded w-1/2"></div>
-          <div className="h-10 bg-gray-200 rounded"></div>
-        </div>
-      </Card>
-    );
+    return <CardSkeleton />;
   }
 
   // Handle error state

@@ -107,7 +107,7 @@ describe('FeatureGate', () => {
 
     expect(screen.queryByTestId('pro-content')).not.toBeInTheDocument();
     // Check for animate-pulse class (loading skeleton)
-    expect(document.querySelector('.animate-pulse')).toBeInTheDocument();
+    expect(document.querySelector('[class*="animate-pulse"]')).toBeInTheDocument();
   });
 
   it('should show error state on error', () => {

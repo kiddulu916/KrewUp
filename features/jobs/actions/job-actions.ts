@@ -8,6 +8,7 @@ import * as Sentry from '@sentry/nextjs';
 import { ALLOWED_JOB_POSTING_EMPLOYER_TYPES } from '@/lib/constants';
 import type { GeoCoords } from '@/types';
 import type { Job } from '@/types/database';
+import { assertValidCsrfToken } from '@/lib/security/csrf';
 
 export type TradeSelection = {
   trade: string;
@@ -50,11 +51,18 @@ export type JobResult<T = void> = {
 /**
  * Create a new job posting (employers only)
  */
-export async function createJob(data: JobData): Promise<JobResult> {
+export async function createJob(
+  data: JobData & { csrfToken: string },
+): Promise<JobResult> {
   try {
     // Set Sentry tags for feature tracking
     Sentry.setTag('feature', 'job-posting');
     Sentry.setTag('action', 'create-job');
+
+    const csrfResult = await assertValidCsrfToken(data.csrfToken);
+    if (!csrfResult.ok) {
+      return { success: false, error: csrfResult.error ?? 'Security validation failed' };
+    }
 
     const supabase = await createClient(await cookies());
 
@@ -80,7 +88,10 @@ export async function createJob(data: JobData): Promise<JobResult> {
   }
 
   // Step 2: Must be allowed employer type
-  if (!profile?.employer_type || !ALLOWED_JOB_POSTING_EMPLOYER_TYPES.includes(profile.employer_type as any)) {
+  if (
+    !profile?.employer_type ||
+    !ALLOWED_JOB_POSTING_EMPLOYER_TYPES.includes(profile.employer_type as any)
+  ) {
     return {
       success: false,
       error: 'Only contractors and developers can post jobs'
@@ -170,7 +181,15 @@ export async function createJob(data: JobData): Promise<JobResult> {
 /**
  * Update an existing job
  */
-export async function updateJob(jobId: string, data: Partial<JobData>): Promise<JobResult> {
+export async function updateJob(
+  jobId: string,
+  data: Partial<JobData> & { csrfToken: string },
+): Promise<JobResult> {
+  const csrfResult = await assertValidCsrfToken(data.csrfToken);
+  if (!csrfResult.ok) {
+    return { success: false, error: csrfResult.error ?? 'Security validation failed' };
+  }
+
   const supabase = await createClient(await cookies());
 
   const {
@@ -240,7 +259,12 @@ export async function updateJob(jobId: string, data: Partial<JobData>): Promise<
 /**
  * Delete a job posting
  */
-export async function deleteJob(jobId: string): Promise<JobResult> {
+export async function deleteJob(jobId: string, csrfToken: string): Promise<JobResult> {
+  const csrfResult = await assertValidCsrfToken(csrfToken);
+  if (!csrfResult.ok) {
+    return { success: false, error: csrfResult.error ?? 'Security validation failed' };
+  }
+
   const supabase = await createClient(await cookies());
 
   const {

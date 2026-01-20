@@ -37,6 +37,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
             className="mb-1.5 block text-sm font-medium text-gray-700"
           >
             {label}
+            {props.required && <span className="ml-1 text-red-500">*</span>}
           </label>
         )}
         <select

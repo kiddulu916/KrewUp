@@ -233,7 +233,7 @@ export default async function Home() {
 
       {/* Trades Ticker */}
       <section className="py-8 bg-slate-900 overflow-hidden">
-        <div className="flex animate-scroll">
+        <div className="flex motion-safe:animate-scroll motion-reduce:animate-none">
           {[...TRADES, ...TRADES].map((trade, i) => (
             <div
               key={`${trade}-${i}`}

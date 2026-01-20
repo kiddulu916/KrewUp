@@ -6,6 +6,7 @@ import { cookies } from 'next/headers';
 import { rateLimit, RATE_LIMITS } from '@/lib/security/rate-limit';
 import { validateFile, ALLOWED_IMAGE_TYPES, FILE_SIZE_LIMITS } from '@/lib/security/file-validation';
 import { logger, sanitizeUserId } from '@/lib/utils/logger';
+import { deletePortfolioPhotoSchema, reorderPortfolioPhotosSchema } from '@/lib/validation/schemas';
 
 /**
  * Upload a portfolio photo
@@ -116,10 +117,9 @@ export async function uploadPortfolioPhoto(formData: FormData): Promise<{ succes
 export async function deletePortfolioPhoto(imageId: string): Promise<{ success: boolean; error?: string }> {
   const supabase = await createClient(await cookies());
 
-  // Validate UUID format
-  const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-  if (!imageId || !UUID_REGEX.test(imageId)) {
-    return { success: false, error: 'Invalid image ID' };
+  const parseResult = deletePortfolioPhotoSchema.safeParse({ imageId });
+  if (!parseResult.success) {
+    return { success: false, error: parseResult.error.errors[0]?.message ?? 'Invalid image ID' };
   }
 
   // 1. Get authenticated user
@@ -183,25 +183,15 @@ export async function deletePortfolioPhoto(imageId: string): Promise<{ success: 
 export async function reorderPortfolioPhotos(imageIds: string[]): Promise<{ success: boolean; error?: string }> {
   const supabase = await createClient(await cookies());
 
-  // Validate UUID format for all image IDs
-  const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
   // 1. Get authenticated user
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) {
     return { success: false, error: 'Not authenticated' };
   }
 
-  // Validate input
-  if (!imageIds || imageIds.length === 0) {
-    return { success: false, error: 'No images to reorder' };
-  }
-
-  // Validate each image ID is a valid UUID
-  for (const id of imageIds) {
-    if (!id || !UUID_REGEX.test(id)) {
-      return { success: false, error: 'Invalid image ID format' };
-    }
+  const parseResult = reorderPortfolioPhotosSchema.safeParse({ imageIds });
+  if (!parseResult.success) {
+    return { success: false, error: parseResult.error.errors[0]?.message ?? 'Invalid image ID format' };
   }
 
   // 2. Update all images in parallel with error handling

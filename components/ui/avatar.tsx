@@ -145,7 +145,7 @@ export function AvatarSkeleton({ size = 'md', className }: { size?: AvatarSize; 
     <div
       className={cn(
         config.container,
-        'rounded-full bg-gray-200 animate-pulse flex-shrink-0',
+        'rounded-full bg-gray-200 motion-safe:animate-pulse motion-reduce:animate-none flex-shrink-0',
         className
       )}
     />

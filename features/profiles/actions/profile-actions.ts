@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
 import { cookies } from 'next/headers';
 import { logger } from '@/lib/utils/logger';
+import { assertValidCsrfToken } from '@/lib/security/csrf';
 
 import type { GeoCoords } from '@/types';
 
@@ -29,7 +30,14 @@ export type ProfileResult<T = unknown> = {
 /**
  * Update user profile
  */
-export async function updateProfile(data: ProfileUpdateData): Promise<ProfileResult> {
+export async function updateProfile(
+  data: ProfileUpdateData & { csrfToken: string },
+): Promise<ProfileResult> {
+  const csrfResult = await assertValidCsrfToken(data.csrfToken);
+  if (!csrfResult.ok) {
+    return { success: false, error: csrfResult.error ?? 'Security validation failed' };
+  }
+
   const supabase = await createClient(await cookies());
 
   const {
@@ -168,7 +176,13 @@ export async function updateProfile(data: ProfileUpdateData): Promise<ProfileRes
 export async function updateProfileLocation(data: {
   location: string;
   coords: { lat: number; lng: number };
+  csrfToken: string;
 }): Promise<{ success: boolean; error?: string }> {
+  const csrfResult = await assertValidCsrfToken(data.csrfToken);
+  if (!csrfResult.ok) {
+    return { success: false, error: csrfResult.error ?? 'Security validation failed' };
+  }
+
   const supabase = await createClient(await cookies());
 
   // Get current user
@@ -203,8 +217,14 @@ export async function updateProfileLocation(data: {
  */
 export async function updateToolsOwned(
   hasTools: boolean,
-  toolsOwned: string[]
+  toolsOwned: string[],
+  csrfToken: string,
 ): Promise<{ success: boolean; error?: string }> {
+  const csrfResult = await assertValidCsrfToken(csrfToken);
+  if (!csrfResult.ok) {
+    return { success: false, error: csrfResult.error ?? 'Security validation failed' };
+  }
+
   const supabase = await createClient(await cookies());
 
   // 1. Get authenticated user

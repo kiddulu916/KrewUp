@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { CertificationFilter } from './certification-filter';
 import { getFilteredApplications } from '../actions/certification-filter-actions';
 import { ApplicationCard } from './application-card';
+import { CardSkeleton, ListSkeleton } from '@/components/ui';
 
 type Application = {
   id: string;
@@ -82,8 +83,9 @@ export function ApplicationsListWithFilter({
 
       {/* Loading state */}
       {isFiltering && (
-        <div className="text-center py-4">
-          <p className="text-gray-600">Filtering applications...</p>
+        <div className="space-y-4">
+          <CardSkeleton lines={2} />
+          <ListSkeleton count={3} showAvatar={true} />
         </div>
       )}
 

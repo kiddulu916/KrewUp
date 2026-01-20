@@ -1,14 +1,17 @@
 /**
  * Rate Limiting Utility
- * 
- * * In-memory rate limiter for development and single-server deployments
- * ! For production with multiple servers, use Upstash Redis instead
- * 
+ *
+ * * Uses Upstash Redis for distributed rate limiting when configured
+ * * Falls back to in-memory store for local development and tests
+ * ! In-memory store is NOT suitable for production in multi-instance deployments
+ *
  * @see https://upstash.com/docs/redis/sdks/ratelimit-ts/overview
  */
 
 import { headers } from 'next/headers';
 import * as Sentry from '@sentry/nextjs';
+import { Ratelimit } from '@upstash/ratelimit';
+import { Redis } from '@upstash/redis';
 
 // * Rate limit configuration per action type
 export type RateLimitConfig = {
@@ -38,7 +41,7 @@ export const RATE_LIMITS = {
 } as const;
 
 // * In-memory storage for rate limits (cleared on server restart)
-// ! In production, replace with Upstash Redis for distributed rate limiting
+// ! Only used when Upstash Redis is not configured
 type RateLimitEntry = {
   count: number;
   windowStart: number;
@@ -108,6 +111,34 @@ export type RateLimitResult = {
 };
 
 /**
+ * Upstash Redis-backed rate limiter (distributed across function instances)
+ * Uses fixed window algorithm per (limit, windowSeconds) configuration.
+ */
+const isUpstashConfigured =
+  Boolean(process.env.UPSTASH_REDIS_REST_URL) &&
+  Boolean(process.env.UPSTASH_REDIS_REST_TOKEN);
+
+const upstashRedis = isUpstashConfigured ? Redis.fromEnv() : null;
+
+const upstashLimiters = new Map<string, Ratelimit>();
+
+function getUpstashLimiter(config: RateLimitConfig): Ratelimit | null {
+  if (!upstashRedis) return null;
+
+  const key = `${config.limit}:${config.windowSeconds}`;
+  const existing = upstashLimiters.get(key);
+  if (existing) return existing;
+
+  const limiter = new Ratelimit({
+    redis: upstashRedis,
+    limiter: Ratelimit.fixedWindow(config.limit, `${config.windowSeconds} s`),
+  });
+
+  upstashLimiters.set(key, limiter);
+  return limiter;
+}
+
+/**
  * Check rate limit for an action
  * 
  * @param actionKey - Unique key for the action (e.g., 'auth:login')
@@ -126,15 +157,68 @@ export async function checkRateLimit(
   actionKey: string,
   config: RateLimitConfig
 ): Promise<RateLimitResult> {
-  startCleanup();
-  
   const identifier = config.identifier 
     ? await config.identifier() 
     : await getClientIdentifier();
   
   const key = `${actionKey}:${identifier}`;
   const now = Date.now();
+
+  // * Prefer distributed rate limiting via Upstash when configured
+  const upstashLimiter = getUpstashLimiter(config);
+  if (upstashLimiter) {
+    try {
+      const { success, limit, remaining, reset } = await upstashLimiter.limit(key);
+
+      if (!success) {
+        const nowSeconds = Math.floor(now / 1000);
+        const retryAfter = Math.max(0, reset - nowSeconds);
+
+        // ! Log rate limit exceeded to Sentry for monitoring
+        Sentry.captureMessage(`Rate limit exceeded: ${actionKey}`, {
+          level: 'warning',
+          tags: {
+            action: actionKey,
+            identifier: identifier.substring(0, 10) + '...',
+            rateLimiter: 'upstash',
+          },
+          extra: {
+            limit,
+            remaining,
+            reset,
+          },
+        });
+
+        return {
+          success: false,
+          limit,
+          remaining: 0,
+          reset,
+          retryAfter,
+        };
+      }
+
+      return {
+        success: true,
+        limit,
+        remaining,
+        reset,
+      };
+    } catch (error) {
+      // ! When Upstash is misconfigured or unavailable, log and fall back to in-memory limiter
+      Sentry.captureException(error, {
+        level: 'error',
+        tags: {
+          action: actionKey,
+          rateLimiter: 'upstash',
+        },
+      });
+    }
+  }
+
+  // * Fallback: in-memory rate limiting (non-distributed, for local/dev use)
   const windowMs = config.windowSeconds * 1000;
+  startCleanup();
 
   let entry = rateLimitStore.get(key);
 
@@ -152,13 +236,14 @@ export async function checkRateLimit(
 
   if (entry.count > config.limit) {
     const retryAfter = Math.ceil((entry.windowStart + windowMs - now) / 1000);
-    
+ 
     // ! Log rate limit exceeded to Sentry for monitoring
     Sentry.captureMessage(`Rate limit exceeded: ${actionKey}`, {
       level: 'warning',
       tags: {
         action: actionKey,
         identifier: identifier.substring(0, 10) + '...',
+        rateLimiter: 'memory',
       },
       extra: {
         limit: config.limit,

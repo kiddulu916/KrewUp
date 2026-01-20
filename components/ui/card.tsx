@@ -87,3 +87,39 @@ export const CardFooter = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivEleme
 );
 
 CardFooter.displayName = 'CardFooter';
+
+export interface CardSkeletonProps {
+  /** Number of skeleton text lines to render inside the card. */
+  lines?: number;
+  /** Additional classes applied to the outer `Card` wrapper. */
+  className?: string;
+}
+
+/**
+ * CardSkeleton
+ *
+ * A reusable skeleton state for card-based layouts.
+ * Uses the same base `Card` component to ensure consistent padding,
+ * border radius, and elevation, while showing animated placeholder lines.
+ */
+export function CardSkeleton({ lines = 3, className }: CardSkeletonProps) {
+  const lineWidths = ['w-3/4', 'w-1/2', 'w-full', 'w-5/6'];
+
+  return (
+    <Card className={cn('p-6', className)}>
+      <div className="space-y-3 motion-safe:animate-pulse motion-reduce:animate-none">
+        {Array.from({ length: lines }).map((_, index) => (
+          <div
+            // * Uses index as key because items are static, non-interactive placeholders
+            // eslint-disable-next-line react/no-array-index-key
+            key={index}
+            className={cn(
+              'h-4 rounded bg-gray-200',
+              lineWidths[index] ?? 'w-full'
+            )}
+          />
+        ))}
+      </div>
+    </Card>
+  );
+}

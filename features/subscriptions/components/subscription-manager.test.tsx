@@ -80,7 +80,7 @@ describe('SubscriptionManager Component', () => {
 
       render(<SubscriptionManager />);
 
-      const skeletons = document.querySelectorAll('.animate-pulse');
+      const skeletons = document.querySelectorAll('[class*="animate-pulse"]');
       expect(skeletons.length).toBeGreaterThan(0);
     });
   });

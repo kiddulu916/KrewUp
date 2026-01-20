@@ -95,7 +95,7 @@ export function AdUnit({
       ref={adRef}
       className={cn(
         'ad-unit overflow-hidden bg-gray-100 rounded-lg flex items-center justify-center',
-        !isLoaded && 'animate-pulse',
+        !isLoaded && 'motion-safe:animate-pulse motion-reduce:animate-none',
         className
       )}
       style={dimensions ? { 

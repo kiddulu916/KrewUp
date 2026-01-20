@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui';
 import { deleteJob } from '../actions/job-actions';
 import { useToast } from '@/components/providers/toast-provider';
+import { useCsrfToken } from '@/components/providers/csrf-provider';
 
 type DeleteJobButtonProps = {
   jobId: string;
@@ -12,6 +13,7 @@ type DeleteJobButtonProps = {
 export function DeleteJobButton({ jobId }: DeleteJobButtonProps) {
   const [isDeleting, setIsDeleting] = useState(false);
   const toast = useToast();
+  const csrfToken = useCsrfToken();
 
   async function handleDelete() {
     if (!confirm('Are you sure you want to delete this job posting? This action cannot be undone.')) {
@@ -21,7 +23,7 @@ export function DeleteJobButton({ jobId }: DeleteJobButtonProps) {
     setIsDeleting(true);
 
     try {
-      await deleteJob(jobId);
+      await deleteJob(jobId, csrfToken || '');
       // Redirect happens in the action
     } catch (error: unknown) {
       toast.error(error instanceof Error ? error.message : 'Failed to delete job');

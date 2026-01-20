@@ -49,7 +49,7 @@ export function ToastItem({ toast, onClose }: ToastProps) {
 
   return (
     <div
-      className={`${bgColor} ${textColor} px-6 py-4 rounded-lg shadow-xl border-l-4 flex items-start gap-3 animate-slide-in`}
+      className={`${bgColor} ${textColor} px-6 py-4 rounded-lg shadow-xl border-l-4 flex items-start gap-3 motion-safe:animate-slide-in motion-reduce:animate-none`}
       role="alert"
     >
       <span className="text-2xl flex-shrink-0">{icon}</span>

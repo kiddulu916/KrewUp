@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { updateProfileLocation } from '@/features/profiles/actions/profile-actions';
+import { useCsrfToken } from '@/components/providers/csrf-provider';
 
 /**
  * Component that captures user's location on first dashboard visit
@@ -9,6 +10,7 @@ import { updateProfileLocation } from '@/features/profiles/actions/profile-actio
  */
 export function InitialLocationCapture() {
   const [hasRequested, setHasRequested] = useState(false);
+  const csrfToken = useCsrfToken();
 
   useEffect(() => {
     // Only run once
@@ -34,6 +36,7 @@ export function InitialLocationCapture() {
                 lng: longitude,
               },
               location: `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`,
+              csrfToken: csrfToken || '',
             });
 
             if (result.success) {

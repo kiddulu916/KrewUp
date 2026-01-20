@@ -239,7 +239,7 @@ function NavLink({
   return (
     <Link
       href={href}
-      className={`flex items-center gap-1 rounded-lg px-1 py-2.5 text-xs font-medium transition-all duration-300 text-gray-700 hover:shadow-lg hover:scale-105 hover:border-l-4 ${colorStyles[color]} ${highlightStyles}`}
+      className={`flex items-center gap-1 rounded-lg px-1 py-2.5 text-xs font-medium transition-all duration-300 text-gray-700 hover:shadow-lg hover:scale-105 hover:border-l-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-krewup-blue focus-visible:ring-offset-2 focus-visible:ring-offset-white ${colorStyles[color]} ${highlightStyles}`}
     >
       <span className="text-lg">{icon}</span>
       <span className="truncate font-semibold">{children}</span>

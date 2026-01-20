@@ -237,7 +237,7 @@ export function OnboardingForm({ initialName = '', initialEmail = '' }: Props) {
                 <div className="flex items-center gap-2">
                   {locationStatus === 'loading' && (
                     <>
-                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-blue-700 border-t-transparent"></div>
+                      <div className="h-4 w-4 motion-safe:animate-spin motion-reduce:animate-none rounded-full border-2 border-blue-700 border-t-transparent"></div>
                       <span>Capturing your location... (this may take up to 30 seconds)</span>
                     </>
                   )}

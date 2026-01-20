@@ -104,7 +104,10 @@ export function PollingStatusIndicator({
         title={`${config.label}${showLastSync ? ` • Last sync: ${lastSyncText}` : ''}`}
       >
         <Icon
-          className={cn('h-3 w-3', isFetching && 'animate-spin')}
+          className={cn(
+            'h-3 w-3',
+            isFetching && 'motion-safe:animate-spin motion-reduce:animate-none'
+          )}
         />
         <span className="sr-only">{config.label}</span>
       </div>
@@ -121,7 +124,10 @@ export function PollingStatusIndicator({
       )}
     >
       <Icon
-        className={cn('h-3.5 w-3.5', isFetching && 'animate-spin')}
+        className={cn(
+          'h-3.5 w-3.5',
+          isFetching && 'motion-safe:animate-spin motion-reduce:animate-none'
+        )}
       />
       <span className="font-medium">{config.label}</span>
       {showLastSync && status.lastSyncTime && (
@@ -137,7 +143,12 @@ export function PollingStatusIndicator({
           title="Refresh now"
           disabled={isFetching}
         >
-          <RefreshCw className={cn('h-3 w-3', isFetching && 'animate-spin')} />
+          <RefreshCw
+            className={cn(
+              'h-3 w-3',
+              isFetching && 'motion-safe:animate-spin motion-reduce:animate-none'
+            )}
+          />
         </button>
       )}
     </div>
@@ -158,7 +169,7 @@ export function SyncingIndicator({
 
   return (
     <div className={cn('flex items-center gap-1.5 text-xs text-blue-500', className)}>
-      <RefreshCw className="h-3 w-3 animate-spin" />
+      <RefreshCw className="h-3 w-3 motion-safe:animate-spin motion-reduce:animate-none" />
       <span>Syncing...</span>
     </div>
   );

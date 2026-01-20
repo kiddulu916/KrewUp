@@ -13,7 +13,7 @@ export function ReferencesTab({ userId }: ReferencesTabProps) {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <Loader2 className="h-8 w-8 animate-spin text-krewup-blue" />
+        <Loader2 className="h-8 w-8 motion-safe:animate-spin motion-reduce:animate-none text-krewup-blue" />
       </div>
     );
   }

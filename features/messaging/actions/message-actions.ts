@@ -6,6 +6,7 @@ import { revalidatePath } from 'next/cache';
 import { cookies } from 'next/headers';
 import { rateLimit, RATE_LIMITS } from '@/lib/security/rate-limit';
 import { logger, sanitizeUserId } from '@/lib/utils/logger';
+import { assertValidCsrfToken } from '@/lib/security/csrf';
 
 export type MessageResult<T = Message | void> = {
   success: boolean;
@@ -20,8 +21,14 @@ export type MessageResult<T = Message | void> = {
  */
 export async function sendMessage(
   conversationId: string,
-  content: string
+  content: string,
+  csrfToken: string,
 ): Promise<MessageResult> {
+  const csrfResult = await assertValidCsrfToken(csrfToken);
+  if (!csrfResult.ok) {
+    return { success: false, error: csrfResult.error ?? 'Security validation failed' };
+  }
+
   // * Rate limiting - prevent message spam
   const rateLimitResult = await rateLimit('message:send', RATE_LIMITS.message);
   if (rateLimitResult) return rateLimitResult;

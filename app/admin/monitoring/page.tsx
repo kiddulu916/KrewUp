@@ -263,7 +263,11 @@ export default function MonitoringPage({ searchParams }: PageProps) {
           <CardTitle>Filter by User Segment</CardTitle>
         </CardHeader>
         <CardContent>
-          <Suspense fallback={<div className="h-20 bg-gray-50 animate-pulse rounded-lg" />}>
+          <Suspense
+            fallback={
+              <div className="h-20 bg-gray-50 motion-safe:animate-pulse motion-reduce:animate-none rounded-lg" />
+            }
+          >
             <MonitoringFilter initialValue={segment} />
           </Suspense>
           <p className="text-sm text-gray-500 mt-2">

@@ -211,7 +211,7 @@ export function ModerationQueue({ reports, currentStatus, counts }: Props) {
                   {/* Status Indicator */}
                   {report.status === 'pending' && (
                     <div className="flex-shrink-0">
-                      <div className="w-3 h-3 bg-yellow-500 rounded-full animate-pulse" />
+                      <div className="w-3 h-3 bg-yellow-500 rounded-full motion-safe:animate-pulse motion-reduce:animate-none" />
                     </div>
                   )}
                 </div>

@@ -87,7 +87,7 @@ function BottomNavLink({
   return (
     <Link
       href={href}
-      className={`flex flex-col items-center justify-center min-w-[60px] px-2 py-1.5 rounded-lg transition-all duration-200 ${
+      className={`flex flex-col items-center justify-center min-w-[60px] px-2 py-1.5 rounded-lg transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-krewup-blue focus-visible:ring-offset-2 focus-visible:ring-offset-white ${
         active
           ? 'text-krewup-blue bg-blue-50 font-semibold scale-105'
           : 'text-gray-600 hover:text-krewup-blue hover:bg-blue-50'

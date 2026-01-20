@@ -89,6 +89,36 @@ export const reviewContentReportSchema = z.object({
   adminNotes: z.string().max(1000, 'Notes are too long').optional(),
 });
 
+// * Portfolio-related schemas
+export const deletePortfolioPhotoSchema = z.object({
+  imageId: uuidSchema,
+});
+
+export const reorderPortfolioPhotosSchema = z.object({
+  imageIds: z
+    .array(uuidSchema)
+    .min(1, 'At least one image ID is required'),
+});
+
+// * Endorsement-related schemas
+export const requestEndorsementSchema = z.object({
+  experienceId: uuidSchema,
+  employerEmail: emailSchema,
+});
+
+export const approveEndorsementSchema = z.object({
+  requestId: uuidSchema,
+  recommendationText: z
+    .string()
+    .max(200, 'Recommendation must be 200 characters or less')
+    .optional(),
+  verifiedDates: z.boolean().optional(),
+});
+
+export const getExperienceEndorsementsSchema = z.object({
+  experienceId: uuidSchema,
+});
+
 // * Type exports for use in server actions
 export type SuspendUserInput = z.infer<typeof suspendUserSchema>;
 export type BanUserInput = z.infer<typeof banUserSchema>;
@@ -100,4 +130,9 @@ export type CreateConversationInput = z.infer<typeof createConversationSchema>;
 export type UpdateProfileInput = z.infer<typeof updateProfileSchema>;
 export type CreateContentReportInput = z.infer<typeof createContentReportSchema>;
 export type ReviewContentReportInput = z.infer<typeof reviewContentReportSchema>;
+export type DeletePortfolioPhotoInput = z.infer<typeof deletePortfolioPhotoSchema>;
+export type ReorderPortfolioPhotosInput = z.infer<typeof reorderPortfolioPhotosSchema>;
+export type RequestEndorsementInput = z.infer<typeof requestEndorsementSchema>;
+export type ApproveEndorsementInput = z.infer<typeof approveEndorsementSchema>;
+export type GetExperienceEndorsementsInput = z.infer<typeof getExperienceEndorsementsSchema>;
 

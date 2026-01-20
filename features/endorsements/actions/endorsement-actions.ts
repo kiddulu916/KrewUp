@@ -8,6 +8,11 @@ import {
   endorsementRequestEmailHtml,
   endorsementRequestEmailText,
 } from '@/lib/email/templates/endorsement-request';
+import {
+  approveEndorsementSchema,
+  getExperienceEndorsementsSchema,
+  requestEndorsementSchema,
+} from '@/lib/validation/schemas';
 
 export type EndorsementRequest = {
   id: string;
@@ -39,6 +44,17 @@ export async function requestEndorsement(
   employerEmail: string
 ): Promise<{ success: boolean; error?: string }> {
   try {
+    const parseResult = requestEndorsementSchema.safeParse({
+      experienceId,
+      employerEmail,
+    });
+    if (!parseResult.success) {
+      return {
+        success: false,
+        error: parseResult.error.errors[0]?.message ?? 'Invalid endorsement request data',
+      };
+    }
+
     const supabase = await createClient(await cookies());
     const { data: { user } } = await supabase.auth.getUser();
 
@@ -178,6 +194,18 @@ export async function approveEndorsement(
   verifiedDates: boolean = true
 ): Promise<{ success: boolean; error?: string }> {
   try {
+    const parseResult = approveEndorsementSchema.safeParse({
+      requestId,
+      recommendationText,
+      verifiedDates,
+    });
+    if (!parseResult.success) {
+      return {
+        success: false,
+        error: parseResult.error.errors[0]?.message ?? 'Invalid endorsement approval data',
+      };
+    }
+
     const supabase = await createClient(await cookies());
     const { data: { user } } = await supabase.auth.getUser();
 
@@ -264,6 +292,14 @@ export async function getExperienceEndorsements(
   experienceId: string
 ): Promise<{ success: boolean; endorsements?: Endorsement[]; error?: string }> {
   try {
+    const parseResult = getExperienceEndorsementsSchema.safeParse({ experienceId });
+    if (!parseResult.success) {
+      return {
+        success: false,
+        error: parseResult.error.errors[0]?.message ?? 'Invalid experience ID',
+      };
+    }
+
     const supabase = await createClient(await cookies());
 
     const { data: endorsements, error } = await supabase

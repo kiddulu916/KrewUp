@@ -9,6 +9,7 @@ import { TRADES, TRADE_SUBCATEGORIES, JOB_TYPES, CERTIFICATIONS } from '@/lib/co
 import { updateJob, type JobData, type TradeSelection, type CustomQuestion } from '../actions/job-actions';
 import { useToast } from '@/components/providers/toast-provider';
 import { useAsyncAction } from '@/hooks/use-async-action';
+import { useCsrfToken } from '@/components/providers/csrf-provider';
 
 type EditJobFormProps = {
   job: any; // Job from database
@@ -17,6 +18,7 @@ type EditJobFormProps = {
 export function EditJobForm({ job }: EditJobFormProps) {
   const router = useRouter();
   const toast = useToast();
+  const csrfToken = useCsrfToken();
   const [formError, setFormError] = useState<string | null>(null);
   const { execute, isLoading, error } = useAsyncAction({
     showToast: false,
@@ -177,7 +179,10 @@ export function EditJobForm({ job }: EditJobFormProps) {
     };
 
     await execute(async () => {
-      const result = await updateJob(job.id, jobData);
+      const result = await updateJob(job.id, {
+        ...jobData,
+        csrfToken: csrfToken || '',
+      });
       if (!result.success) {
         throw new Error(result.error || 'Failed to update job');
       }
