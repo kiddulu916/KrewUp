@@ -51,7 +51,7 @@ export async function requestEndorsement(
     if (!parseResult.success) {
       return {
         success: false,
-        error: parseResult.error.errors[0]?.message ?? 'Invalid endorsement request data',
+        error: parseResult.error.issues[0]?.message ?? 'Invalid endorsement request data',
       };
     }
 
@@ -202,7 +202,7 @@ export async function approveEndorsement(
     if (!parseResult.success) {
       return {
         success: false,
-        error: parseResult.error.errors[0]?.message ?? 'Invalid endorsement approval data',
+        error: parseResult.error.issues[0]?.message ?? 'Invalid endorsement approval data',
       };
     }
 
@@ -296,7 +296,7 @@ export async function getExperienceEndorsements(
     if (!parseResult.success) {
       return {
         success: false,
-        error: parseResult.error.errors[0]?.message ?? 'Invalid experience ID',
+        error: parseResult.error.issues[0]?.message ?? 'Invalid experience ID',
       };
     }
 
