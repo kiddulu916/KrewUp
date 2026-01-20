@@ -8,6 +8,7 @@ import { CustomQuestionsBuilder } from './custom-questions-builder';
 import { TRADES, TRADE_SUBCATEGORIES, JOB_TYPES, CERTIFICATIONS } from '@/lib/constants';
 import { updateJob, type JobData, type TradeSelection, type CustomQuestion } from '../actions/job-actions';
 import { useToast } from '@/components/providers/toast-provider';
+import { useAsyncAction } from '@/hooks/use-async-action';
 
 type EditJobFormProps = {
   job: any; // Job from database
@@ -16,8 +17,10 @@ type EditJobFormProps = {
 export function EditJobForm({ job }: EditJobFormProps) {
   const router = useRouter();
   const toast = useToast();
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [formError, setFormError] = useState<string | null>(null);
+  const { execute, isLoading, error } = useAsyncAction({
+    showToast: false,
+  });
 
   // Initialize form data from existing job
   const [formData, setFormData] = useState<JobData>({
@@ -148,16 +151,14 @@ export function EditJobForm({ job }: EditJobFormProps) {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setError('');
+    setFormError(null);
 
     // Validate at least one trade is selected
     const validTrades = tradeSelections.filter(ts => ts.trade !== '');
     if (validTrades.length === 0) {
-      setError('Please select at least one trade');
+      setFormError('Please select at least one trade');
       return;
     }
-
-    setIsLoading(true);
 
     // Build structured trade selections
     const structuredTradeSelections = validTrades.map(ts => ({
@@ -175,22 +176,24 @@ export function EditJobForm({ job }: EditJobFormProps) {
       sub_trade: structuredTradeSelections[0].subTrades[0] || undefined,
     };
 
-    const result = await updateJob(job.id, jobData);
+    await execute(async () => {
+      const result = await updateJob(job.id, jobData);
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to update job');
+      }
 
-    if (!result.success) {
-      setError(result.error || 'Failed to update job');
-      setIsLoading(false);
-    } else {
       toast.success('Job updated successfully');
       router.push(`/dashboard/jobs/${job.id}`);
-    }
+
+      return result;
+    });
   }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      {error && (
+      {(formError || error) && (
         <div className="rounded-lg bg-red-50 border border-red-200 p-3">
-          <p className="text-sm text-red-800">{error}</p>
+          <p className="text-sm text-red-800">{formError || error}</p>
         </div>
       )}
 

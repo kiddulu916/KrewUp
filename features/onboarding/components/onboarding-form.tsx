@@ -6,6 +6,7 @@ import { TRADES, TRADE_SUBCATEGORIES, EMPLOYER_TYPES } from '@/lib/constants';
 import { completeOnboarding, type OnboardingData } from '../actions/onboarding-actions';
 import { uploadCertificationPhoto } from '@/features/profiles/actions/certification-actions';
 import { formatPhoneNumber } from '@/lib/utils/phone';
+import { useAsyncAction } from '@/hooks/use-async-action';
 
 type Props = {
   initialName?: string;
@@ -14,8 +15,9 @@ type Props = {
 
 export function OnboardingForm({ initialName = '', initialEmail = '' }: Props) {
   const [step, setStep] = useState(1);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
+  const { execute, isLoading, error } = useAsyncAction({
+    showToast: false,
+  });
   const [locationStatus, setLocationStatus] = useState<'loading' | 'success' | 'error' | null>(null);
 
   const [formData, setFormData] = useState<OnboardingData>({
@@ -171,12 +173,9 @@ export function OnboardingForm({ initialName = '', initialEmail = '' }: Props) {
   }
 
   async function handleSubmit() {
-    setError('');
-    setIsLoading(true);
-
-    try {
+    await execute(async () => {
       // If contractor, upload license first
-      let licensePhotoUrl = null;
+      let licensePhotoUrl: string | null = null;
       if (formData.employer_type === 'contractor' && licenseFile) {
         setIsUploadingLicense(true);
 
@@ -185,10 +184,7 @@ export function OnboardingForm({ initialName = '', initialEmail = '' }: Props) {
         setIsUploadingLicense(false);
 
         if (!uploadResult.success) {
-          const errorMsg = uploadResult.error || 'Failed to upload license photo';
-          setError(errorMsg);
-          setIsLoading(false);
-          return;
+          throw new Error(uploadResult.error || 'Failed to upload license photo');
         }
 
         licensePhotoUrl = uploadResult.data.url;
@@ -207,17 +203,14 @@ export function OnboardingForm({ initialName = '', initialEmail = '' }: Props) {
       });
 
       if (!result.success) {
-        setError(result.error || 'Failed to complete onboarding');
-        setIsLoading(false);
-        return;
+        throw new Error(result.error || 'Failed to complete onboarding');
       }
 
       // Success! Redirect to dashboard
       window.location.href = '/dashboard/feed';
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'An unexpected error occurred');
-      setIsLoading(false);
-    }
+
+      return result;
+    });
   }
 
   // Step 1: Name, Phone, Email

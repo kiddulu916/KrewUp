@@ -11,6 +11,7 @@ import {
   ALL_LICENSES,
   LICENSE_CATEGORIES,
 } from '@/lib/constants';
+import { useAsyncAction } from '@/hooks/use-async-action';
 
 type Props = {
   role?: string;
@@ -22,9 +23,14 @@ type Props = {
 export function CertificationForm({ role = 'worker', employerType, onSuccess, onCancel }: Props) {
   const router = useRouter();
   const toast = useToast();
-  const [isLoading, setIsLoading] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [formError, setFormError] = useState<string | null>(null);
+  const { execute, isLoading, error } = useAsyncAction({
+    showToast: true,
+    successMessage:
+      `${credentialLabel} submitted for verification! You'll be notified when it's reviewed (usually within 24-48 hours).`,
+    errorMessagePrefix: `Failed to add ${credentialLabel.toLowerCase()}`,
+  });
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
@@ -67,40 +73,35 @@ export function CertificationForm({ role = 'worker', employerType, onSuccess, on
   };
 
   const handleSubmit = async () => {
-    setError(null);
-    setIsLoading(true);
+    setFormError(null);
 
-    try {
-      const certType =
-        formData.certification_type === 'custom'
-          ? formData.customCertification
-          : formData.certification_type;
+    const certType =
+      formData.certification_type === 'custom'
+        ? formData.customCertification
+        : formData.certification_type;
 
-      if (!certType) {
-        setError(`Please select or enter a ${credentialLabel.toLowerCase()} type`);
-        setIsLoading(false);
-        return;
-      }
+    if (!certType) {
+      setFormError(`Please select or enter a ${credentialLabel.toLowerCase()} type`);
+      return;
+    }
 
-      // Validate required fields
-      if (!formData.certification_number) {
-        setError('Certification number is required for verification');
-        setIsLoading(false);
-        return;
-      }
+    // Validate required fields
+    if (!formData.certification_number) {
+      setFormError('Certification number is required for verification');
+      return;
+    }
 
-      if (!formData.issued_by) {
-        setError('Issuing organization is required for verification');
-        setIsLoading(false);
-        return;
-      }
+    if (!formData.issued_by) {
+      setFormError('Issuing organization is required for verification');
+      return;
+    }
 
-      if (!photoFile && !photoUrl) {
-        setError('Certification photo is required for verification');
-        setIsLoading(false);
-        return;
-      }
+    if (!photoFile && !photoUrl) {
+      setFormError('Certification photo is required for verification');
+      return;
+    }
 
+    await execute(async () => {
       // Upload photo if provided
       let uploadedPhotoUrl = photoUrl;
       if (photoFile && !photoUrl) {
@@ -109,11 +110,7 @@ export function CertificationForm({ role = 'worker', employerType, onSuccess, on
         setIsUploading(false);
 
         if (!uploadResult.success) {
-          const errorMsg = uploadResult.error || 'Failed to upload photo';
-          setError(errorMsg);
-          toast.error(errorMsg);
-          setIsLoading(false);
-          return;
+          throw new Error(uploadResult.error || 'Failed to upload photo');
         }
 
         uploadedPhotoUrl = uploadResult.data.url;
@@ -131,28 +128,18 @@ export function CertificationForm({ role = 'worker', employerType, onSuccess, on
       });
 
       if (!result.success) {
-        const errorMsg = result.error || `Failed to add ${credentialLabel.toLowerCase()}`;
-        setError(errorMsg);
-        toast.error(errorMsg);
-        setIsLoading(false);
-        return;
+        throw new Error(result.error || `Failed to add ${credentialLabel.toLowerCase()}`);
       }
 
-      toast.success(
-        `${credentialLabel} submitted for verification! You'll be notified when it's reviewed (usually within 24-48 hours).`
-      );
       if (onSuccess) {
         onSuccess();
       } else {
         router.push('/dashboard/profile');
         router.refresh();
       }
-    } catch (err: unknown) {
-      const errorMsg = err instanceof Error ? err.message : 'Failed to add certification';
-      setError(errorMsg);
-      toast.error(errorMsg);
-      setIsLoading(false);
-    }
+
+      return result;
+    });
   };
 
   return (
@@ -389,9 +376,9 @@ export function CertificationForm({ role = 'worker', employerType, onSuccess, on
         </CardContent>
       </Card>
 
-      {error && (
+      {(formError || error) && (
         <div className="rounded-lg bg-red-50 border border-red-200 p-4">
-          <p className="text-sm text-red-800">{error}</p>
+          <p className="text-sm text-red-800">{formError || error}</p>
         </div>
       )}
 

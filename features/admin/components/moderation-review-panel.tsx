@@ -21,6 +21,7 @@ import {
 } from '../actions/moderation-actions';
 import { useRouter } from 'next/navigation';
 import { getFullName } from '@/lib/utils';
+import { useAsyncAction } from '@/hooks/use-async-action';
 
 type ContentReport = {
   id: string;
@@ -62,7 +63,9 @@ export function ModerationReviewPanel({ report, onClose }: Props) {
   const router = useRouter();
   const [reportedContent, setReportedContent] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [isActionLoading, setIsActionLoading] = useState(false);
+  const { execute, isLoading: isActionLoading } = useAsyncAction({
+    showToast: false,
+  });
   const [adminNotes, setAdminNotes] = useState(report.admin_notes || '');
   const [showActionForm, setShowActionForm] = useState<string | null>(null);
   const [actionReason, setActionReason] = useState('');
@@ -97,8 +100,7 @@ export function ModerationReviewPanel({ report, onClose }: Props) {
       return;
     }
 
-    setIsActionLoading(true);
-    try {
+    await execute(async () => {
       const result = await removeContent(
         report.id,
         report.reported_content_type,
@@ -112,12 +114,9 @@ export function ModerationReviewPanel({ report, onClose }: Props) {
       } else {
         alert('Failed to remove content: ' + result.error);
       }
-    } catch (error) {
-      console.error('Error removing content:', error);
-      alert('An error occurred while removing content');
-    } finally {
-      setIsActionLoading(false);
-    }
+
+      return result;
+    });
   };
 
   const handleWarnUser = async () => {
@@ -134,8 +133,7 @@ export function ModerationReviewPanel({ report, onClose }: Props) {
       return;
     }
 
-    setIsActionLoading(true);
-    try {
+    await execute(async () => {
       const result = await warnUser(
         report.id,
         report.reported_user.user_id,
@@ -149,12 +147,9 @@ export function ModerationReviewPanel({ report, onClose }: Props) {
       } else {
         alert('Failed to warn user: ' + result.error);
       }
-    } catch (error) {
-      console.error('Error warning user:', error);
-      alert('An error occurred while warning user');
-    } finally {
-      setIsActionLoading(false);
-    }
+
+      return result;
+    });
   };
 
   const handleSuspendUser = async () => {
@@ -179,8 +174,7 @@ export function ModerationReviewPanel({ report, onClose }: Props) {
       return;
     }
 
-    setIsActionLoading(true);
-    try {
+    await execute(async () => {
       const result = await suspendUserFromReport(
         report.id,
         report.reported_user.user_id,
@@ -195,12 +189,9 @@ export function ModerationReviewPanel({ report, onClose }: Props) {
       } else {
         alert('Failed to suspend user: ' + result.error);
       }
-    } catch (error) {
-      console.error('Error suspending user:', error);
-      alert('An error occurred while suspending user');
-    } finally {
-      setIsActionLoading(false);
-    }
+
+      return result;
+    });
   };
 
   const handleBanUser = async () => {
@@ -221,8 +212,7 @@ export function ModerationReviewPanel({ report, onClose }: Props) {
       return;
     }
 
-    setIsActionLoading(true);
-    try {
+    await execute(async () => {
       const result = await banUserFromReport(
         report.id,
         report.reported_user.user_id,
@@ -236,12 +226,9 @@ export function ModerationReviewPanel({ report, onClose }: Props) {
       } else {
         alert('Failed to ban user: ' + result.error);
       }
-    } catch (error) {
-      console.error('Error banning user:', error);
-      alert('An error occurred while banning user');
-    } finally {
-      setIsActionLoading(false);
-    }
+
+      return result;
+    });
   };
 
   const handleDismiss = async () => {
@@ -254,8 +241,7 @@ export function ModerationReviewPanel({ report, onClose }: Props) {
       return;
     }
 
-    setIsActionLoading(true);
-    try {
+    await execute(async () => {
       const result = await dismissReport(report.id, adminNotes);
       if (result.success) {
         alert('Report dismissed');
@@ -264,12 +250,9 @@ export function ModerationReviewPanel({ report, onClose }: Props) {
       } else {
         alert('Failed to dismiss report: ' + result.error);
       }
-    } catch (error) {
-      console.error('Error dismissing report:', error);
-      alert('An error occurred while dismissing report');
-    } finally {
-      setIsActionLoading(false);
-    }
+
+      return result;
+    });
   };
 
   const isPending = report.status === 'pending';

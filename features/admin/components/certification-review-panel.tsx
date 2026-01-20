@@ -10,6 +10,7 @@ import {
 } from '../actions/certification-actions';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/components/providers/toast-provider';
+import { useAsyncAction } from '@/hooks/use-async-action';
 
 type CertificationWithProfile = {
   id: string;
@@ -48,7 +49,9 @@ export function CertificationReviewPanel({ certification, onClose }: Props) {
   const [isZoomed, setIsZoomed] = useState(false);
   const [rejectionReason, setRejectionReason] = useState('');
   const [flagNotes, setFlagNotes] = useState(certification.verification_notes || '');
-  const [isLoading, setIsLoading] = useState(false);
+  const { execute, isLoading } = useAsyncAction({
+    showToast: false,
+  });
   const [showRejectForm, setShowRejectForm] = useState(false);
   const [showFlagForm, setShowFlagForm] = useState(false);
   const [showApproveConfirm, setShowApproveConfirm] = useState(false);
@@ -60,8 +63,7 @@ export function CertificationReviewPanel({ certification, onClose }: Props) {
 
   const handleApprove = async () => {
     setShowApproveConfirm(false);
-    setIsLoading(true);
-    try {
+    await execute(async () => {
       const result = await approveCertification(certification.id);
       if (result.success) {
         toast.success('Certification approved successfully!');
@@ -70,12 +72,9 @@ export function CertificationReviewPanel({ certification, onClose }: Props) {
       } else {
         toast.error('Failed to approve certification: ' + result.error);
       }
-    } catch (error) {
-      console.error('Error approving certification:', error);
-      toast.error('An error occurred while approving the certification');
-    } finally {
-      setIsLoading(false);
-    }
+
+      return result;
+    });
   };
 
   const handleRejectClick = () => {
@@ -88,8 +87,7 @@ export function CertificationReviewPanel({ certification, onClose }: Props) {
 
   const handleReject = async () => {
     setShowRejectConfirm(false);
-    setIsLoading(true);
-    try {
+    await execute(async () => {
       const result = await rejectCertification(certification.id, rejectionReason);
       if (result.success) {
         toast.success('Certification rejected');
@@ -98,12 +96,9 @@ export function CertificationReviewPanel({ certification, onClose }: Props) {
       } else {
         toast.error('Failed to reject certification: ' + result.error);
       }
-    } catch (error) {
-      console.error('Error rejecting certification:', error);
-      toast.error('An error occurred while rejecting the certification');
-    } finally {
-      setIsLoading(false);
-    }
+
+      return result;
+    });
   };
 
   const handleFlag = async () => {
@@ -112,8 +107,7 @@ export function CertificationReviewPanel({ certification, onClose }: Props) {
       return;
     }
 
-    setIsLoading(true);
-    try {
+    await execute(async () => {
       const result = await flagCertification(certification.id, flagNotes);
       if (result.success) {
         toast.success('Certification flagged for review');
@@ -122,12 +116,9 @@ export function CertificationReviewPanel({ certification, onClose }: Props) {
       } else {
         toast.error('Failed to flag certification: ' + result.error);
       }
-    } catch (error) {
-      console.error('Error flagging certification:', error);
-      toast.error('An error occurred while flagging the certification');
-    } finally {
-      setIsLoading(false);
-    }
+
+      return result;
+    });
   };
 
   const isPending = certification.verification_status === 'pending';
