@@ -311,7 +311,7 @@ export async function getJobs(filters?: {
 
   let query = supabase
     .from('jobs')
-    .select('id, employer_id, title, location, coords, job_type, pay_rate, pay_min, pay_max, trades, sub_trades, required_certs, status, created_at, updated_at')
+    .select('id, employer_id, title, location, coords, job_type, pay_rate, pay_min, pay_max, trades, sub_trades, required_certs, status, created_at, updated_at, description, custom_questions, application_count, view_count')
     .order('created_at', { ascending: false });
 
   // Apply filters
