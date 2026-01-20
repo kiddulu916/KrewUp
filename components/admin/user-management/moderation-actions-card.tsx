@@ -11,6 +11,7 @@ import {
   unbanUser,
 } from '@/features/admin/actions/user-actions';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
+import { SuspendUserDialog } from './suspend-user-dialog';
 import { getFullName } from '@/lib/utils';
 import type { UserProfile, ModerationStatus } from './types';
 
@@ -33,32 +34,25 @@ export function ModerationActionsCard({
   const [showSuspendDialog, setShowSuspendDialog] = useState(false);
   const [showBanDialog, setShowBanDialog] = useState(false);
   const [showUnbanConfirm, setShowUnbanConfirm] = useState(false);
-  const [suspendReason, setSuspendReason] = useState('');
-  const [suspendDuration, setSuspendDuration] = useState(7);
   const [banReason, setBanReason] = useState('');
 
-  const handleSuspendUser = async () => {
-    if (!suspendReason.trim()) {
+  const handleSuspendUser = async (reason: string, duration: number) => {
+    if (!reason.trim()) {
       toast.error('Please provide a reason for suspension');
       return;
     }
 
     setActionLoading(true);
     try {
-      const result = await suspendUser(user.id, suspendReason, suspendDuration);
+      const result = await suspendUser(user.id, reason, duration);
 
       if (result.success) {
-        toast.success(`User suspended for ${suspendDuration} days`);
+        toast.success(`User suspended for ${duration} days`);
         setShowSuspendDialog(false);
-        setSuspendReason('');
-        setSuspendDuration(7);
         onActionComplete();
       } else {
         toast.error(result.error || 'Failed to suspend user');
       }
-    } catch (error) {
-      console.error('Error suspending user:', error);
-      toast.error('Failed to suspend user');
     } finally {
       setActionLoading(false);
     }
@@ -148,57 +142,6 @@ export function ModerationActionsCard({
             )}
           </div>
 
-          {/* Suspend Dialog */}
-          {showSuspendDialog && (
-            <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-              <h4 className="font-semibold mb-2">Suspend User</h4>
-              <div className="space-y-3">
-                <div>
-                  <label className="block text-sm font-medium mb-1">
-                    Duration (days)
-                  </label>
-                  <Input
-                    type="number"
-                    value={suspendDuration}
-                    onChange={(e) =>
-                      setSuspendDuration(parseInt(e.target.value))
-                    }
-                    min={1}
-                    max={365}
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1">Reason</label>
-                  <Input
-                    type="text"
-                    value={suspendReason}
-                    onChange={(e) => setSuspendReason(e.target.value)}
-                    placeholder="Enter reason for suspension..."
-                  />
-                </div>
-                <div className="flex gap-2">
-                  <Button
-                    variant="secondary"
-                    onClick={handleSuspendUser}
-                    disabled={actionLoading}
-                  >
-                    Confirm Suspension
-                  </Button>
-                  <Button
-                    variant="outline"
-                    onClick={() => {
-                      setShowSuspendDialog(false);
-                      setSuspendReason('');
-                    }}
-                    disabled={actionLoading}
-                  >
-                    Cancel
-                  </Button>
-                </div>
-              </div>
-            </div>
-          )}
-
           {/* Ban Dialog */}
           {showBanDialog && (
             <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
@@ -239,6 +182,14 @@ export function ModerationActionsCard({
           )}
         </CardContent>
       </Card>
+
+      {/* Suspend User Dialog */}
+      <SuspendUserDialog
+        isOpen={showSuspendDialog}
+        onClose={() => setShowSuspendDialog(false)}
+        onConfirm={handleSuspendUser}
+        isLoading={actionLoading}
+      />
 
       {/* Unban Confirmation Dialog */}
       <ConfirmDialog
