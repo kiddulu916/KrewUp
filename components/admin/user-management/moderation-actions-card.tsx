@@ -3,7 +3,6 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/providers/toast-provider';
 import {
   suspendUser,
@@ -12,6 +11,7 @@ import {
 } from '@/features/admin/actions/user-actions';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { SuspendUserDialog } from './suspend-user-dialog';
+import { BanUserDialog } from './ban-user-dialog';
 import { getFullName } from '@/lib/utils';
 import type { UserProfile, ModerationStatus } from './types';
 
@@ -34,7 +34,6 @@ export function ModerationActionsCard({
   const [showSuspendDialog, setShowSuspendDialog] = useState(false);
   const [showBanDialog, setShowBanDialog] = useState(false);
   const [showUnbanConfirm, setShowUnbanConfirm] = useState(false);
-  const [banReason, setBanReason] = useState('');
 
   const handleSuspendUser = async (reason: string, duration: number) => {
     if (!reason.trim()) {
@@ -58,27 +57,23 @@ export function ModerationActionsCard({
     }
   };
 
-  const handleBanUser = async () => {
-    if (!banReason.trim()) {
+  const handleBanUser = async (reason: string) => {
+    if (!reason.trim()) {
       toast.error('Please provide a reason for ban');
       return;
     }
 
     setActionLoading(true);
     try {
-      const result = await banUser(user.id, banReason);
+      const result = await banUser(user.id, reason);
 
       if (result.success) {
         toast.success('User permanently banned');
         setShowBanDialog(false);
-        setBanReason('');
         onActionComplete();
       } else {
         toast.error(result.error || 'Failed to ban user');
       }
-    } catch (error) {
-      console.error('Error banning user:', error);
-      toast.error('Failed to ban user');
     } finally {
       setActionLoading(false);
     }
@@ -141,45 +136,6 @@ export function ModerationActionsCard({
               </Button>
             )}
           </div>
-
-          {/* Ban Dialog */}
-          {showBanDialog && (
-            <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
-              <h4 className="font-semibold mb-2 text-red-900">
-                Permanently Ban User
-              </h4>
-              <div className="space-y-3">
-                <div>
-                  <label className="block text-sm font-medium mb-1">Reason</label>
-                  <Input
-                    type="text"
-                    value={banReason}
-                    onChange={(e) => setBanReason(e.target.value)}
-                    placeholder="Enter reason for ban..."
-                  />
-                </div>
-                <div className="flex gap-2">
-                  <Button
-                    variant="danger"
-                    onClick={handleBanUser}
-                    disabled={actionLoading}
-                  >
-                    Confirm Ban
-                  </Button>
-                  <Button
-                    variant="outline"
-                    onClick={() => {
-                      setShowBanDialog(false);
-                      setBanReason('');
-                    }}
-                    disabled={actionLoading}
-                  >
-                    Cancel
-                  </Button>
-                </div>
-              </div>
-            </div>
-          )}
         </CardContent>
       </Card>
 
@@ -188,6 +144,14 @@ export function ModerationActionsCard({
         isOpen={showSuspendDialog}
         onClose={() => setShowSuspendDialog(false)}
         onConfirm={handleSuspendUser}
+        isLoading={actionLoading}
+      />
+
+      {/* Ban User Dialog */}
+      <BanUserDialog
+        isOpen={showBanDialog}
+        onClose={() => setShowBanDialog(false)}
+        onConfirm={handleBanUser}
         isLoading={actionLoading}
       />
 
