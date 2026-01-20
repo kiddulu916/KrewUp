@@ -5,26 +5,11 @@ import { useSmartPolling, POLLING_CONFIGS } from '@/lib/hooks/use-smart-polling'
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '@/types/database';
 
+// * Extends the base JobApplication row with a loosely-typed worker relation
+// * to avoid mismatches with Supabase's inferred nested relation types.
 type JobApplication = Database['public']['Tables']['job_applications']['Row'] & {
-  worker?: {
-    id: string;
-    first_name: string | null;
-    last_name: string | null;
-    location: string | null;
-    bio: string | null;
-    profile_image_url: string | null;
-    workers?: {
-      trade: string | null;
-      sub_trade: string | null;
-      years_of_experience: number | null;
-    } | null;
-    experiences?: {
-      job_title: string | null;
-      company: string | null;
-      start_date: string | null;
-      end_date: string | null;
-    }[] | null;
-  } | null;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  worker?: any;
 };
 
 async function fetchEmployerJobApplications(
