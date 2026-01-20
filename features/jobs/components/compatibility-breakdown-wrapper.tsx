@@ -46,13 +46,13 @@ export function CompatibilityBreakdownWrapper({
         required_certifications: job.required_certs || [],
         years_experience_required: null, // Field doesn't exist yet
         location: job.location,
-        coords: job.coords,
+        coords: job.coords ?? null,
       },
       worker: {
         trade: currentUser.trade || '',
         sub_trade: currentUser.sub_trade || null,
         location: currentUser.location || '',
-        coords: currentUser.coords,
+        coords: currentUser.coords ?? null,
       },
       workerCerts: (currentUser.certifications || []).map(c => c.certification_type || c.name).filter((c): c is string => Boolean(c)),
       workerExperience: currentUser.years_of_experience || 0,
