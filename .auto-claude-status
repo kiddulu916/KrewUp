@@ -1,25 +1,25 @@
 {
   "active": true,
-  "spec": "011-add-comprehensive-security-headers-in-next-config-",
-  "state": "building",
+  "spec": "024-extract-admin-user-management-page-into-modular-co",
+  "state": "planning",
   "subtasks": {
-    "completed": 1,
-    "total": 2,
+    "completed": 0,
+    "total": 0,
     "in_progress": 1,
     "failed": 0
   },
   "phase": {
-    "current": "Add Security Headers",
+    "current": "Verify Refactored Components",
     "id": null,
-    "total": 2
+    "total": 6
   },
   "workers": {
     "active": 0,
     "max": 1
   },
   "session": {
-    "number": 3,
-    "started_at": "2026-01-20T03:30:50.477427"
+    "number": 2,
+    "started_at": "2026-01-20T04:09:26.887920"
   },
-  "last_update": "2026-01-20T03:36:59.700517"
+  "last_update": "2026-01-20T04:14:23.768086"
 }
