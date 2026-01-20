@@ -248,7 +248,7 @@ export function ModerationReviewPanel({ report, onClose }: Props) {
     }
 
     await execute(async () => {
-      const result = await dismissReport(report.id, adminNotes);
+      const result = await dismissReport(report.id, adminNotes, csrfToken || '');
       if (result.success) {
         alert('Report dismissed');
         router.refresh();
