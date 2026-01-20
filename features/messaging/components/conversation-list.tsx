@@ -2,6 +2,7 @@
 
 import { useConversations } from '../hooks/use-conversations';
 import { ConversationItem } from './conversation-item';
+import { EmptyMessages, ListSkeleton } from '@/components/ui';
 
 type Props = {
   activeConversationId?: string;
@@ -12,11 +13,13 @@ export function ConversationList({ activeConversationId }: Props) {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center p-12">
-        <div className="text-center">
-          <div className="inline-block h-8 w-8 motion-safe:animate-spin motion-reduce:animate-none rounded-full border-4 border-solid border-krewup-blue border-r-transparent"></div>
-          <p className="mt-2 text-sm text-gray-500">Loading conversations...</p>
-        </div>
+      <div className="p-4">
+        <ListSkeleton
+          count={6}
+          showAvatar
+          className="divide-y divide-gray-100"
+          itemClassName="py-3"
+        />
       </div>
     );
   }
@@ -46,16 +49,8 @@ export function ConversationList({ activeConversationId }: Props) {
 
   if (!conversations || conversations.length === 0) {
     return (
-      <div className="flex items-center justify-center p-12">
-        <div className="text-center max-w-sm">
-          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-blue-50 to-orange-50 mb-4">
-            <span className="text-3xl">💬</span>
-          </div>
-          <h3 className="text-lg font-bold text-gray-900 mb-2">No conversations yet</h3>
-          <p className="text-sm text-gray-600">
-            Start a conversation by messaging someone from a job posting or their profile
-          </p>
-        </div>
+      <div className="p-4">
+        <EmptyMessages />
       </div>
     );
   }

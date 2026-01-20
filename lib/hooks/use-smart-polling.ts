@@ -43,6 +43,14 @@ export const POLLING_CONFIGS = {
     maxBackoffInterval: 300000, // 5 minutes max
     pauseWhenHidden: true,
   },
+  // * Employer job applications: Medium-fast, similar to conversations
+  applications: {
+    activeInterval: 5000, // 5 seconds when employer is actively reviewing
+    idleInterval: 20000, // 20 seconds when idle
+    idleTimeout: 60000, // 1 minute to become idle
+    maxBackoffInterval: 60000, // 1 minute max on errors
+    pauseWhenHidden: true,
+  },
 } as const;
 
 export type PollingStatus = {

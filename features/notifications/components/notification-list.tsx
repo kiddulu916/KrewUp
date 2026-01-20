@@ -7,13 +7,13 @@ import { markNotificationAsRead, deleteNotification, markAllNotificationsAsRead 
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
-import { EmptyState } from '@/components/ui/empty-state';
+import { EmptyNotifications } from '@/components/ui/empty-state';
 import { useQueryClient } from '@tanstack/react-query';
 import { NotificationItem } from './notification-item';
 import type { Notification } from '../actions/notification-actions';
 
 export function NotificationList() {
-  const { data: notifications, isLoading, error } = useNotifications();
+  const { notifications, isLoading, error, isFetching } = useNotifications();
   const queryClient = useQueryClient();
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [markingAllRead, setMarkingAllRead] = useState(false);
@@ -83,11 +83,7 @@ export function NotificationList() {
 
   if (!notifications || notifications.length === 0) {
     return (
-      <EmptyState
-        icon="🔔"
-        title="No notifications"
-        description="You're all caught up! Check back later for updates."
-      />
+      <EmptyNotifications />
     );
   }
 
@@ -96,19 +92,28 @@ export function NotificationList() {
   return (
     <div className="space-y-4">
       {/* Header with Mark All Read button */}
-      {unreadCount > 0 && (
+      {(unreadCount > 0 || isFetching) && (
         <div className="flex justify-between items-center">
           <p className="text-sm text-gray-600">
             {unreadCount} unread notification{unreadCount !== 1 ? 's' : ''}
           </p>
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={handleMarkAllAsRead}
-            isLoading={markingAllRead}
-          >
-            Mark all as read
-          </Button>
+          <div className="flex items-center gap-2">
+            {isFetching && (
+              <span className="text-xs text-gray-500">
+                Syncing…
+              </span>
+            )}
+            {unreadCount > 0 && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={handleMarkAllAsRead}
+                isLoading={markingAllRead}
+              >
+                Mark all as read
+              </Button>
+            )}
+          </div>
         </div>
       )}
 

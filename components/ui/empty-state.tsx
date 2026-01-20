@@ -144,6 +144,25 @@ export function EmptyMessages() {
   );
 }
 
+export function EmptyNotifications() {
+  return (
+    <EmptyState
+      icon={
+        <svg className="h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 10-12 0v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
+          />
+        </svg>
+      }
+      title="No notifications yet"
+      description="You see important updates and alerts here when there is activity on your account"
+    />
+  );
+}
+
 export function EmptyCertifications() {
   return (
     <EmptyState
@@ -163,6 +182,25 @@ export function EmptyCertifications() {
   );
 }
 
+export function EmptyPortfolio() {
+  return (
+    <EmptyState
+      icon={
+        <svg className="h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M4 16l4-4 4 4 4-4 4 4M4 8h16a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2v-8a2 2 0 012-2z"
+          />
+        </svg>
+      }
+      title="No portfolio items yet"
+      description="Showcase your best projects and work samples to stand out to employers"
+    />
+  );
+}
+
 export function EmptyExperience() {
   return (
     <EmptyState
@@ -178,6 +216,25 @@ export function EmptyExperience() {
       }
       title="No work experience added"
       description="Showcase your professional experience to increase your chances of getting hired"
+    />
+  );
+}
+
+export function EmptyEndorsements() {
+  return (
+    <EmptyState
+      icon={
+        <svg className="h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M11 17a4 4 0 01-4-4V7a4 4 0 118 0v6a4 4 0 01-4 4zm0 0v2m-3 0h6"
+          />
+        </svg>
+      }
+      title="No endorsements yet"
+      description="Ask coworkers or clients to endorse your skills to build more trust with employers"
     />
   );
 }

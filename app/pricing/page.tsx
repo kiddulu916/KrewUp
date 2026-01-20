@@ -121,7 +121,10 @@ export default async function PricingPage() {
   return (
     <div className="min-h-screen bg-slate-50">
       {/* Navigation */}
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-200">
+      <nav
+        className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-200"
+        aria-label="Pricing page navigation"
+      >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <Link href="/" className="flex items-center gap-2">
@@ -149,7 +152,7 @@ export default async function PricingPage() {
       </nav>
 
       {/* Hero */}
-      <section className="pt-32 pb-16 px-4 bg-gradient-to-br from-blue-50 via-white to-orange-50">
+      <section className="pt-32 pb-16 px-4 bg-linear-to-br from-blue-50 via-white to-orange-50">
         <div className="max-w-4xl mx-auto text-center">
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-slate-900 mb-6">
             Simple, Transparent Pricing
@@ -199,7 +202,7 @@ export default async function PricingPage() {
             </div>
 
             {/* Pro Plan */}
-            <div className="bg-gradient-to-br from-blue-600 to-blue-500 rounded-2xl p-8 shadow-xl text-white relative overflow-hidden">
+            <div className="bg-linear-to-br from-blue-600 to-blue-500 rounded-2xl p-8 shadow-xl text-white relative overflow-hidden">
               <div className="absolute top-4 right-4 bg-amber-400 text-amber-900 text-xs font-bold px-3 py-1 rounded-full">
                 POPULAR
               </div>
@@ -339,7 +342,7 @@ export default async function PricingPage() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-16 px-4 bg-gradient-to-r from-blue-600 to-blue-500">
+      <section className="py-16 px-4 bg-linear-to-r from-blue-600 to-blue-500">
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">
             Ready to Get Started?

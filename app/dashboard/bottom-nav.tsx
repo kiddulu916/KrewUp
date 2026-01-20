@@ -3,8 +3,6 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
-      
-
 interface BottomNavProps {
   isWorker: boolean;
   isPro: boolean;
@@ -14,16 +12,19 @@ export function BottomNav({ isWorker, isPro }: BottomNavProps) {
   const pathname = usePathname();
 
   const isActive = (href: string) => {
-    // Exact match for root dashboard paths
+    // * Exact match for root dashboard paths
     if (href === '/dashboard/feed') {
       return pathname === '/dashboard' || pathname === '/dashboard/feed';
     }
-    // For other paths, check if current path starts with the href
+    // * For other paths, check if current path starts with the href
     return pathname.startsWith(href);
   };
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200 shadow-lg md:hidden safe-area-bottom">
+    <nav
+      className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200 shadow-lg md:hidden safe-area-bottom"
+      aria-label="Dashboard primary navigation"
+    >
       <div className="flex items-center justify-around h-16 px-2">
         <BottomNavLink
           href="/dashboard/feed"
@@ -33,16 +34,9 @@ export function BottomNav({ isWorker, isPro }: BottomNavProps) {
         />
 
         <BottomNavLink
-          href="/dashboard/profile"
-          icon="👤"
-          label="Profile"
-          active={isActive('/dashboard/profile')}
-        />
-
-        <BottomNavLink
           href="/dashboard/jobs"
           icon="💼"
-          label="Jobs"
+          label={isWorker ? 'Jobs' : 'Job Posts'}
           active={isActive('/dashboard/jobs')}
         />
 
@@ -53,21 +47,19 @@ export function BottomNav({ isWorker, isPro }: BottomNavProps) {
           active={isActive('/dashboard/messages')}
         />
 
-        {isWorker ? (
-          <BottomNavLink
-            href="/dashboard/applications"
-            icon="📋"
-            label="Apps"
-            active={isActive('/dashboard/applications')}
-          />
-        ) : (
-          <BottomNavLink
-            href="/dashboard/workers"
-            icon="🔍"
-            label="Workers"
-            active={isActive('/dashboard/workers')}
-          />
-        )}
+        <BottomNavLink
+          href="/dashboard/notifications"
+          icon="🔔"
+          label="Alerts"
+          active={isActive('/dashboard/notifications')}
+        />
+
+        <BottomNavLink
+          href="/dashboard/profile"
+          icon={isPro ? '⭐' : '👤'}
+          label="Profile"
+          active={isActive('/dashboard/profile')}
+        />
       </div>
     </nav>
   );

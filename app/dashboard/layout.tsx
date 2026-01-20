@@ -51,11 +51,11 @@ export default async function DashboardLayout({
   const fullName = getFullName(profile);
 
   return (
-    <div className="flex min-h-screen bg-gradient-to-br from-blue-50 via-white to-orange-50">
+    <div className="flex min-h-screen bg-linear-to-br from-blue-50 via-white to-orange-50">
       <ModerationGuard />
       <SpeedInsights />
       {/* Mobile Header - Visible on mobile, hidden on tablet+ */}
-      <header className="fixed top-0 left-0 right-0 z-40 h-16 bg-gradient-to-r from-krewup-blue to-krewup-light-blue shadow-md md:hidden">
+      <header className="fixed top-0 left-0 right-0 z-40 h-16 bg-linear-to-r from-krewup-blue to-krewup-light-blue shadow-md md:hidden">
         {/* Load Google AdSense script before interactive */}      
         <Script
           id="google-adsense"
@@ -91,10 +91,14 @@ export default async function DashboardLayout({
       </header>
 
       {/* Sidebar - Hidden on mobile, visible on tablet+ */}
-      <aside className="hidden md:flex w-40 bg-white border-r border-gray-200 shadow-lg">
+      <aside
+        className="hidden md:flex w-40 bg-white border-r border-gray-200 shadow-lg"
+        role="navigation"
+        aria-label="Dashboard main navigation"
+      >
         <div className="flex h-full flex-col w-full">
           {/* Logo with gradient */}
-          <div className="flex h-20 items-center justify-center bg-gradient-to-r from-krewup-blue to-krewup-light-blue w-full">
+          <div className="flex h-20 items-center justify-center bg-linear-to-r from-krewup-blue to-krewup-light-blue w-full">
             <Link href="/dashboard/feed" className="flex items-center w-full justify-center">
               <Image
                 src="/navbar_logo.png"
@@ -175,7 +179,7 @@ export default async function DashboardLayout({
           </nav>
 
           {/* User Info */}
-          <div className="border-t-2 border-krewup-light-blue p-1 bg-gradient-to-r from-blue-50 to-orange-50 w-full">
+          <div className="border-t-2 border-krewup-light-blue p-1 bg-linear-to-r from-blue-50 to-orange-50 w-full">
             <div className="flex flex-col items-center gap-1">
               <Avatar
                 src={profile.profile_image_url}
@@ -198,7 +202,7 @@ export default async function DashboardLayout({
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 overflow-y-auto">
+      <main className="flex-1 overflow-y-auto" role="main">
         <div className="mx-auto max-w-7xl px-4 py-8 md:pl-4 md:pr-6 pt-20 md:pt-8 pb-24 md:pb-8">
           {children}
         </div>

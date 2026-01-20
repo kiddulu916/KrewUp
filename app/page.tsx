@@ -131,7 +131,10 @@ export default async function Home() {
   return (
     <div className="min-h-screen bg-slate-50">
       {/* Navigation */}
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-200">
+      <nav
+        className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-200"
+        aria-label="Main site navigation"
+      >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center gap-2">
@@ -164,7 +167,7 @@ export default async function Home() {
       {/* Hero Section */}
       <section className="relative pt-32 pb-20 px-4 overflow-hidden">
         {/* Background gradient */}
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-white to-orange-50" />
+        <div className="absolute inset-0 bg-linear-to-br from-blue-50 via-white to-orange-50" />
         <div className="absolute top-20 left-10 w-96 h-96 bg-blue-400 opacity-10 rounded-full blur-3xl" />
         <div className="absolute bottom-20 right-10 w-96 h-96 bg-orange-400 opacity-10 rounded-full blur-3xl" />
 
@@ -172,11 +175,11 @@ export default async function Home() {
           <div className="text-center max-w-4xl mx-auto">
             <h1 className="text-5xl md:text-6xl lg:text-7xl font-extrabold text-slate-900 leading-tight mb-6">
               Where{' '}
-              <span className="bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent">
+              <span className="bg-linear-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent">
                 Skilled Workers
               </span>{' '}
               Meet{' '}
-              <span className="bg-gradient-to-r from-orange-500 to-orange-400 bg-clip-text text-transparent">
+              <span className="bg-linear-to-r from-orange-500 to-orange-400 bg-clip-text text-transparent">
                 Great Jobs
               </span>
             </h1>
@@ -264,7 +267,7 @@ export default async function Home() {
                 key={feature.title}
                 className="bg-white rounded-2xl p-8 shadow-sm hover:shadow-xl transition-all duration-300 border border-slate-100"
               >
-                <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center mb-6">
+                <div className="w-14 h-14 rounded-xl bg-linear-to-br from-blue-500 to-blue-600 flex items-center justify-center mb-6">
                   <feature.icon className="h-7 w-7 text-white" />
                 </div>
                 <h3 className="text-xl font-bold text-slate-900 mb-3">{feature.title}</h3>
@@ -276,7 +279,7 @@ export default async function Home() {
       </section>
 
       {/* How It Works Section */}
-      <section className="py-20 px-4 bg-gradient-to-br from-slate-900 to-slate-800">
+      <section className="py-20 px-4 bg-linear-to-br from-slate-900 to-slate-800">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">How It Works</h2>
@@ -368,7 +371,7 @@ export default async function Home() {
                   &ldquo;{testimonial.quote}&rdquo;
                 </p>
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white font-bold text-lg">
+                  <div className="w-12 h-12 rounded-full bg-linear-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white font-bold text-lg">
                     {testimonial.name.charAt(0)}
                   </div>
                   <div>
@@ -385,7 +388,7 @@ export default async function Home() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 px-4 bg-gradient-to-r from-blue-600 to-blue-500">
+      <section className="py-20 px-4 bg-linear-to-r from-blue-600 to-blue-500">
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
             Ready to Build Your Future?
