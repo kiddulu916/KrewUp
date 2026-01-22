@@ -168,6 +168,8 @@ export type EmployerType = (typeof EMPLOYER_TYPES)[number];
 // Allowed employer types for job posting
 export const ALLOWED_JOB_POSTING_EMPLOYER_TYPES = ['contractor', 'developer', 'homeowner'] as const;
 
+export type AllowedJobPostingEmployerType = (typeof ALLOWED_JOB_POSTING_EMPLOYER_TYPES)[number];
+
 // Add human-readable labels
 export const EMPLOYER_TYPE_LABELS: Record<EmployerType, string> = {
   contractor: 'Contractor',

@@ -6,7 +6,7 @@
  */
 
 import { TRADES, JOB_TYPES, ALLOWED_JOB_POSTING_EMPLOYER_TYPES } from '@/lib/constants';
-import type { EmployerType } from '@/lib/constants';
+import type { AllowedJobPostingEmployerType } from '@/lib/constants';
 
 // ============================================================================
 // Types
@@ -244,7 +244,7 @@ export function validateEmployerType(employerType: string | null | undefined): V
     return { valid: false, error: 'Employer type is required' };
   }
 
-  if (!ALLOWED_JOB_POSTING_EMPLOYER_TYPES.includes(employerType as EmployerType)) {
+  if (!ALLOWED_JOB_POSTING_EMPLOYER_TYPES.includes(employerType as AllowedJobPostingEmployerType)) {
     return { valid: false, error: 'Only contractors and developers can post jobs' };
   }
 

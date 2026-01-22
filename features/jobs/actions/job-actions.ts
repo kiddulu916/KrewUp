@@ -6,6 +6,7 @@ import { redirect } from 'next/navigation';
 import { cookies } from 'next/headers';
 import * as Sentry from '@sentry/nextjs';
 import { ALLOWED_JOB_POSTING_EMPLOYER_TYPES } from '@/lib/constants';
+import type { AllowedJobPostingEmployerType } from '@/lib/constants';
 import type { GeoCoords } from '@/types';
 import type { Job } from '@/types/database';
 import { assertValidCsrfToken } from '@/lib/security/csrf';
@@ -90,7 +91,7 @@ export async function createJob(
   // Step 2: Must be allowed employer type
   if (
     !profile?.employer_type ||
-    !ALLOWED_JOB_POSTING_EMPLOYER_TYPES.includes(profile.employer_type as any)
+    !ALLOWED_JOB_POSTING_EMPLOYER_TYPES.includes(profile.employer_type as AllowedJobPostingEmployerType)
   ) {
     return {
       success: false,
