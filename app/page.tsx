@@ -151,7 +151,7 @@ export default async function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center gap-2">
-              <Image src="/logo.png" alt="KrewUp" width={40} height={40} />
+              <Image src="/logo.png" alt="KrewUp" width={40} height={40} priority />
               <span className="text-xl font-bold text-slate-900">KrewUp</span>
             </div>
             <div className="hidden md:flex items-center gap-6">
@@ -181,8 +181,8 @@ export default async function Home() {
       <section className="relative pt-32 pb-20 px-4 overflow-hidden">
         {/* Background gradient */}
         <div className="absolute inset-0 bg-linear-to-br from-blue-50 via-white to-orange-50" />
-        <div className="absolute top-20 left-10 w-96 h-96 bg-blue-400 opacity-10 rounded-full blur-3xl" />
-        <div className="absolute bottom-20 right-10 w-96 h-96 bg-orange-400 opacity-10 rounded-full blur-3xl" />
+        <div className="absolute top-20 left-10 w-96 h-96 bg-blue-400 opacity-10 rounded-full blur-xl" />
+        <div className="absolute bottom-20 right-10 w-96 h-96 bg-orange-400 opacity-10 rounded-full blur-xl" />
 
         <div className="max-w-7xl mx-auto relative z-10">
           <div className="text-center max-w-4xl mx-auto">
@@ -249,7 +249,7 @@ export default async function Home() {
 
       {/* Trades Ticker */}
       <section className="py-8 bg-slate-900 overflow-hidden">
-        <div className="flex motion-safe:animate-scroll motion-reduce:animate-none">
+        <div className="flex motion-safe:animate-scroll motion-reduce:animate-none will-change-transform">
           {[...TRADES, ...TRADES].map((trade, i) => (
             <div
               key={`${trade}-${i}`}
