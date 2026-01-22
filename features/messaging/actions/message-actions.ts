@@ -7,6 +7,7 @@ import { cookies } from 'next/headers';
 import { rateLimit, RATE_LIMITS } from '@/lib/security/rate-limit';
 import { logger, sanitizeUserId } from '@/lib/utils/logger';
 import { assertValidCsrfToken } from '@/lib/security/csrf';
+import type { Message } from '../types';
 
 export type MessageResult<T = Message | void> = {
   success: boolean;
