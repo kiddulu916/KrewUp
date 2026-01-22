@@ -42,12 +42,23 @@ export const metadata: Metadata = {
       'The premier platform for skilled trade professionals. Find jobs, connect with employers, and grow your career.',
     type: 'website',
     url: 'https://krewup.net',
-    images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'KrewUp' }],
+    siteName: 'KrewUp',
+    locale: 'en_US',
+    images: [
+      {
+        url: 'https://krewup.net/og-image.png',
+        width: 1200,
+        height: 630,
+        alt: 'KrewUp - Trade Jobs Platform',
+      },
+    ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'KrewUp - Trade Jobs Platform',
-    description: 'Connect skilled trade workers with employers.',
+    title: 'KrewUp - Connect Skilled Trade Workers with Employers',
+    description:
+      'The premier platform for skilled trade professionals. Find jobs, connect with employers, and grow your career.',
+    images: ['https://krewup.net/og-image.png'],
   },
 };
 
