@@ -237,14 +237,15 @@ export async function sendPushNotification(
         } catch (err: unknown) {
           failed++;
           // If subscription is expired/invalid, mark for removal
-          if (err && typeof err === 'object' && 'statusCode' in err && (err.statusCode === 404 || err.statusCode === 410)) {
+          const isWebPushError = err && typeof err === 'object' && 'statusCode' in err;
+          if (isWebPushError && (err.statusCode === 404 || err.statusCode === 410)) {
             expiredEndpoints.push(sub.endpoint);
           }
           logger.error('Push notification failed', {
             userId: sanitizeUserId(userId),
             endpoint: sub.endpoint,
-            statusCode: err.statusCode,
-            error: err.message,
+            statusCode: isWebPushError ? (err as { statusCode: number }).statusCode : undefined,
+            error: err instanceof Error ? err.message : String(err),
           });
         }
       })
