@@ -16,6 +16,8 @@ import {
   CheckCircle,
   Star,
   ArrowRight,
+  Check,
+  X,
 } from 'lucide-react';
 
 // * SEO Metadata
@@ -40,12 +42,23 @@ export const metadata: Metadata = {
       'The premier platform for skilled trade professionals. Find jobs, connect with employers, and grow your career.',
     type: 'website',
     url: 'https://krewup.net',
-    images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'KrewUp' }],
+    siteName: 'KrewUp',
+    locale: 'en_US',
+    images: [
+      {
+        url: 'https://krewup.net/og-image.png',
+        width: 1200,
+        height: 630,
+        alt: 'KrewUp - Trade Jobs Platform',
+      },
+    ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'KrewUp - Trade Jobs Platform',
-    description: 'Connect skilled trade workers with employers.',
+    title: 'KrewUp - Connect Skilled Trade Workers with Employers',
+    description:
+      'The premier platform for skilled trade professionals. Find jobs, connect with employers, and grow your career.',
+    images: ['https://krewup.net/og-image.png'],
   },
 };
 
@@ -138,7 +151,7 @@ export default async function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center gap-2">
-              <Image src="/logo.png" alt="KrewUp" width={40} height={40} />
+              <Image src="/logo.png" alt="KrewUp" width={40} height={40} priority />
               <span className="text-xl font-bold text-slate-900">KrewUp</span>
             </div>
             <div className="hidden md:flex items-center gap-6">
@@ -168,8 +181,8 @@ export default async function Home() {
       <section className="relative pt-32 pb-20 px-4 overflow-hidden">
         {/* Background gradient */}
         <div className="absolute inset-0 bg-linear-to-br from-blue-50 via-white to-orange-50" />
-        <div className="absolute top-20 left-10 w-96 h-96 bg-blue-400 opacity-10 rounded-full blur-3xl" />
-        <div className="absolute bottom-20 right-10 w-96 h-96 bg-orange-400 opacity-10 rounded-full blur-3xl" />
+        <div className="absolute top-20 left-10 w-96 h-96 bg-blue-400 opacity-10 rounded-full blur-xl" />
+        <div className="absolute bottom-20 right-10 w-96 h-96 bg-orange-400 opacity-10 rounded-full blur-xl" />
 
         <div className="max-w-7xl mx-auto relative z-10">
           <div className="text-center max-w-4xl mx-auto">
@@ -236,7 +249,7 @@ export default async function Home() {
 
       {/* Trades Ticker */}
       <section className="py-8 bg-slate-900 overflow-hidden">
-        <div className="flex motion-safe:animate-scroll motion-reduce:animate-none">
+        <div className="flex motion-safe:animate-scroll motion-reduce:animate-none will-change-transform">
           {[...TRADES, ...TRADES].map((trade, i) => (
             <div
               key={`${trade}-${i}`}
@@ -383,6 +396,114 @@ export default async function Home() {
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Pricing Comparison Section */}
+      <section className="py-20 px-4 bg-white">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-bold text-slate-900 mb-4">
+              Simple, Transparent Pricing
+            </h2>
+            <p className="text-xl text-slate-600 max-w-2xl mx-auto">
+              Start free and upgrade when you&apos;re ready. Unlock powerful Pro features to accelerate your success.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto mb-12">
+            {/* Free Plan */}
+            <div className="bg-white rounded-2xl p-8 shadow-sm border-2 border-slate-200">
+              <div className="mb-6">
+                <h3 className="text-2xl font-bold text-slate-900">Free</h3>
+                <p className="text-slate-600 mt-2">Everything you need to get started</p>
+              </div>
+              <div className="mb-6">
+                <span className="text-5xl font-extrabold text-slate-900">$0</span>
+                <span className="text-slate-600 ml-2">forever</span>
+              </div>
+              <ul className="space-y-3 mb-8">
+                {[
+                  'Create professional profile',
+                  'Browse and apply to jobs',
+                  'Direct messaging',
+                  'Upload certifications',
+                  'Post unlimited jobs (employers)',
+                  'Basic features included',
+                ].map((feature) => (
+                  <li key={feature} className="flex items-center gap-3 text-slate-700">
+                    <Check className="h-5 w-5 text-green-500 shrink-0" />
+                    {feature}
+                  </li>
+                ))}
+              </ul>
+              <Link href={user ? '/dashboard/feed' : '/signup'} className="block">
+                <Button variant="outline" className="w-full" size="lg">
+                  {user ? 'Go to Dashboard' : 'Get Started Free'}
+                </Button>
+              </Link>
+            </div>
+
+            {/* Pro Plan */}
+            <div className="bg-linear-to-br from-blue-600 to-blue-500 rounded-2xl p-8 shadow-xl border-2 border-blue-600 relative">
+              <div className="absolute -top-4 right-8">
+                <span className="bg-orange-500 text-white px-4 py-1 rounded-full text-sm font-semibold">
+                  MOST POPULAR
+                </span>
+              </div>
+              <div className="mb-6">
+                <h3 className="text-2xl font-bold text-white">Pro</h3>
+                <p className="text-blue-100 mt-2">Advanced features for serious professionals</p>
+              </div>
+              <div className="mb-6">
+                <span className="text-5xl font-extrabold text-white">$29</span>
+                <span className="text-blue-100 ml-2">/month</span>
+                <div className="text-blue-100 text-sm mt-1">or $290/year (save $58)</div>
+              </div>
+              <ul className="space-y-3 mb-8">
+                {[
+                  'Everything in Free, plus:',
+                  'Profile boost (appear first)',
+                  'Proximity alerts for new jobs',
+                  'See who viewed your profile',
+                  'Custom screening questions',
+                  'Advanced analytics dashboard',
+                  'Priority support',
+                ].map((feature) => (
+                  <li key={feature} className="flex items-center gap-3 text-white">
+                    {feature === 'Everything in Free, plus:' ? (
+                      <span className="font-semibold">{feature}</span>
+                    ) : (
+                      <>
+                        <Check className="h-5 w-5 text-blue-200 shrink-0" />
+                        {feature}
+                      </>
+                    )}
+                  </li>
+                ))}
+              </ul>
+              <Link href="/pricing" className="block">
+                <Button
+                  className="w-full bg-white text-blue-600 hover:bg-blue-50"
+                  size="lg"
+                >
+                  Upgrade to Pro
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </Button>
+              </Link>
+            </div>
+          </div>
+
+          {/* Link to full pricing page */}
+          <div className="text-center">
+            <Link
+              href="/pricing"
+              className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 font-semibold text-lg transition-colors"
+            >
+              View detailed feature comparison
+              <ArrowRight className="h-5 w-5" />
+            </Link>
           </div>
         </div>
       </section>

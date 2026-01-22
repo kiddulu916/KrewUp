@@ -17,6 +17,22 @@ export const metadata: Metadata = {
     description: 'Free and Pro plans for workers and employers. Start free, upgrade when ready.',
     type: 'website',
     url: 'https://krewup.net/pricing',
+    siteName: 'KrewUp',
+    locale: 'en_US',
+    images: [
+      {
+        url: 'https://krewup.net/og-image.png',
+        width: 1200,
+        height: 630,
+        alt: 'KrewUp Pricing - Trade Jobs Platform',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'KrewUp Pricing - Plans for Trade Professionals',
+    description: 'Free and Pro plans for workers and employers. Start free, upgrade when ready.',
+    images: ['https://krewup.net/og-image.png'],
   },
 };
 
