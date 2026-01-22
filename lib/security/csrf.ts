@@ -1,5 +1,6 @@
 import { cookies } from 'next/headers';
 import crypto from 'crypto';
+import { type NextRequest, NextResponse } from 'next/server';
 
 const CSRF_COOKIE_NAME = 'ku_csrf_secret';
 const CSRF_TOKEN_PURPOSE = 'krewup-csrf-token';
@@ -21,22 +22,48 @@ function deriveTokenFromSecret(secret: string): string {
 }
 
 /**
- * * Returns an existing CSRF token or creates a new per-session secret + token.
+ * * Ensures a CSRF cookie exists in the response (for use in middleware only).
+ * * This function can modify cookies because it's called from middleware.
  */
-export async function getOrCreateCsrfToken(): Promise<string> {
-  const cookieStore = await cookies();
-  let secret = cookieStore.get(CSRF_COOKIE_NAME)?.value;
+export function ensureCsrfCookie(
+  request: NextRequest,
+  response: NextResponse
+): NextResponse {
+  const existingSecret = request.cookies.get(CSRF_COOKIE_NAME)?.value;
 
-  if (!secret) {
+  if (!existingSecret) {
     const randomBytes = crypto.randomBytes(32);
-    secret = randomBytes.toString('hex');
+    const secret = randomBytes.toString('hex');
 
-    cookieStore.set(CSRF_COOKIE_NAME, secret, {
+    response.cookies.set(CSRF_COOKIE_NAME, secret, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
       path: '/',
     });
+  }
+
+  return response;
+}
+
+/**
+ * * Returns an existing CSRF token from cookies.
+ * * Note: This function only reads cookies (does not set them).
+ * * Cookies must be set in middleware using ensureCsrfCookie().
+ * * 
+ * * If the cookie doesn't exist (which shouldn't happen if middleware ran),
+ * * this will throw an error to prevent security issues.
+ */
+export async function getOrCreateCsrfToken(): Promise<string> {
+  const cookieStore = await cookies();
+  const secret = cookieStore.get(CSRF_COOKIE_NAME)?.value;
+
+  if (!secret) {
+    // * This should never happen if middleware is working correctly.
+    // * Throw an error to make the issue visible rather than silently failing.
+    throw new Error(
+      'CSRF secret cookie not found. Middleware may not have run correctly.'
+    );
   }
 
   return deriveTokenFromSecret(secret);
