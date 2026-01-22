@@ -1,5 +1,6 @@
 import { updateSession } from '@/lib/supabase/middleware';
 import { type NextRequest } from 'next/server';
+import { ensureCsrfCookie } from '@/lib/security/csrf';
 
 /**
  * Next.js Middleware
@@ -7,6 +8,7 @@ import { type NextRequest } from 'next/server';
  * This middleware runs on every request and:
  * 1. Refreshes Supabase auth sessions automatically
  * 2. Ensures users stay authenticated across page navigations
+ * 3. Ensures CSRF cookie exists for security
  *
  * You can add custom logic here for:
  * - Protected routes (redirect to login if not authenticated)
@@ -14,7 +16,8 @@ import { type NextRequest } from 'next/server';
  * - Custom redirects based on subscription status
  */
 export async function middleware(request: NextRequest) {
-  return await updateSession(request);
+  const response = await updateSession(request);
+  return ensureCsrfCookie(request, response);
 }
 
 /**
