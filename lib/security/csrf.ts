@@ -1,24 +1,55 @@
 import { cookies } from 'next/headers';
-import crypto from 'crypto';
 import { type NextRequest, NextResponse } from 'next/server';
 
 const CSRF_COOKIE_NAME = 'ku_csrf_secret';
 const CSRF_TOKEN_PURPOSE = 'krewup-csrf-token';
 
-// * Encodes a buffer to URL-safe base64 without padding
-function toBase64Url(input: Buffer): string {
-  return input
-    .toString('base64')
+// * Encodes a Uint8Array to URL-safe base64 without padding
+function toBase64Url(input: Uint8Array): string {
+  // * Convert Uint8Array to base64 string
+  // * Use chunking to avoid spread operator limitations with large arrays
+  let binary = '';
+  for (let i = 0; i < input.length; i++) {
+    binary += String.fromCharCode(input[i]);
+  }
+  const base64 = btoa(binary);
+  return base64
     .replace(/\+/g, '-')
     .replace(/\//g, '_')
     .replace(/=+$/g, '');
 }
 
+// * Constant-time comparison to prevent timing attacks
+function timingSafeEqual(a: Uint8Array, b: Uint8Array): boolean {
+  if (a.length !== b.length) {
+    return false;
+  }
+  let result = 0;
+  for (let i = 0; i < a.length; i++) {
+    result |= a[i] ^ b[i];
+  }
+  return result === 0;
+}
+
 // * Derives a CSRF token from a per-session secret using HMAC
-function deriveTokenFromSecret(secret: string): string {
-  const hmac = crypto.createHmac('sha256', secret);
-  hmac.update(CSRF_TOKEN_PURPOSE);
-  return toBase64Url(hmac.digest());
+async function deriveTokenFromSecret(secret: string): Promise<string> {
+  // * Convert secret string to Uint8Array for Web Crypto API
+  const secretKey = new TextEncoder().encode(secret);
+  const purposeBytes = new TextEncoder().encode(CSRF_TOKEN_PURPOSE);
+
+  // * Import key for HMAC
+  const key = await crypto.subtle.importKey(
+    'raw',
+    secretKey,
+    { name: 'HMAC', hash: 'SHA-256' },
+    false,
+    ['sign']
+  );
+
+  // * Sign the purpose string
+  const signature = await crypto.subtle.sign('HMAC', key, purposeBytes);
+
+  return toBase64Url(new Uint8Array(signature));
 }
 
 /**
@@ -32,8 +63,14 @@ export function ensureCsrfCookie(
   const existingSecret = request.cookies.get(CSRF_COOKIE_NAME)?.value;
 
   if (!existingSecret) {
-    const randomBytes = crypto.randomBytes(32);
-    const secret = randomBytes.toString('hex');
+    // * Generate 32 random bytes using Web Crypto API
+    const randomBytes = new Uint8Array(32);
+    crypto.getRandomValues(randomBytes);
+    
+    // * Convert to hex string for cookie storage
+    const secret = Array.from(randomBytes)
+      .map(b => b.toString(16).padStart(2, '0'))
+      .join('');
 
     response.cookies.set(CSRF_COOKIE_NAME, secret, {
       httpOnly: true,
@@ -66,7 +103,7 @@ export async function getOrCreateCsrfToken(): Promise<string> {
     );
   }
 
-  return deriveTokenFromSecret(secret);
+  return await deriveTokenFromSecret(secret);
 }
 
 /**
@@ -86,19 +123,36 @@ export async function validateCsrfToken(
     return { ok: false, error: 'Missing CSRF secret' };
   }
 
-  const expectedToken = deriveTokenFromSecret(secret);
+  const expectedToken = await deriveTokenFromSecret(secret);
 
-  const providedBuffer = Buffer.from(providedToken);
-  const expectedBuffer = Buffer.from(expectedToken);
-
-  if (
-    providedBuffer.length !== expectedBuffer.length ||
-    !crypto.timingSafeEqual(providedBuffer, expectedBuffer)
-  ) {
-    return { ok: false, error: 'Invalid CSRF token' };
+  // * Decode base64url strings to Uint8Array for comparison
+  // * Base64url uses - and _ instead of + and /, and no padding
+  function base64UrlDecode(input: string): Uint8Array {
+    // * Replace base64url characters back to base64
+    let base64 = input.replace(/-/g, '+').replace(/_/g, '/');
+    // * Add padding if needed
+    while (base64.length % 4) {
+      base64 += '=';
+    }
+    // * Decode base64 to binary string
+    const binary = atob(base64);
+    // * Convert binary string to Uint8Array
+    return new Uint8Array(binary.split('').map(c => c.charCodeAt(0)));
   }
 
-  return { ok: true };
+  try {
+    const providedBytes = base64UrlDecode(providedToken);
+    const expectedBytes = base64UrlDecode(expectedToken);
+
+    if (!timingSafeEqual(providedBytes, expectedBytes)) {
+      return { ok: false, error: 'Invalid CSRF token' };
+    }
+
+    return { ok: true };
+  } catch {
+    // * If decoding fails, token is invalid
+    return { ok: false, error: 'Invalid CSRF token format' };
+  }
 }
 
 /**
