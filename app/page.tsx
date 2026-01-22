@@ -16,6 +16,8 @@ import {
   CheckCircle,
   Star,
   ArrowRight,
+  Check,
+  X,
 } from 'lucide-react';
 
 // * SEO Metadata
@@ -383,6 +385,114 @@ export default async function Home() {
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Pricing Comparison Section */}
+      <section className="py-20 px-4 bg-white">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-bold text-slate-900 mb-4">
+              Simple, Transparent Pricing
+            </h2>
+            <p className="text-xl text-slate-600 max-w-2xl mx-auto">
+              Start free and upgrade when you&apos;re ready. Unlock powerful Pro features to accelerate your success.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto mb-12">
+            {/* Free Plan */}
+            <div className="bg-white rounded-2xl p-8 shadow-sm border-2 border-slate-200">
+              <div className="mb-6">
+                <h3 className="text-2xl font-bold text-slate-900">Free</h3>
+                <p className="text-slate-600 mt-2">Everything you need to get started</p>
+              </div>
+              <div className="mb-6">
+                <span className="text-5xl font-extrabold text-slate-900">$0</span>
+                <span className="text-slate-600 ml-2">forever</span>
+              </div>
+              <ul className="space-y-3 mb-8">
+                {[
+                  'Create professional profile',
+                  'Browse and apply to jobs',
+                  'Direct messaging',
+                  'Upload certifications',
+                  'Post unlimited jobs (employers)',
+                  'Basic features included',
+                ].map((feature) => (
+                  <li key={feature} className="flex items-center gap-3 text-slate-700">
+                    <Check className="h-5 w-5 text-green-500 shrink-0" />
+                    {feature}
+                  </li>
+                ))}
+              </ul>
+              <Link href={user ? '/dashboard/feed' : '/signup'} className="block">
+                <Button variant="outline" className="w-full" size="lg">
+                  {user ? 'Go to Dashboard' : 'Get Started Free'}
+                </Button>
+              </Link>
+            </div>
+
+            {/* Pro Plan */}
+            <div className="bg-linear-to-br from-blue-600 to-blue-500 rounded-2xl p-8 shadow-xl border-2 border-blue-600 relative">
+              <div className="absolute -top-4 right-8">
+                <span className="bg-orange-500 text-white px-4 py-1 rounded-full text-sm font-semibold">
+                  MOST POPULAR
+                </span>
+              </div>
+              <div className="mb-6">
+                <h3 className="text-2xl font-bold text-white">Pro</h3>
+                <p className="text-blue-100 mt-2">Advanced features for serious professionals</p>
+              </div>
+              <div className="mb-6">
+                <span className="text-5xl font-extrabold text-white">$29</span>
+                <span className="text-blue-100 ml-2">/month</span>
+                <div className="text-blue-100 text-sm mt-1">or $290/year (save $58)</div>
+              </div>
+              <ul className="space-y-3 mb-8">
+                {[
+                  'Everything in Free, plus:',
+                  'Profile boost (appear first)',
+                  'Proximity alerts for new jobs',
+                  'See who viewed your profile',
+                  'Custom screening questions',
+                  'Advanced analytics dashboard',
+                  'Priority support',
+                ].map((feature) => (
+                  <li key={feature} className="flex items-center gap-3 text-white">
+                    {feature === 'Everything in Free, plus:' ? (
+                      <span className="font-semibold">{feature}</span>
+                    ) : (
+                      <>
+                        <Check className="h-5 w-5 text-blue-200 shrink-0" />
+                        {feature}
+                      </>
+                    )}
+                  </li>
+                ))}
+              </ul>
+              <Link href="/pricing" className="block">
+                <Button
+                  className="w-full bg-white text-blue-600 hover:bg-blue-50"
+                  size="lg"
+                >
+                  Upgrade to Pro
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </Button>
+              </Link>
+            </div>
+          </div>
+
+          {/* Link to full pricing page */}
+          <div className="text-center">
+            <Link
+              href="/pricing"
+              className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 font-semibold text-lg transition-colors"
+            >
+              View detailed feature comparison
+              <ArrowRight className="h-5 w-5" />
+            </Link>
           </div>
         </div>
       </section>
