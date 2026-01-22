@@ -4,6 +4,11 @@
  * * Uses Upstash Redis for distributed rate limiting when configured
  * * Falls back to in-memory store for local development and tests
  * ! In-memory store is NOT suitable for production in multi-instance deployments
+ * ! Redis is REQUIRED for production deployments
+ *
+ * Required environment variables for production:
+ * - UPSTASH_REDIS_REST_URL
+ * - UPSTASH_REDIS_REST_TOKEN
  *
  * @see https://upstash.com/docs/redis/sdks/ratelimit-ts/overview
  */
@@ -12,6 +17,12 @@ import { headers } from 'next/headers';
 import * as Sentry from '@sentry/nextjs';
 import { Ratelimit } from '@upstash/ratelimit';
 import { Redis } from '@upstash/redis';
+
+// * Environment detection
+// Production is determined by NODE_ENV or VERCEL_ENV
+const isProduction =
+  process.env.NODE_ENV === 'production' ||
+  process.env.VERCEL_ENV === 'production';
 
 // * Rate limit configuration per action type
 export type RateLimitConfig = {
@@ -113,12 +124,58 @@ export type RateLimitResult = {
 /**
  * Upstash Redis-backed rate limiter (distributed across function instances)
  * Uses fixed window algorithm per (limit, windowSeconds) configuration.
+ *
+ * ! Required in production - without it, rate limiting is not distributed
+ * ! across serverless function instances, allowing attackers to bypass limits
  */
 const isUpstashConfigured =
   Boolean(process.env.UPSTASH_REDIS_REST_URL) &&
   Boolean(process.env.UPSTASH_REDIS_REST_TOKEN);
 
 const upstashRedis = isUpstashConfigured ? Redis.fromEnv() : null;
+
+/**
+ * Validates that Redis is configured in production environments
+ *
+ * ! Throws an error in production if Redis is not configured
+ * * Logs a warning in development when falling back to in-memory
+ *
+ * @throws Error if in production and Redis is not configured
+ */
+function validateRedisConfig(): void {
+  if (!isUpstashConfigured) {
+    if (isProduction) {
+      const error = new Error(
+        'Redis rate limiting is not configured in production. ' +
+        'Set UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN environment variables.'
+      );
+
+      // ! Capture to Sentry for immediate alerting
+      Sentry.captureException(error, {
+        level: 'fatal',
+        tags: {
+          component: 'rate-limiter',
+          environment: process.env.VERCEL_ENV || process.env.NODE_ENV,
+          rateLimiter: 'validation',
+        },
+        extra: {
+          hasRestUrl: Boolean(process.env.UPSTASH_REDIS_REST_URL),
+          hasRestToken: Boolean(process.env.UPSTASH_REDIS_REST_TOKEN),
+          nodeEnv: process.env.NODE_ENV,
+          vercelEnv: process.env.VERCEL_ENV,
+        },
+      });
+
+      throw error;
+    } else {
+      // * Development mode - log warning but allow in-memory fallback
+      console.warn(
+        '[Rate Limiter] Redis not configured. Falling back to in-memory store. ' +
+        'This is NOT suitable for production with multiple serverless instances.'
+      );
+    }
+  }
+}
 
 const upstashLimiters = new Map<string, Ratelimit>();
 
@@ -157,12 +214,16 @@ export async function checkRateLimit(
   actionKey: string,
   config: RateLimitConfig
 ): Promise<RateLimitResult> {
-  const identifier = config.identifier 
-    ? await config.identifier() 
+  const identifier = config.identifier
+    ? await config.identifier()
     : await getClientIdentifier();
-  
+
   const key = `${actionKey}:${identifier}`;
   const now = Date.now();
+
+  // ! Validate Redis configuration before attempting rate limiting
+  // This will throw in production if Redis is not configured
+  validateRedisConfig();
 
   // * Prefer distributed rate limiting via Upstash when configured
   const upstashLimiter = getUpstashLimiter(config);
