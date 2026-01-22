@@ -1,11 +1,11 @@
 {
   "active": true,
   "spec": "014-sanitize-sensitive-data-from-production-logs",
-  "state": "building",
+  "state": "complete",
   "subtasks": {
-    "completed": 13,
+    "completed": 14,
     "total": 14,
-    "in_progress": 1,
+    "in_progress": 0,
     "failed": 0
   },
   "phase": {
@@ -21,5 +21,5 @@
     "number": 2,
     "started_at": "2026-01-21T14:48:01.917117"
   },
-  "last_update": "2026-01-21T14:50:47.392210"
+  "last_update": "2026-01-21T14:55:42.362010"
 }
