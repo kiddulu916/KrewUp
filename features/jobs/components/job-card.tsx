@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { Badge, Card, CardContent } from '@/components/ui';
-import { calculateDistance, formatDistance } from '../utils/distance';
+import { calculateDistance, formatDistance, parsePostGISPoint } from '../utils/distance';
 import { useIsPro } from '@/features/subscriptions/hooks/use-subscription';
 import { useIsWorker } from '@/features/auth/hooks/use-auth';
 import { calculateCompatibility, getScoreBadgeColor } from '../utils/compatibility-scoring';
@@ -56,13 +56,13 @@ function JobCardComponent({ job, userCoords, currentUser }: JobCardProps) {
         required_certifications: job.required_certs || [],
         years_experience_required: null, // Field doesn't exist - always gives full 20 points
         location: job.location,
-        coords: job.coords,
+        coords: typeof job.coords === 'string' ? parsePostGISPoint(job.coords) : (job.coords ?? null),
       },
       worker: {
         trade: currentUser.trade || '',
         sub_trade: currentUser.sub_trade || null,
         location: currentUser.location || '',
-        coords: currentUser.coords,
+        coords: currentUser.coords ?? null,
       },
       workerCerts: (currentUser.certifications || []).map(c => c.certification_type || c.name).filter((c): c is string => Boolean(c)),
       workerExperience: currentUser.years_of_experience || 0,
