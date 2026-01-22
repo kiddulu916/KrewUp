@@ -26,6 +26,7 @@ describe('useCreateJob', () => {
     sub_trades: ['Inside Wireman (Commercial)'],
     job_type: 'full-time' as const,
     pay_rate: '$35-45/hr',
+    csrfToken: 'mock-csrf-token',
   };
 
   it('should return mutation functions', () => {
@@ -127,6 +128,7 @@ describe('useCreateJob', () => {
       trades: ['General Laborer'],
       job_type: 'temporary' as const,
       pay_rate: '$20/hr',
+      csrfToken: 'mock-csrf-token',
     };
 
     mockCreateJob.mockResolvedValue(mockActionSuccess({ jobId: 'minimal-job' }));
@@ -149,6 +151,7 @@ describe('useCreateJob', () => {
         { question: 'Do you have a valid drivers license?', required: true },
         { question: 'Can you pass a background check?', required: true },
       ],
+      csrfToken: 'mock-csrf-token',
     };
 
     mockCreateJob.mockResolvedValue(mockActionSuccess({ jobId: 'job-with-questions' }));
@@ -169,6 +172,7 @@ describe('useCreateJob', () => {
       ...validJobData,
       job_type: 'contract' as const,
       pay_rate: '$5000/contract',
+      csrfToken: 'mock-csrf-token',
     };
 
     mockCreateJob.mockResolvedValue(mockActionSuccess({ jobId: 'contract-job' }));

@@ -7,7 +7,7 @@ export function useCreateJob() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (data: JobData) => {
+    mutationFn: async (data: JobData & { csrfToken: string }) => {
       const result = await createJob(data);
       if (!result.success) {
         throw new Error(result.error || 'Failed to create job');
