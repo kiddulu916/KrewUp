@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
 import { cookies } from 'next/headers';
 import { logger } from '@/lib/utils/logger';
+import type { WorkExperience } from '../types';
 
 export type ExperienceData = {
   job_title: string;
@@ -14,7 +15,7 @@ export type ExperienceData = {
   description?: string;
 };
 
-export type ExperienceResult<T = Experience | Experience[]> = {
+export type ExperienceResult<T = WorkExperience | WorkExperience[]> = {
   success: boolean;
   data?: T;
   error?: string;
