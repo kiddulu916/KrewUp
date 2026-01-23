@@ -119,7 +119,7 @@ export async function deletePortfolioPhoto(imageId: string): Promise<{ success: 
 
   const parseResult = deletePortfolioPhotoSchema.safeParse({ imageId });
   if (!parseResult.success) {
-    return { success: false, error: parseResult.error.errors[0]?.message ?? 'Invalid image ID' };
+    return { success: false, error: parseResult.error.issues[0]?.message ?? 'Invalid image ID' };
   }
 
   // 1. Get authenticated user
@@ -191,7 +191,7 @@ export async function reorderPortfolioPhotos(imageIds: string[]): Promise<{ succ
 
   const parseResult = reorderPortfolioPhotosSchema.safeParse({ imageIds });
   if (!parseResult.success) {
-    return { success: false, error: parseResult.error.errors[0]?.message ?? 'Invalid image ID format' };
+    return { success: false, error: parseResult.error.issues[0]?.message ?? 'Invalid image ID format' };
   }
 
   // 2. Update all images in parallel with error handling
