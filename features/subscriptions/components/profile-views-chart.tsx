@@ -182,7 +182,7 @@ export function ProfileViewsChart() {
                     month: 'long',
                     day: 'numeric',
                   })}
-                  formatter={(value: number) => [value, 'Views']}
+                  formatter={(value) => [value ?? 0, 'Views']}
                   contentStyle={{
                     backgroundColor: 'white',
                     border: '1px solid #e5e7eb',
