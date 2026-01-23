@@ -67,3 +67,10 @@ scripts/output/*.json
 .auto-claude/worktrees/
 .venv/
 .auto-claude/
+
+# Auto Claude generated files
+.auto-claude-security.json
+.auto-claude-status
+.claude_settings.json
+.security-key
+logs/security/
