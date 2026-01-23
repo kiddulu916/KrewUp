@@ -110,7 +110,7 @@ export function CertificationForm({ role = 'worker', employerType, onSuccess, on
         const uploadResult = await uploadCertificationPhoto(photoFile);
         setIsUploading(false);
 
-        if (!uploadResult.success) {
+        if (!uploadResult.success || !uploadResult.data) {
           throw new Error(uploadResult.error || 'Failed to upload photo');
         }
 
