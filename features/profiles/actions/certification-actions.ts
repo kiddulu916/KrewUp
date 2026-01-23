@@ -169,7 +169,7 @@ export async function deleteCertification(
 /**
  * Upload certification photo to Supabase Storage
  */
-export async function uploadCertificationPhoto(file: File): Promise<CertificationResult> {
+export async function uploadCertificationPhoto(file: File): Promise<CertificationResult<{ url: string; path: string }>> {
   const supabase = await createClient(await cookies());
 
   const {
