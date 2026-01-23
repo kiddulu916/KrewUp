@@ -76,7 +76,6 @@ export async function activateProfileBoost() {
     return { success: true, expiresAt: expiresAt.toISOString() };
   } catch (error: any) {
     logger.error('Error in activateProfileBoost', {
-      userId: sanitizeUserId(user.id),
       error: error.message || String(error)
     });
     return { success: false, error: error.message || 'Failed to activate profile boost' };
@@ -119,7 +118,6 @@ export async function deactivateProfileBoost() {
     return { success: true };
   } catch (error: any) {
     logger.error('Error in deactivateProfileBoost', {
-      userId: sanitizeUserId(user.id),
       error: error.message || String(error)
     });
     return { success: false, error: error.message || 'Failed to deactivate profile boost' };
@@ -168,7 +166,6 @@ export async function getBoostStatus() {
     };
   } catch (error: any) {
     logger.error('Error in getBoostStatus', {
-      userId: sanitizeUserId(user.id),
       error: error.message || String(error)
     });
     return { success: false, error: error.message || 'Failed to fetch boost status' };
