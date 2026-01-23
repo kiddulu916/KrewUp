@@ -23,6 +23,14 @@ type Props = {
 export function CertificationForm({ role = 'worker', employerType, onSuccess, onCancel }: Props) {
   const router = useRouter();
   const toast = useToast();
+  
+  // Determine credential type based on user role (must be before useAsyncAction)
+  const isContractor = role === 'employer' && employerType === 'contractor';
+  const credentialCategory = isContractor ? 'license' : 'certification';
+  const credentialLabel = isContractor ? 'License' : 'Certification';
+  const availableCategories = isContractor ? LICENSE_CATEGORIES : CERTIFICATION_CATEGORIES;
+  const flatOptions = isContractor ? ALL_LICENSES : ALL_CERTIFICATIONS;
+
   const [isUploading, setIsUploading] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const { execute, isLoading, error } = useAsyncAction({
@@ -34,13 +42,6 @@ export function CertificationForm({ role = 'worker', employerType, onSuccess, on
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
-
-  // Determine credential type based on user role
-  const isContractor = role === 'employer' && employerType === 'contractor';
-  const credentialCategory = isContractor ? 'license' : 'certification';
-  const credentialLabel = isContractor ? 'License' : 'Certification';
-  const availableCategories = isContractor ? LICENSE_CATEGORIES : CERTIFICATION_CATEGORIES;
-  const flatOptions = isContractor ? ALL_LICENSES : ALL_CERTIFICATIONS;
 
   const [formData, setFormData] = useState({
     selectedCategory: '',
