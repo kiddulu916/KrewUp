@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
 import { cookies } from 'next/headers';
 import { logger } from '@/lib/utils/logger';
+import type { Education } from '../types';
 
 export type EducationData = {
   institution: string;
