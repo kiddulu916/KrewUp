@@ -30,10 +30,16 @@ function sanitizeData(data: unknown): unknown {
     return data;
   }
 
+  // * Handle arrays separately
+  if (Array.isArray(data)) {
+    return data.map(item => sanitizeData(item));
+  }
+
   // * List of known PII field names
   const piiFields = ['user_id', 'userId', 'user.id', 'id', 'email', 'phone', 'password', 'token', 'session'];
   
-  const sanitized = Array.isArray(data) ? [...data] : { ...data };
+  // * Type as Record to allow string indexing
+  const sanitized: Record<string, unknown> = { ...data as Record<string, unknown> };
   
   for (const key in sanitized) {
     const lowerKey = key.toLowerCase();
@@ -41,14 +47,14 @@ function sanitizeData(data: unknown): unknown {
     // * Hash user IDs
     if (lowerKey.includes('user') && lowerKey.includes('id')) {
       if (typeof sanitized[key] === 'string') {
-        sanitized[key] = `[user:${hashUserId(sanitized[key])}]`;
+        sanitized[key] = `[user:${hashUserId(sanitized[key] as string)}]`;
       }
     }
     
     // * Remove or mask other PII
     if (piiFields.some(field => lowerKey.includes(field.toLowerCase()))) {
       if (lowerKey.includes('id') && typeof sanitized[key] === 'string') {
-        sanitized[key] = `[id:${hashUserId(sanitized[key])}]`;
+        sanitized[key] = `[id:${hashUserId(sanitized[key] as string)}]`;
       } else if (lowerKey.includes('email')) {
         sanitized[key] = '[email:redacted]';
       } else if (lowerKey.includes('phone')) {
