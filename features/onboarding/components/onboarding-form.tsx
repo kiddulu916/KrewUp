@@ -183,7 +183,7 @@ export function OnboardingForm({ initialName = '', initialEmail = '' }: Props) {
         const uploadResult = await uploadCertificationPhoto(licenseFile);
         setIsUploadingLicense(false);
 
-        if (!uploadResult.success) {
+        if (!uploadResult.success || !uploadResult.data) {
           throw new Error(uploadResult.error || 'Failed to upload license photo');
         }
 
