@@ -111,7 +111,7 @@ export const safeLogger = {
    * Sanitizes PII before logging to Sentry
    */
   warn: (message: string, extra?: Record<string, any>): void => {
-    const sanitizedExtra = extra ? sanitizeData(extra) : undefined;
+    const sanitizedExtra = extra ? sanitizeData(extra) as Record<string, any> : undefined;
     
     Sentry.captureMessage(message, {
       level: 'warning',
@@ -129,7 +129,7 @@ export const safeLogger = {
    * Sanitizes PII before logging to Sentry
    */
   error: (error: Error | unknown, context?: Record<string, any>): void => {
-    const sanitizedContext = context ? sanitizeData(context) : undefined;
+    const sanitizedContext = context ? sanitizeData(context) as Record<string, any> : undefined;
     
     Sentry.captureException(error, {
       extra: sanitizedContext,
