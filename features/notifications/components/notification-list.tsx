@@ -21,8 +21,9 @@ export function NotificationList() {
   const handleMarkAsRead = useCallback(async (notification: Notification) => {
     if (notification.read_at) {
       // If already read, just navigate
-      if (notification.data?.link) {
-        window.location.href = notification.data.link;
+      const link = notification.data?.link;
+      if (link && typeof link === 'string') {
+        window.location.href = link;
       }
       return;
     }
@@ -31,8 +32,9 @@ export function NotificationList() {
     queryClient.invalidateQueries({ queryKey: ['notifications'] });
 
     // Navigate if there's a link
-    if (notification.data?.link) {
-      window.location.href = notification.data.link;
+    const link = notification.data?.link;
+    if (link && typeof link === 'string') {
+      window.location.href = link;
     }
   }, [queryClient]);
 
