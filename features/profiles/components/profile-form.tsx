@@ -337,7 +337,20 @@ export function ProfileForm({ initialData, certifications = [], workExperience =
                 {certifications && certifications.length > 0 ? (
                   <div className="space-y-3">
                     {certifications.map((cert) => (
-                      <CertificationItem key={cert.id} cert={cert} />
+                      <CertificationItem
+                        key={cert.id}
+                        cert={{
+                          id: cert.id,
+                          credential_category: cert.credential_category || 'license',
+                          certification_type: cert.certification_type || cert.name,
+                          certification_number: cert.credential_id || null,
+                          issued_by: cert.issuing_organization || null,
+                          expires_at: cert.expiration_date || null,
+                          is_verified: cert.verification_status === 'verified',
+                          verification_status: cert.verification_status,
+                          rejection_reason: cert.rejection_reason || null,
+                        }}
+                      />
                     ))}
                   </div>
                 ) : (
@@ -421,7 +434,20 @@ export function ProfileForm({ initialData, certifications = [], workExperience =
             {certifications && certifications.length > 0 ? (
               <div className="space-y-3">
                 {certifications.map((cert) => (
-                  <CertificationItem key={cert.id} cert={cert} />
+                  <CertificationItem
+                    key={cert.id}
+                    cert={{
+                      id: cert.id,
+                      credential_category: cert.credential_category || 'certification',
+                      certification_type: cert.certification_type || cert.name,
+                      certification_number: cert.credential_id || null,
+                      issued_by: cert.issuing_organization || null,
+                      expires_at: cert.expiration_date || null,
+                      is_verified: cert.verification_status === 'verified',
+                      verification_status: cert.verification_status,
+                      rejection_reason: cert.rejection_reason || null,
+                    }}
+                  />
                 ))}
               </div>
             ) : (
