@@ -4,6 +4,8 @@ import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
 import { cookies } from 'next/headers';
 import { logger } from '@/lib/utils/logger';
+import type { Certification } from '../types';
+import type { License } from '@/lib/types/profile.types';
 
 export type CertificationData = {
   credential_category: 'license' | 'certification';
