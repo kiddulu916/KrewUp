@@ -457,9 +457,9 @@ export default async function Home() {
                 <p className="text-blue-100 mt-2">Advanced features for serious professionals</p>
               </div>
               <div className="mb-6">
-                <span className="text-5xl font-extrabold text-white">$29</span>
+                <span className="text-5xl font-extrabold text-white">$15</span>
                 <span className="text-blue-100 ml-2">/month</span>
-                <div className="text-blue-100 text-sm mt-1">or $290/year (save $58)</div>
+                <div className="text-blue-100 text-sm mt-1">or $150/year (save 17%)</div>
               </div>
               <ul className="space-y-3 mb-8">
                 {[
