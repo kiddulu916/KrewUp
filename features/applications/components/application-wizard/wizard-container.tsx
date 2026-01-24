@@ -79,14 +79,6 @@ export function ApplicationWizardContainer({ jobId, jobTitle }: Props) {
     prevStep,
   } = useApplicationWizard(jobId, totalSteps);
 
-  // Debug logging
-  console.log('Wizard state:', {
-    hasScreeningQuestions,
-    totalSteps,
-    customQuestionsCount: customQuestions.length,
-    currentStep
-  });
-
   // Fetch job details to check for custom questions and get trades
   useEffect(() => {
     async function fetchJobDetails() {
@@ -131,15 +123,9 @@ export function ApplicationWizardContainer({ jobId, jobTitle }: Props) {
       // Check if job has custom questions
       // Workers should see questions if they exist (Pro employers created them)
       // The Pro check is only for viewing answers, not for showing questions to applicants
-      console.log('Job custom_questions:', job?.custom_questions);
-      console.log('Custom questions length:', job?.custom_questions?.length);
-
       if (job?.custom_questions && job.custom_questions.length > 0) {
-        console.log('Setting custom questions:', job.custom_questions);
         setCustomQuestions(job.custom_questions);
         setHasScreeningQuestions(true);
-      } else {
-        console.log('No custom questions found for this job');
       }
     }
 
@@ -176,7 +162,6 @@ export function ApplicationWizardContainer({ jobId, jobTitle }: Props) {
         toast.error(result.error || 'Failed to submit application');
       }
     } catch (error) {
-      console.error('Submission error:', error);
       toast.error('An unexpected error occurred');
     } finally {
       setIsSubmitting(false);
