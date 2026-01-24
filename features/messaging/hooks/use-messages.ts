@@ -38,7 +38,6 @@ export function useMessages(conversationId: string) {
       .limit(50); // Load last 50 messages
 
     if (error) {
-      console.error('[useMessages] Error fetching messages:', error);
       throw error;
     }
 

@@ -50,7 +50,6 @@ export function useConversations() {
       .limit(50); // Limit conversations for performance
 
     if (error) {
-      console.error('[useConversations] Error fetching conversations:', error);
       throw error;
     }
 

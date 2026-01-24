@@ -64,9 +64,6 @@ export function useInfiniteConversations() {
         .range(from, to);
 
       if (error) {
-        // * Logs remain in the hook that uses this data for easier debugging
-        // eslint-disable-next-line no-console
-        console.error('[useInfiniteConversations] Error fetching conversations:', error);
         throw error;
       }
 
