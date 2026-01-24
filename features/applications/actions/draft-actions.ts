@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { cookies } from 'next/headers';
 import type { ApplicationFormData, ApplicationDraft } from '../types/application.types';
+import { logger } from '@/lib/utils/logger';
 
 type SaveDraftResult = {
   success: boolean;
@@ -53,13 +54,13 @@ export async function saveDraft(
       .single();
 
     if (error) {
-      console.error('Error saving draft:', error);
+      logger.error('Error saving draft', { error: error instanceof Error ? error.message : String(error) });
       return { success: false, error: 'Failed to save draft' };
     }
 
     return { success: true, draft: data };
   } catch (error) {
-    console.error('Error in saveDraft:', error);
+    logger.error('Error in saveDraft', { error: error instanceof Error ? error.message : String(error) });
     return { success: false, error: 'An unexpected error occurred' };
   }
 }
@@ -90,7 +91,7 @@ export async function loadDraft(jobId: string): Promise<SaveDraftResult> {
       if (error.code === 'PGRST116') {
         return { success: true, draft: undefined };
       }
-      console.error('Error loading draft:', error);
+      logger.error('Error loading draft', { error: error instanceof Error ? error.message : String(error) });
       return { success: false, error: 'Failed to load draft' };
     }
 
@@ -101,7 +102,7 @@ export async function loadDraft(jobId: string): Promise<SaveDraftResult> {
 
     return { success: true, draft: data };
   } catch (error) {
-    console.error('Error in loadDraft:', error);
+    logger.error('Error in loadDraft', { error: error instanceof Error ? error.message : String(error) });
     return { success: false, error: 'An unexpected error occurred' };
   }
 }
@@ -126,13 +127,13 @@ export async function deleteDraft(jobId: string): Promise<{ success: boolean; er
       .eq('applicant_id', user.id);
 
     if (error) {
-      console.error('Error deleting draft:', error);
+      logger.error('Error deleting draft', { error: error instanceof Error ? error.message : String(error) });
       return { success: false, error: 'Failed to delete draft' };
     }
 
     return { success: true };
   } catch (error) {
-    console.error('Error in deleteDraft:', error);
+    logger.error('Error in deleteDraft', { error: error instanceof Error ? error.message : String(error) });
     return { success: false, error: 'An unexpected error occurred' };
   }
 }

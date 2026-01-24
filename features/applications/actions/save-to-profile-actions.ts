@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { cookies } from 'next/headers';
 import type { ApplicationFormData } from '../types/application.types';
+import { logger } from '@/lib/utils/logger';
 
 export type SaveToProfileResult = {
   success: boolean;
@@ -44,7 +45,7 @@ export async function saveApplicationDataToProfile(
       .eq('id', user.id);
 
     if (profileError) {
-      console.error('Profile update error:', profileError);
+      logger.error('Profile update error', { error: profileError instanceof Error ? profileError.message : String(profileError) });
       return { success: false, error: 'Failed to update profile' };
     }
 
@@ -65,7 +66,7 @@ export async function saveApplicationDataToProfile(
       .eq('user_id', user.id);
 
     if (workerError) {
-      console.error('Worker profile update error:', workerError);
+      logger.error('Worker profile update error', { error: workerError instanceof Error ? workerError.message : String(workerError) });
     }
 
     // 3. Upsert work experience
@@ -101,7 +102,7 @@ export async function saveApplicationDataToProfile(
         .upsert(workExpData, { onConflict: 'id', ignoreDuplicates: false });
 
       if (workExpError) {
-        console.error('Work experience update error:', workExpError);
+        logger.error('Work experience update error', { error: workExpError instanceof Error ? workExpError.message : String(workExpError) });
       }
     }
 
@@ -135,7 +136,7 @@ export async function saveApplicationDataToProfile(
         .upsert(educationData, { onConflict: 'id', ignoreDuplicates: false });
 
       if (educationError) {
-        console.error('Education update error:', educationError);
+        logger.error('Education update error', { error: educationError instanceof Error ? educationError.message : String(educationError) });
       }
     }
 
@@ -170,7 +171,7 @@ export async function saveApplicationDataToProfile(
         .upsert(referencesData, { onConflict: 'id', ignoreDuplicates: false });
 
       if (referencesError) {
-        console.error('Professional references update error:', referencesError);
+        logger.error('Professional references update error', { error: referencesError instanceof Error ? referencesError.message : String(referencesError) });
       }
     }
 
@@ -179,7 +180,7 @@ export async function saveApplicationDataToProfile(
 
     return { success: true };
   } catch (error) {
-    console.error('Error saving to profile:', error);
+    logger.error('Error saving to profile', { error: error instanceof Error ? error.message : String(error) });
     return { success: false, error: 'Failed to save application data to profile' };
   }
 }

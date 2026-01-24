@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server';
 import { cookies } from 'next/headers';
 import { extractTextFromFile } from '@/lib/resume-parser/text-extractor';
 import { validateFile, FILE_SIZE_LIMITS } from '@/lib/security/file-validation';
+import { logger } from '@/lib/utils/logger';
 
 type UploadResult = {
   success: boolean;
@@ -55,7 +56,7 @@ export async function uploadResumeToDraft(
       .upload(filePath, file, { upsert: true });
 
     if (uploadError) {
-      console.error('Upload error:', uploadError);
+      logger.error('Upload error', { error: uploadError instanceof Error ? uploadError.message : String(uploadError) });
       return { success: false, error: 'Failed to upload file' };
     }
 
@@ -69,7 +70,7 @@ export async function uploadResumeToDraft(
     try {
       extractedText = await extractTextFromFile(file);
     } catch (error) {
-      console.error('Text extraction error:', error);
+      logger.error('Text extraction error', { error: error instanceof Error ? error.message : String(error) });
       // Non-fatal - file uploaded successfully even if text extraction fails
     }
 
@@ -79,7 +80,7 @@ export async function uploadResumeToDraft(
       extractedText,
     };
   } catch (error) {
-    console.error('Error in uploadResumeToDraft:', error);
+    logger.error('Error in uploadResumeToDraft', { error: error instanceof Error ? error.message : String(error) });
     return { success: false, error: 'An unexpected error occurred' };
   }
 }
@@ -127,7 +128,7 @@ export async function uploadCoverLetterToDraft(
       .upload(filePath, file, { upsert: true });
 
     if (uploadError) {
-      console.error('Upload error:', uploadError);
+      logger.error('Upload error', { error: uploadError instanceof Error ? uploadError.message : String(uploadError) });
       return { success: false, error: 'Failed to upload file' };
     }
 
@@ -138,7 +139,7 @@ export async function uploadCoverLetterToDraft(
 
     return { success: true, url: publicUrl };
   } catch (error) {
-    console.error('Error in uploadCoverLetterToDraft:', error);
+    logger.error('Error in uploadCoverLetterToDraft', { error: error instanceof Error ? error.message : String(error) });
     return { success: false, error: 'An unexpected error occurred' };
   }
 }
@@ -166,7 +167,7 @@ export async function moveFileToApplication(
       .download(sourcePath);
 
     if (downloadError) {
-      console.error('Download error:', downloadError);
+      logger.error('Download error', { error: downloadError instanceof Error ? downloadError.message : String(downloadError) });
       return { success: false, error: 'Failed to move file' };
     }
 
@@ -177,7 +178,7 @@ export async function moveFileToApplication(
       .upload(destPath, fileData, { upsert: true });
 
     if (uploadError) {
-      console.error('Upload error:', uploadError);
+      logger.error('Upload error', { error: uploadError instanceof Error ? uploadError.message : String(uploadError) });
       return { success: false, error: 'Failed to move file' };
     }
 
@@ -193,7 +194,7 @@ export async function moveFileToApplication(
 
     return { success: true, url: publicUrl };
   } catch (error) {
-    console.error('Error in moveFileToApplication:', error);
+    logger.error('Error in moveFileToApplication', { error: error instanceof Error ? error.message : String(error) });
     return { success: false, error: 'An unexpected error occurred' };
   }
 }

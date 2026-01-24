@@ -10,6 +10,7 @@ import type { AllowedJobPostingEmployerType } from '@/lib/constants';
 import type { GeoCoords } from '@/types';
 import type { Job } from '@/types/database';
 import { assertValidCsrfToken } from '@/lib/security/csrf';
+import { logger } from '@/lib/utils/logger';
 
 export type TradeSelection = {
   trade: string;
@@ -223,7 +224,7 @@ export async function updateJob(
     });
 
     if (coordsError) {
-      console.error('Coords update error:', coordsError);
+      logger.error('Coords update error', { error: coordsError instanceof Error ? coordsError.message : String(coordsError) });
     }
 
     // Update other fields (excluding coords)
@@ -314,7 +315,7 @@ export async function getJob(jobId: string): Promise<JobResult<Job>> {
     .single();
 
   if (error) {
-    console.error('Get job error:', error);
+    logger.error('Get job error', { error: error instanceof Error ? error.message : String(error) });
     return { success: false, error: 'Job not found' };
   }
 
@@ -370,7 +371,7 @@ export async function getJobs(filters?: {
   const { data: jobs, error } = await query;
 
   if (error) {
-    console.error('Get jobs error:', error);
+    logger.error('Get jobs error', { error: error instanceof Error ? error.message : String(error) });
     return { success: false, error: 'Failed to get jobs' };
   }
 

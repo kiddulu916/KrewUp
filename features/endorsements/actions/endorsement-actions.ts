@@ -13,6 +13,7 @@ import {
   getExperienceEndorsementsSchema,
   requestEndorsementSchema,
 } from '@/lib/validation/schemas';
+import { logger } from '@/lib/utils/logger';
 
 export type EndorsementRequest = {
   id: string;
@@ -140,7 +141,7 @@ export async function requestEndorsement(
       .single();
 
     if (createError || !request) {
-      console.error('Error creating endorsement request:', createError);
+      logger.error('Error creating endorsement request', { error: createError instanceof Error ? createError.message : String(createError) });
       return { success: false, error: 'Failed to create request' };
     }
 
@@ -175,12 +176,12 @@ export async function requestEndorsement(
 
     // Don't fail if email fails, just log it
     if (!emailResult.success) {
-      console.error('Failed to send endorsement email:', emailResult.error);
+      logger.error('Failed to send endorsement email', { error: emailResult.error ?? 'Unknown error' });
     }
 
     return { success: true };
   } catch (error) {
-    console.error('Error in requestEndorsement:', error);
+    logger.error('Error in requestEndorsement', { error: error instanceof Error ? error.message : String(error) });
     return { success: false, error: 'Unexpected error occurred' };
   }
 }
@@ -261,7 +262,7 @@ export async function approveEndorsement(
       });
 
     if (endorsementError) {
-      console.error('Error creating endorsement:', endorsementError);
+      logger.error('Error creating endorsement', { error: endorsementError instanceof Error ? endorsementError.message : String(endorsementError) });
       return { success: false, error: 'Failed to create endorsement' };
     }
 
@@ -275,12 +276,12 @@ export async function approveEndorsement(
       .eq('id', requestId);
 
     if (updateError) {
-      console.error('Error updating request:', updateError);
+      logger.error('Error updating request', { error: updateError instanceof Error ? updateError.message : String(updateError) });
     }
 
     return { success: true };
   } catch (error) {
-    console.error('Error in approveEndorsement:', error);
+    logger.error('Error in approveEndorsement', { error: error instanceof Error ? error.message : String(error) });
     return { success: false, error: 'Unexpected error occurred' };
   }
 }
@@ -309,13 +310,13 @@ export async function getExperienceEndorsements(
       .order('created_at', { ascending: false });
 
     if (error) {
-      console.error('Error fetching endorsements:', error);
+      logger.error('Error fetching endorsements', { error: error instanceof Error ? error.message : String(error) });
       return { success: false, error: 'Failed to fetch endorsements' };
     }
 
     return { success: true, endorsements: endorsements || [] };
   } catch (error) {
-    console.error('Error in getExperienceEndorsements:', error);
+    logger.error('Error in getExperienceEndorsements', { error: error instanceof Error ? error.message : String(error) });
     return { success: false, error: 'Unexpected error occurred' };
   }
 }

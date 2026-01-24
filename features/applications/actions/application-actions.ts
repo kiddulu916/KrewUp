@@ -7,6 +7,7 @@ import { moveFileToApplication } from './file-upload-actions';
 import { deleteDraft } from './draft-actions';
 import { saveApplicationDataToProfile } from './save-to-profile-actions';
 import type { ApplicationFormData } from '../types/application.types';
+import { logger } from '@/lib/utils/logger';
 
 type ApplicationResult = {
   success: boolean;
@@ -67,7 +68,7 @@ export async function createApplication(
     });
 
     if (error) {
-      console.error('Error creating application:', error);
+      logger.error('Error creating application', { error: error instanceof Error ? error.message : String(error) });
       return { success: false, error: 'Failed to submit application' };
     }
 
@@ -76,7 +77,7 @@ export async function createApplication(
 
     return { success: true };
   } catch (error) {
-    console.error('Error in createApplication:', error);
+    logger.error('Error in createApplication', { error: error instanceof Error ? error.message : String(error) });
     return { success: false, error: 'An unexpected error occurred' };
   }
 }
@@ -128,7 +129,7 @@ export async function updateApplicationStatus(
       .eq('id', applicationId);
 
     if (error) {
-      console.error('Error updating application:', error);
+      logger.error('Error updating application', { error: error instanceof Error ? error.message : String(error) });
       return { success: false, error: 'Failed to update application status' };
     }
 
@@ -136,7 +137,7 @@ export async function updateApplicationStatus(
 
     return { success: true };
   } catch (error) {
-    console.error('Error in updateApplicationStatus:', error);
+    logger.error('Error in updateApplicationStatus', { error: error instanceof Error ? error.message : String(error) });
     return { success: false, error: 'An unexpected error occurred' };
   }
 }
@@ -216,7 +217,7 @@ export async function getJobApplications(jobId: string) {
       .order('created_at', { ascending: false});
 
     if (error) {
-      console.error('Error fetching applications:', error);
+      logger.error('Error fetching applications', { error: error instanceof Error ? error.message : String(error) });
       return { success: false, error: 'Failed to fetch applications', data: null };
     }
 
@@ -240,7 +241,7 @@ export async function getJobApplications(jobId: string) {
 
     return { success: true, data: sortedApplications };
   } catch (error) {
-    console.error('Error in getJobApplications:', error);
+    logger.error('Error in getJobApplications', { error: error instanceof Error ? error.message : String(error) });
     return { success: false, error: 'An unexpected error occurred', data: null };
   }
 }
@@ -308,7 +309,7 @@ export async function submitApplication(
       .single();
 
     if (createError || !application) {
-      console.error('Error creating application:', createError);
+      logger.error('Error creating application', { error: createError instanceof Error ? createError.message : String(createError) });
       return { success: false, error: 'Failed to submit application' };
     }
 
@@ -373,7 +374,7 @@ export async function submitApplication(
 
     return { success: true, applicationId };
   } catch (error) {
-    console.error('Error in submitApplication:', error);
+    logger.error('Error in submitApplication', { error: error instanceof Error ? error.message : String(error) });
     return { success: false, error: 'An unexpected error occurred' };
   }
 }
