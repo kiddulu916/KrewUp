@@ -51,21 +51,13 @@ export function OnboardingForm({ initialName = '', initialEmail = '' }: Props) {
     setLocationStatus('loading');
 
     if (!navigator.geolocation) {
-      console.warn('[captureLocation] Geolocation not supported by browser');
       setLocationStatus('error');
       return;
     }
 
-    console.log('[captureLocation] Requesting high-accuracy GPS location...');
-
     navigator.geolocation.getCurrentPosition(
       async (position) => {
-        const { latitude, longitude, accuracy } = position.coords;
-        console.log('[captureLocation] GPS success!', {
-          lat: latitude,
-          lng: longitude,
-          accuracy: `${accuracy}m`
-        });
+        const { latitude, longitude } = position.coords;
 
         try {
           // Reverse geocode to get address
@@ -77,8 +69,7 @@ export function OnboardingForm({ initialName = '', initialEmail = '' }: Props) {
           });
 
           setLocationStatus('success');
-        } catch (err) {
-          console.error('[captureLocation] Reverse geocoding failed:', err);
+        } catch {
           // Still save coords even if reverse geocoding fails
           updateFormData({
             location: `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`,
@@ -87,25 +78,9 @@ export function OnboardingForm({ initialName = '', initialEmail = '' }: Props) {
           setLocationStatus('success');
         }
       },
-      (error) => {
-        console.error('[captureLocation] Geolocation error:', {
-          code: error.code,
-          message: error.message,
-          PERMISSION_DENIED: error.code === 1,
-          POSITION_UNAVAILABLE: error.code === 2,
-          TIMEOUT: error.code === 3
-        });
-
+      () => {
         // Don't use fallback - let user know location is required
         setLocationStatus('error');
-
-        if (error.code === 1) {
-          // Permission denied - could ask user to enable
-          console.warn('[captureLocation] User denied location permission');
-        } else if (error.code === 3) {
-          // Timeout - GPS took too long
-          console.warn('[captureLocation] GPS timeout - try again or check device settings');
-        }
       },
       {
         enableHighAccuracy: true,
@@ -119,26 +94,18 @@ export function OnboardingForm({ initialName = '', initialEmail = '' }: Props) {
     const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
 
     if (!apiKey) {
-      console.error('[reverseGeocode] API key not configured');
       throw new Error('Google Maps API key not configured');
     }
 
     const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${apiKey}`;
-    console.log('[reverseGeocode] Requesting:', url.replace(apiKey, 'API_KEY_HIDDEN'));
 
     const response = await fetch(url);
 
     if (!response.ok) {
-      console.error('[reverseGeocode] HTTP error:', response.status, response.statusText);
       throw new Error(`Geocoding request failed: ${response.status}`);
     }
 
     const data = await response.json();
-    console.log('[reverseGeocode] API response:', {
-      status: data.status,
-      resultsCount: data.results?.length || 0,
-      errorMessage: data.error_message
-    });
 
     if (data.status !== 'OK') {
       // Handle specific API error statuses
@@ -158,9 +125,7 @@ export function OnboardingForm({ initialName = '', initialEmail = '' }: Props) {
     }
 
     // Return the formatted address
-    const address = data.results[0].formatted_address;
-    console.log('[reverseGeocode] Success! Address:', address);
-    return address;
+    return data.results[0].formatted_address;
   }
 
   function updateFormData(updates: Partial<OnboardingData>) {

@@ -42,17 +42,13 @@ export function InitialLocationCapture() {
             if (result.success) {
               // Mark as captured so we don't ask again
               localStorage.setItem('initial_location_captured', 'true');
-              console.log('Initial location saved successfully');
-            } else {
-              console.error('Failed to save initial location:', result.error);
             }
-          } catch (error) {
-            console.error('Failed to save initial location:', error);
+          } catch {
+            // Silent fail - location capture is non-critical
           }
         },
-        (error) => {
+        () => {
           // User denied or error occurred
-          console.log('Location permission denied or error:', error);
           // Still mark as captured so we don't keep asking
           localStorage.setItem('initial_location_captured', 'true');
         },
