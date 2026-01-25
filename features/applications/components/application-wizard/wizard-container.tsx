@@ -77,6 +77,8 @@ export function ApplicationWizardContainer({ jobId, jobTitle }: Props) {
     isLoading,
     isSaving,
     lastSaved,
+    saveError,
+    retrySave,
     resumeUrl,
     setResumeUrl,
     coverLetterUrl,
@@ -197,7 +199,7 @@ export function ApplicationWizardContainer({ jobId, jobTitle }: Props) {
         <div className="max-w-4xl mx-auto px-4 py-4">
           <h1 className="text-2xl font-bold text-gray-900">Apply for {jobTitle}</h1>
           <ProgressIndicator currentStep={getDisplayStep(currentStep)} totalSteps={totalSteps} />
-          <AutoSaveIndicator isSaving={isSaving} lastSaved={lastSaved} />
+          <AutoSaveIndicator isSaving={isSaving} lastSaved={lastSaved} saveError={saveError} onRetry={retrySave} />
         </div>
       </div>
 

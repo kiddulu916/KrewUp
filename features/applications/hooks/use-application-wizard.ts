@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import type {
   ApplicationFormData,
@@ -130,6 +130,7 @@ export function useApplicationWizard(jobId: string, totalSteps: number = 8) {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const [resumeUrl, setResumeUrl] = useState<string>();
   const [coverLetterUrl, setCoverLetterUrl] = useState<string>();
   const [extractedText, setExtractedText] = useState<string>();
@@ -240,23 +241,39 @@ export function useApplicationWizard(jobId: string, totalSteps: number = 8) {
    */
   async function handleAutoSave() {
     setIsSaving(true);
-    const formData = form.getValues();
-    const result = await saveDraft(
-      jobId,
-      formData,
-      resumeUrl,
-      coverLetterUrl,
-      extractedText
-    );
+    setSaveError(null);
 
-    if (result.success) {
-      setLastSaved(new Date());
-      form.reset(formData, { keepValues: true }); // Mark as not dirty
-    } else {
-      toast.error('Failed to auto-save draft');
+    try {
+      const formData = form.getValues();
+      const result = await saveDraft(
+        jobId,
+        formData,
+        resumeUrl,
+        coverLetterUrl,
+        extractedText
+      );
+
+      if (result.success) {
+        setLastSaved(new Date());
+        form.reset(formData, { keepValues: true }); // Mark as not dirty
+        setSaveError(null);
+      } else {
+        setSaveError(result.error || 'Failed to save');
+      }
+    } catch (error) {
+      setSaveError(error instanceof Error ? error.message : 'Failed to save');
+    } finally {
+      setIsSaving(false);
     }
-    setIsSaving(false);
   }
+
+  /**
+   * Retry failed save operation
+   */
+  const retrySave = useCallback(() => {
+    setSaveError(null);
+    handleAutoSave();
+  }, []);
 
   /**
    * Navigate to the next step
@@ -298,6 +315,8 @@ export function useApplicationWizard(jobId: string, totalSteps: number = 8) {
     isLoading,
     isSaving,
     lastSaved,
+    saveError,
+    retrySave,
     resumeUrl,
     setResumeUrl,
     coverLetterUrl,
