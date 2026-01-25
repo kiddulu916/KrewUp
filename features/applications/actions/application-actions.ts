@@ -252,7 +252,7 @@ export async function getJobApplications(jobId: string) {
  */
 export async function submitApplication(
   jobId: string,
-  formData: ApplicationFormData,
+  formData: Partial<ApplicationFormData>,
   resumeUrl?: string,
   coverLetterUrl?: string,
   resumeExtractedText?: string

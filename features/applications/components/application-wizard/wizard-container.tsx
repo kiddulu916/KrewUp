@@ -22,6 +22,14 @@ import { createClient } from '@/lib/supabase/client';
 import type { CustomQuestion } from '@/features/jobs/components/custom-questions-builder';
 
 /**
+ * Type for trade selections from job data
+ */
+interface TradeSelection {
+  trade: string;
+  subtrades?: string[];
+}
+
+/**
  * Application Wizard Container Component
  *
  * Main container for the 8-step job application wizard.
@@ -100,9 +108,9 @@ export function ApplicationWizardContainer({ jobId, jobTitle }: Props) {
 
       // Priority 1: Check trade_selections (newest format with structured data)
       if (job?.trade_selections && Array.isArray(job.trade_selections) && job.trade_selections.length > 0) {
-        extractedTrades = job.trade_selections
-          .map((ts: any) => ts.trade)
-          .filter((t: string) => t && t.trim() !== '');
+        extractedTrades = (job.trade_selections as TradeSelection[])
+          .map((ts) => ts.trade)
+          .filter((t): t is string => Boolean(t && t.trim() !== ''));
       }
 
       // Priority 2: Check trades array (legacy format)
@@ -148,7 +156,7 @@ export function ApplicationWizardContainer({ jobId, jobTitle }: Props) {
 
       const result = await submitApplication(
         jobId,
-        formData as any, // Type assertion for complex nested form data
+        formData,
         resumeUrl,
         coverLetterUrl,
         extractedText

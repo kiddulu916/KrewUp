@@ -16,7 +16,7 @@ export type SaveToProfileResult = {
  * This keeps profile as master copy for future applications
  */
 export async function saveApplicationDataToProfile(
-  formData: ApplicationFormData
+  formData: Partial<ApplicationFormData>
 ): Promise<SaveToProfileResult> {
   const supabase = await createClient(await cookies());
 
@@ -30,9 +30,14 @@ export async function saveApplicationDataToProfile(
   }
 
   try {
-    // 1. Update profile table
-    const [firstName, ...lastNameParts] = formData.fullName.trim().split(' ');
-    const lastName = lastNameParts.join(' ') || '';
+    // 1. Update profile table (only if fullName provided)
+    let firstName = '';
+    let lastName = '';
+    if (formData.fullName) {
+      const nameParts = formData.fullName.trim().split(' ');
+      firstName = nameParts[0] || '';
+      lastName = nameParts.slice(1).join(' ') || '';
+    }
 
     const { error: profileError } = await supabase
       .from('users')
@@ -59,9 +64,9 @@ export async function saveApplicationDataToProfile(
         has_dl: formData.hasDriversLicense,
         dl_class: formData.licenseClass || null,
         reliable_transportation: formData.hasReliableTransportation,
-        emergency_contact_name: formData.emergencyContact.name,
-        emergency_contact_relationship: formData.emergencyContact.relationship,
-        emergency_contact_phone: formData.emergencyContact.phone,
+        emergency_contact_name: formData.emergencyContact?.name,
+        emergency_contact_relationship: formData.emergencyContact?.relationship,
+        emergency_contact_phone: formData.emergencyContact?.phone,
       })
       .eq('user_id', user.id);
 
