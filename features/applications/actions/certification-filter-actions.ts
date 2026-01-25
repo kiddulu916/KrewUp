@@ -3,6 +3,7 @@
 
 import { createClient } from '@/lib/supabase/server';
 import { cookies } from 'next/headers';
+import { logger } from '@/lib/utils/logger';
 
 export type CertificationFilterOptions = {
   certificationNames?: string[];
@@ -76,7 +77,7 @@ export async function getFilteredApplications(
       .order('created_at', { ascending: false });
 
     if (error) {
-      console.error('Error fetching applications:', error);
+      logger.error('Error fetching applications', { error: error.message });
       return { success: false, error: 'Failed to fetch applications', data: null };
     }
 
@@ -121,7 +122,7 @@ export async function getFilteredApplications(
 
     return { success: true, data: sorted };
   } catch (error) {
-    console.error('Error in getFilteredApplications:', error);
+    logger.error('Error in getFilteredApplications', { error: error instanceof Error ? error.message : String(error) });
     return { success: false, error: 'An unexpected error occurred', data: null };
   }
 }

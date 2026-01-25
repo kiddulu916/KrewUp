@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
 import { cookies } from 'next/headers';
+import { logger } from '@/lib/utils/logger';
 
 export type ApplicationResult = {
   success: boolean;
@@ -75,7 +76,7 @@ export async function applyToJob(
   });
 
   if (insertError) {
-    console.error('Application error:', insertError);
+    logger.error('Application error', { error: insertError.message });
     return { success: false, error: 'Failed to submit application' };
   }
 

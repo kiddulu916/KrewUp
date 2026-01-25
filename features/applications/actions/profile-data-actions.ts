@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { cookies } from 'next/headers';
 import type { ProfileWithRelations } from '@/lib/types/profile.types';
+import { logger } from '@/lib/utils/logger';
 
 export type ProfileDataResult = {
   success: boolean;
@@ -105,7 +106,7 @@ export async function loadProfileDataForApplication(): Promise<ProfileDataResult
       },
     };
   } catch (error) {
-    console.error('Error loading profile data:', error);
+    logger.error('Error loading profile data', { error: error instanceof Error ? error.message : String(error) });
     return { success: false, error: 'Failed to load profile data' };
   }
 }

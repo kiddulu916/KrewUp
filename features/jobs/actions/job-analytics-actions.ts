@@ -3,6 +3,7 @@
 
 import { createClient } from '@/lib/supabase/server';
 import { cookies } from 'next/headers';
+import { logger } from '@/lib/utils/logger';
 
 export type JobAnalytics = {
   totalViews: number;
@@ -55,13 +56,13 @@ export async function trackJobView(
       });
 
     if (error) {
-      console.error('Error tracking job view:', error);
+      logger.error('Error tracking job view', { error: error.message });
       return { success: false, error: 'Failed to track view' };
     }
 
     return { success: true };
   } catch (error) {
-    console.error('Error in trackJobView:', error);
+    logger.error('Error in trackJobView', { error: error instanceof Error ? error.message : String(error) });
     return { success: false, error: 'Unexpected error occurred' };
   }
 }
@@ -133,7 +134,7 @@ export async function getJobAnalytics(
     const { data: views, error } = await query;
 
     if (error) {
-      console.error('Error fetching job views:', error);
+      logger.error('Error fetching job views', { error: error.message });
       return { success: false, error: 'Failed to fetch analytics' };
     }
 
@@ -191,7 +192,7 @@ export async function getJobAnalytics(
       },
     };
   } catch (error) {
-    console.error('Error in getJobAnalytics:', error);
+    logger.error('Error in getJobAnalytics', { error: error instanceof Error ? error.message : String(error) });
     return { success: false, error: 'Unexpected error occurred' };
   }
 }
