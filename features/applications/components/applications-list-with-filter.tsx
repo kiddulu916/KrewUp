@@ -49,7 +49,7 @@ export function ApplicationsListWithFilter({
         setFilteredApplications(result.data as Application[]);
       }
     } catch (error) {
-      console.error('Error filtering applications:', error);
+      // Silently fail - UI will show unfiltered list
     } finally {
       setIsFiltering(false);
     }

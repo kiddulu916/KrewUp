@@ -204,7 +204,6 @@ export function PortfolioManager({ profile }: PortfolioManagerProps) {
         toast.error(result.error || 'Failed to upload photo');
       }
     } catch (err) {
-      console.error('Upload error:', err);
       toast.error('Failed to compress or upload image');
     } finally {
       setIsUploading(false);
@@ -241,7 +240,6 @@ export function PortfolioManager({ profile }: PortfolioManagerProps) {
         toast.error(result.error || 'Failed to delete photo');
       }
     } catch (err) {
-      console.error('Delete error:', err);
       toast.error('Failed to delete photo');
     } finally {
       setIsDeletingId(null);
@@ -285,7 +283,6 @@ export function PortfolioManager({ profile }: PortfolioManagerProps) {
         }
       }
     } catch (err) {
-      console.error('Reorder error:', err);
       toast.error('Failed to reorder photos');
       // Restore previous state directly on error
       if (previousImages) {

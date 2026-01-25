@@ -74,7 +74,6 @@ export function ProfileAvatarUpload({
       // Notify parent component
       onImageSelected(compressedFile);
     } catch (err) {
-      console.error('Image processing error:', err);
       setError('Failed to process image. Please try a different file');
     } finally {
       setIsProcessing(false);

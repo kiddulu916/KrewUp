@@ -87,11 +87,9 @@ export function ExperienceFilter({
       if (result.success && result.workers) {
         onSearchResults(result.workers);
       } else {
-        console.error('Search error:', result.error);
         onSearchResults([]);
       }
     } catch (error) {
-      console.error('Search failed:', error);
       onSearchResults([]);
     } finally {
       setIsSearching(false);

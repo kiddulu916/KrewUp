@@ -46,8 +46,6 @@ async function fetchEmployerJobApplications(
     .order('created_at', { ascending: false });
 
   if (error) {
-    // * Logs detailed error information for debugging while allowing UI to surface failures
-    console.error('[useEmployerApplications] Error fetching applications:', error);
     throw error;
   }
 

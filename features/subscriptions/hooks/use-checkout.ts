@@ -17,7 +17,6 @@ export function useCheckout() {
         window.location.href = result.url;
       }
     } catch (error) {
-      console.error('Checkout error:', error);
       throw error;
     } finally {
       setIsLoading(false);
@@ -35,7 +34,6 @@ export function useCheckout() {
         window.location.href = result.url;
       }
     } catch (error) {
-      console.error('Portal error:', error);
       throw error;
     } finally {
       setIsLoading(false);

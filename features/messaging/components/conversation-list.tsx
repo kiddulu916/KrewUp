@@ -25,7 +25,6 @@ export function ConversationList({ activeConversationId }: Props) {
   }
 
   if (error) {
-    console.error('Conversation list error:', error);
     return (
       <div className="flex items-center justify-center p-12">
         <div className="text-center max-w-sm">

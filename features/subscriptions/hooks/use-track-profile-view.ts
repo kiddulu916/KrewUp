@@ -20,8 +20,8 @@ export function useTrackProfileView(profileId: string | null | undefined, enable
     }
 
     // Track the view
-    trackProfileView(profileId).catch((error) => {
-      console.error('Failed to track profile view:', error);
+    trackProfileView(profileId).catch(() => {
+      // Silently fail - tracking is non-critical
     });
 
     // Mark as tracked to prevent duplicate tracking in dev mode (strict mode)

@@ -45,7 +45,7 @@ export function usePushNotifications() {
         const existingSubscription = await registration.pushManager.getSubscription();
         setSubscription(existingSubscription);
       } catch (err) {
-        console.error('Error checking existing subscription:', err);
+        // Silently fail - will retry on next subscribe attempt
       }
     }
   };
@@ -117,7 +117,6 @@ export function usePushNotifications() {
       setIsLoading(false);
       return true;
     } catch (err: unknown) {
-      console.error('Error subscribing to push:', err);
       setError(err instanceof Error ? err.message : 'Failed to subscribe to push notifications');
       setIsLoading(false);
       return false;
@@ -146,7 +145,6 @@ export function usePushNotifications() {
       setIsLoading(false);
       return true;
     } catch (err: unknown) {
-      console.error('Error unsubscribing from push:', err);
       setError(err instanceof Error ? err.message : 'Failed to unsubscribe');
       setIsLoading(false);
       return false;

@@ -73,7 +73,6 @@ export function ProfileEditForm({ profile }: Props) {
       }
       // If successful, user will be redirected by the action
     } catch (err) {
-      console.error('Submit error:', err);
       setError('An unexpected error occurred');
     }
   }

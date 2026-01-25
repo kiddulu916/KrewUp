@@ -44,8 +44,8 @@ export function useTrackJobView(jobId: string | null | undefined, enabled = true
     if (!sessionId) return;
 
     // Track the view
-    trackJobView(jobId, sessionId).catch((error) => {
-      console.error('Failed to track job view:', error);
+    trackJobView(jobId, sessionId).catch(() => {
+      // Silently fail - tracking is non-critical
     });
 
     // Mark as tracked to prevent duplicate tracking
