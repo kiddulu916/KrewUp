@@ -6,14 +6,22 @@ import { cookies } from 'next/headers';
 import webpush from 'web-push';
 import { logger, sanitizeUserId } from '@/lib/utils/logger';
 
-// Web Push VAPID keys - these should be in environment variables
-const VAPID_PUBLIC_KEY = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || '';
-const VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY || '';
+// Web Push VAPID keys configuration
+const VAPID_PUBLIC_KEY = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+const VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY;
 const VAPID_SUBJECT = process.env.VAPID_SUBJECT || 'mailto:support@krewup.net';
 
-// Configure web-push with VAPID keys
-if (VAPID_PUBLIC_KEY && VAPID_PRIVATE_KEY) {
-  webpush.setVapidDetails(VAPID_SUBJECT, VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY);
+// Track if push notifications are properly configured
+const isPushConfigured = Boolean(VAPID_PUBLIC_KEY && VAPID_PRIVATE_KEY);
+
+// Configure web-push with VAPID keys if available
+if (isPushConfigured) {
+  webpush.setVapidDetails(VAPID_SUBJECT, VAPID_PUBLIC_KEY!, VAPID_PRIVATE_KEY!);
+} else {
+  logger.warn('Push notifications disabled: VAPID keys not configured', {
+    hasPublicKey: Boolean(VAPID_PUBLIC_KEY),
+    hasPrivateKey: Boolean(VAPID_PRIVATE_KEY),
+  });
 }
 
 export interface PushSubscriptionData {
@@ -175,7 +183,7 @@ export async function sendPushNotification(
     tag?: string;
   }
 ): Promise<{ success: boolean; sent: number; failed: number; error?: string }> {
-  if (!VAPID_PUBLIC_KEY || !VAPID_PRIVATE_KEY) {
+  if (!isPushConfigured) {
     logger.warn('VAPID keys not configured - skipping push notification', {
       userId: sanitizeUserId(userId),
     });
@@ -283,4 +291,11 @@ export async function getVapidPublicKey(): Promise<{
   }
 
   return { success: true, key: VAPID_PUBLIC_KEY };
+}
+
+/**
+ * Check if push notifications are properly configured
+ */
+export async function isPushNotificationsEnabled(): Promise<boolean> {
+  return isPushConfigured;
 }
