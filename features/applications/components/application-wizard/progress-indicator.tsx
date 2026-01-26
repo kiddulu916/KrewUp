@@ -30,7 +30,14 @@ export function ProgressIndicator({ currentStep, totalSteps }: Props) {
         </span>
         <span className="text-sm text-gray-500">{Math.round(percentage)}% Complete</span>
       </div>
-      <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+      <div
+        role="progressbar"
+        aria-valuenow={currentStep}
+        aria-valuemin={1}
+        aria-valuemax={totalSteps}
+        aria-label={`Application progress: step ${currentStep} of ${totalSteps}`}
+        className="w-full h-2 bg-gray-200 rounded-full overflow-hidden"
+      >
         <div
           className="h-full bg-krewup-blue transition-all duration-300"
           style={{ width: `${percentage}%` }}

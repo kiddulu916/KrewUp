@@ -304,4 +304,44 @@ test.describe('Messaging System', () => {
       timeout: 10000,
     });
   });
+
+  test('should be keyboard accessible', async ({ page }) => {
+    await loginAsUser(page, user1);
+    await page.goto(`/dashboard/profiles/${user2.id}`);
+    await page.click('button:has-text("Message")');
+
+    // Should have proper heading structure
+    await expect(page.locator('h1, h2, h3').first()).toBeVisible();
+
+    // Message input should be focusable via keyboard
+    const messageInput = page.locator('textarea[placeholder*="Type a message"]');
+    await messageInput.focus();
+    await expect(messageInput).toBeFocused();
+
+    // Type a message using keyboard
+    await page.keyboard.type('Keyboard typed message');
+
+    // Should be able to send with Enter (implementation uses Enter to send)
+    await page.keyboard.press('Enter');
+
+    // Message should appear
+    await expect(page.locator('text=Keyboard typed message')).toBeVisible({
+      timeout: 5000,
+    });
+  });
+
+  test('should support Shift+Enter for new lines', async ({ page }) => {
+    await loginAsUser(page, user1);
+    await page.goto(`/dashboard/profiles/${user2.id}`);
+    await page.click('button:has-text("Message")');
+
+    const messageInput = page.locator('textarea[placeholder*="Type a message"]');
+    await messageInput.fill('Line 1');
+    await page.keyboard.press('Shift+Enter');
+    await page.keyboard.type('Line 2');
+
+    // Textarea should contain newline
+    const value = await messageInput.inputValue();
+    expect(value).toContain('\n');
+  });
 });

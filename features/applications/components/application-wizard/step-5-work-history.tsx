@@ -126,8 +126,9 @@ export function Step5WorkHistory({ form }: Props) {
                       remove(index);
                     }}
                     className="text-red-600 hover:text-red-800 p-1"
+                    aria-label={`Remove ${jobTitle || `work experience ${index + 1}`}`}
                   >
-                    <TrashIcon className="h-5 w-5" />
+                    <TrashIcon className="h-5 w-5" aria-hidden="true" />
                   </button>
                 </div>
               </div>

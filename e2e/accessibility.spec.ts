@@ -408,27 +408,36 @@ test.describe('Accessibility Tests', () => {
   });
 
   test.describe('Color Contrast', () => {
-    test('should have sufficient color contrast', async ({ page }) => {
-      await page.goto('/login');
-      
-      const accessibilityScanResults = await new AxeBuilder({ page })
-        .withTags(['wcag2aa'])
-        .options({ runOnly: ['color-contrast'] })
-        .analyze();
-      
-      // Log contrast issues
-      if (accessibilityScanResults.violations.length > 0) {
-        console.log('Color contrast issues:', 
-          accessibilityScanResults.violations[0]?.nodes.slice(0, 5).map(n => ({
-            html: n.html.substring(0, 100),
-            target: n.target[0],
-          }))
+    const pagesToTest = ['/', '/pricing', '/login', '/signup'];
+
+    for (const path of pagesToTest) {
+      test(`${path} should have sufficient color contrast`, async ({ page }) => {
+        await page.goto(path);
+        await page.waitForLoadState('networkidle');
+
+        const accessibilityScanResults = await new AxeBuilder({ page })
+          .withTags(['wcag2aa'])
+          .options({ runOnly: ['color-contrast'] })
+          .analyze();
+
+        const contrastViolations = accessibilityScanResults.violations.filter(
+          v => v.id === 'color-contrast'
         );
-      }
-      
-      // Some contrast issues may be acceptable, but log them
-      expect(accessibilityScanResults.violations.length).toBeLessThanOrEqual(3);
-    });
+
+        // Log contrast issues for debugging
+        if (contrastViolations.length > 0) {
+          console.log(`Color contrast issues on ${path}:`,
+            contrastViolations[0]?.nodes.slice(0, 5).map(n => ({
+              html: n.html.substring(0, 100),
+              target: n.target[0],
+            }))
+          );
+        }
+
+        // Allow up to 3 minor contrast issues per page
+        expect(contrastViolations.length).toBeLessThanOrEqual(3);
+      });
+    }
   });
 
   test.describe('Responsive Accessibility', () => {

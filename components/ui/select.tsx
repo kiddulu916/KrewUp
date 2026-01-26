@@ -28,6 +28,9 @@ export interface SelectProps extends SelectHTMLAttributes<HTMLSelectElement> {
 export const Select = forwardRef<HTMLSelectElement, SelectProps>(
   ({ className, label, error, helperText, options, id, ...props }, ref) => {
     const selectId = id || label?.toLowerCase().replace(/\s+/g, '-');
+    const errorId = error ? `${selectId}-error` : undefined;
+    const helperId = helperText && !error ? `${selectId}-helper` : undefined;
+    const describedBy = [errorId, helperId].filter(Boolean).join(' ') || undefined;
 
     return (
       <div className="w-full">
@@ -37,12 +40,14 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
             className="mb-1.5 block text-sm font-medium text-gray-700"
           >
             {label}
-            {props.required && <span className="ml-1 text-red-500">*</span>}
+            {props.required && <span className="ml-1 text-red-500" aria-hidden="true">*</span>}
           </label>
         )}
         <select
           ref={ref}
           id={selectId}
+          aria-invalid={error ? 'true' : undefined}
+          aria-describedby={describedBy}
           className={cn(
             'flex h-10 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm',
             'focus:outline-none focus:ring-2 focus:ring-krewup-blue focus:border-transparent',
@@ -61,9 +66,9 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
             </option>
           ))}
         </select>
-        {error && <p className="mt-1.5 text-sm text-red-600">{error}</p>}
+        {error && <p id={errorId} className="mt-1.5 text-sm text-red-600" role="alert">{error}</p>}
         {helperText && !error && (
-          <p className="mt-1.5 text-sm text-gray-500">{helperText}</p>
+          <p id={helperId} className="mt-1.5 text-sm text-gray-500">{helperText}</p>
         )}
       </div>
     );

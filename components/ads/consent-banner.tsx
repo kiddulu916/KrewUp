@@ -55,7 +55,7 @@ export function ConsentBanner() {
         <CardContent className="p-6">
           <div className="flex items-start gap-4">
             <div className="flex-shrink-0 p-2 bg-blue-100 rounded-full">
-              <Cookie className="h-6 w-6 text-blue-600" />
+              <Cookie className="h-6 w-6 text-blue-600" aria-hidden="true" />
             </div>
             
             <div className="flex-1 min-w-0">
@@ -136,7 +136,7 @@ export function ConsentBanner() {
               className="p-1 hover:bg-gray-100 rounded-full transition-colors"
               aria-label="Close"
             >
-              <X className="h-5 w-5 text-gray-400" />
+              <X className="h-5 w-5 text-gray-400" aria-hidden="true" />
             </button>
           </div>
         </CardContent>

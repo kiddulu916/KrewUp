@@ -253,4 +253,40 @@ test.describe('Stripe Subscription Flows', () => {
     const hasBoostUI = await page.locator('text=/Profile Boost/i').isVisible();
     expect(hasBoostUI).toBe(true);
   });
+
+  test('pricing page should be accessible', async ({ page }) => {
+    await page.goto('/pricing');
+
+    // Should have proper heading hierarchy (h1)
+    const h1Count = await page.locator('h1').count();
+    expect(h1Count).toBeGreaterThan(0);
+
+    // All buttons should have accessible text
+    const buttons = page.locator('button');
+    const buttonCount = await buttons.count();
+    for (let i = 0; i < buttonCount; i++) {
+      const button = buttons.nth(i);
+      const text = await button.textContent();
+      const ariaLabel = await button.getAttribute('aria-label');
+      // Button should have visible text or aria-label
+      expect(text?.trim() || ariaLabel).toBeTruthy();
+    }
+
+    // Should be keyboard navigable to subscribe buttons
+    await page.keyboard.press('Tab');
+    await page.keyboard.press('Tab');
+    const focusedElement = await page.evaluate(() => document.activeElement?.tagName);
+    expect(['BUTTON', 'A', 'INPUT']).toContain(focusedElement);
+  });
+
+  test('subscription page should show plan comparison', async ({ page }) => {
+    await loginAsUser(page, testUser);
+    await page.goto('/dashboard/subscription');
+
+    // Should show upgrade section with features comparison
+    await expect(page.locator('text=/Upgrade to Pro/i')).toBeVisible();
+
+    // Should list Pro features
+    await expect(page.locator('text=/proximity|boost|analytics/i').first()).toBeVisible();
+  });
 });

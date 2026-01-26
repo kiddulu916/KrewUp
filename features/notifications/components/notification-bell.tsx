@@ -18,8 +18,13 @@ export function NotificationBell() {
 
       {/* Unread Badge */}
       {!isLoading && unreadCount !== undefined && unreadCount > 0 && (
-        <span className="absolute top-0 right-0 inline-flex items-center justify-center w-5 h-5 text-[10px] font-bold text-white bg-red-600 rounded-full border-2 border-white">
-          {unreadCount > 99 ? '99+' : unreadCount}
+        <span
+          role="status"
+          aria-live="polite"
+          className="absolute top-0 right-0 inline-flex items-center justify-center w-5 h-5 text-[10px] font-bold text-white bg-red-600 rounded-full border-2 border-white"
+        >
+          <span className="sr-only">{unreadCount} unread notifications</span>
+          <span aria-hidden="true">{unreadCount > 99 ? '99+' : unreadCount}</span>
         </span>
       )}
     </Link>

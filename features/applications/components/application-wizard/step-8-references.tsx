@@ -144,8 +144,9 @@ export function Step8References({ form }: Props) {
                     remove(index);
                   }}
                   className="text-red-600 hover:text-red-800 p-1"
+                  aria-label={`Remove ${refName || `reference ${index + 1}`}`}
                 >
-                  <TrashIcon className="h-4 w-4" />
+                  <TrashIcon className="h-4 w-4" aria-hidden="true" />
                 </button>
               </div>
 

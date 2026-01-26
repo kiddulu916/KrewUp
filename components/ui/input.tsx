@@ -25,6 +25,9 @@ export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
 export const Input = forwardRef<HTMLInputElement, InputProps>(
   ({ className, label, error, helperText, id, value, defaultValue, ...props }, ref) => {
     const inputId = id || label?.toLowerCase().replace(/\s+/g, '-');
+    const errorId = error ? `${inputId}-error` : undefined;
+    const helperId = helperText && !error ? `${inputId}-helper` : undefined;
+    const describedBy = [errorId, helperId].filter(Boolean).join(' ') || undefined;
 
     // Prevent controlled/uncontrolled switching
     // If value is provided (even if undefined), ensure it's always a string
@@ -42,12 +45,14 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             className="mb-1.5 block text-sm font-medium text-gray-700"
           >
             {label}
-            {props.required && <span className="ml-1 text-red-500">*</span>}
+            {props.required && <span className="ml-1 text-red-500" aria-hidden="true">*</span>}
           </label>
         )}
         <input
           ref={ref}
           id={inputId}
+          aria-invalid={error ? 'true' : undefined}
+          aria-describedby={describedBy}
           {...props}
           {...controlledProps}
           className={cn(
@@ -59,9 +64,9 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             className
           )}
         />
-        {error && <p className="mt-1.5 text-sm text-red-600">{error}</p>}
+        {error && <p id={errorId} className="mt-1.5 text-sm text-red-600" role="alert">{error}</p>}
         {helperText && !error && (
-          <p className="mt-1.5 text-sm text-gray-500">{helperText}</p>
+          <p id={helperId} className="mt-1.5 text-sm text-gray-500">{helperText}</p>
         )}
       </div>
     );
