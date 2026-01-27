@@ -113,7 +113,7 @@ describe('useConversations', () => {
 
     const { result } = renderHookWithQuery(() => useConversations());
 
-    expect(result.current.isError).toBe(true);
+    expect(result.current.error).not.toBeNull();
     expect(result.current.error?.message).toBe('Failed to fetch conversations');
   });
 

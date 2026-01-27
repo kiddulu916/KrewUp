@@ -41,49 +41,104 @@ The application is live at: **[https://krewup.net](https://krewup.net)**
 ## 🛠️ Getting Started
 
 ### 1. Clone the Repository
+
 ```bash
 git clone https://github.com/kiddulu916/krewup.git
 cd krewup
 ```
 
 ### 2. Install Dependencies
+
 ```bash
 npm install
 ```
 
 ### 3. Environment Setup
+
 Copy the example environment file and fill in your credentials:
+
 ```bash
 cp .env.example .env.local
 ```
 
 ### 4. Database Migrations
+
 Apply migrations to your Supabase project:
+
 - Migrations are located in `supabase/migrations/`.
-- Use the Supabase CLI or dashboard to apply them sequentially.
+- Apply them sequentially (numbered 001* through 044*).
+- **Using Supabase Dashboard:**
+  1. Go to your Supabase project → SQL Editor
+  2. Copy and paste each migration file in order
+  3. Execute each migration
+- **Using Supabase CLI:**
+  ```bash
+  supabase db push
+  ```
+- **Important:** Ensure PostGIS extension is enabled:
+  ```sql
+  CREATE EXTENSION IF NOT EXISTS postgis;
+  ```
 
 ### 5. Run the Development Server
+
 ```bash
 npm run dev
 ```
+
 Open [http://localhost:3000](http://localhost:3000) to see the result.
 
 ## ⚙️ Environment Variables
 
 The following variables are required in your `.env.local`:
 
-| Variable | Description |
-|----------|-------------|
-| `NEXT_PUBLIC_SUPABASE_URL` | Your Supabase project URL |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anonymous key |
-| `SUPABASE_SERVICE_ROLE_KEY` | Supabase service role key (Server-only) |
-| `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Stripe publishable key |
-| `STRIPE_SECRET_KEY` | Stripe secret key |
-| `STRIPE_WEBHOOK_SECRET` | Stripe webhook signing secret |
-| `STRIPE_PRICE_ID_PRO_MONTHLY` | Stripe Price ID for Monthly Pro |
-| `STRIPE_PRICE_ID_PRO_ANNUAL` | Stripe Price ID for Annual Pro |
-| `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` | Google Maps API key |
-| `NEXT_PUBLIC_APP_URL` | Base URL for the application |
+### Required Variables
+
+| Variable                             | Description                             | Where to Get It                                      |
+| ------------------------------------ | --------------------------------------- | ---------------------------------------------------- |
+| `NEXT_PUBLIC_SUPABASE_URL`           | Your Supabase project URL               | Supabase Dashboard → Settings → API                  |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY`      | Supabase anonymous key                  | Supabase Dashboard → Settings → API                  |
+| `SUPABASE_SERVICE_ROLE_KEY`          | Supabase service role key (Server-only) | Supabase Dashboard → Settings → API                  |
+| `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Stripe publishable key                  | Stripe Dashboard → Developers → API keys             |
+| `STRIPE_SECRET_KEY`                  | Stripe secret key                       | Stripe Dashboard → Developers → API keys             |
+| `STRIPE_WEBHOOK_SECRET`              | Stripe webhook signing secret           | Stripe Dashboard → Developers → Webhooks             |
+| `STRIPE_PRICE_ID_PRO_MONTHLY`        | Stripe Price ID for Monthly Pro         | Stripe Dashboard → Products → Create Price           |
+| `STRIPE_PRICE_ID_PRO_ANNUAL`         | Stripe Price ID for Annual Pro          | Stripe Dashboard → Products → Create Price           |
+| `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY`    | Google Maps API key                     | Google Cloud Console → APIs & Services               |
+| `NEXT_PUBLIC_APP_URL`                | Base URL for the application            | `http://localhost:3000` (dev) or your production URL |
+
+### Optional Variables
+
+| Variable                       | Description                              | Default                      |
+| ------------------------------ | ---------------------------------------- | ---------------------------- |
+| `NEXT_PUBLIC_VAPID_PUBLIC_KEY` | VAPID public key for push notifications  | Push notifications disabled  |
+| `VAPID_PRIVATE_KEY`            | VAPID private key for push notifications | Push notifications disabled  |
+| `VAPID_SUBJECT`                | VAPID subject (email or URL)             | `mailto:support@krewup.net`  |
+| `NEXT_PUBLIC_SENTRY_DSN`       | Sentry DSN for error tracking            | Sentry disabled              |
+| `SENTRY_AUTH_TOKEN`            | Sentry auth token for API access         | Sentry API features disabled |
+| `RESEND_API_KEY`               | Resend API key for email sending         | Email features disabled      |
+| `NODE_ENV`                     | Environment mode                         | `development`                |
+
+### Setting Up Push Notifications (Optional)
+
+1. Generate VAPID keys:
+   ```bash
+   npx web-push generate-vapid-keys
+   ```
+2. Add the keys to your `.env.local`:
+   ```bash
+   NEXT_PUBLIC_VAPID_PUBLIC_KEY=your_public_key
+   VAPID_PRIVATE_KEY=your_private_key
+   VAPID_SUBJECT=mailto:support@krewup.net
+   ```
+
+### Setting Up Stripe Webhooks
+
+1. Install Stripe CLI: `brew install stripe/stripe-cli/stripe` (or see [Stripe CLI docs](https://stripe.com/docs/stripe-cli))
+2. Login: `stripe login`
+3. Forward webhooks locally: `stripe listen --forward-to localhost:3000/api/webhooks/stripe`
+4. Copy the webhook signing secret to `STRIPE_WEBHOOK_SECRET` in `.env.local`
+5. For production, configure webhook endpoint in Stripe Dashboard pointing to your production URL
 
 ## 📜 Available Scripts
 
@@ -100,7 +155,9 @@ The following variables are required in your `.env.local`:
 ## 🧪 Testing
 
 ### Unit & Component Tests
+
 Powered by **Vitest** and **React Testing Library**.
+
 ```bash
 npm test
 # or with UI
@@ -108,7 +165,9 @@ npm run test:ui
 ```
 
 ### End-to-End Tests
+
 Powered by **Playwright**.
+
 ```bash
 npm run test:e2e
 ```
@@ -134,6 +193,7 @@ npm run test:e2e
 ## 📱 Mobile Support
 
 KrewUp uses **Capacitor** to provide an Android application.
+
 ```bash
 # Sync Capacitor with web build
 npx cap sync android
@@ -145,9 +205,44 @@ npx cap open android
 ## 🚢 Deployment
 
 The project is optimized for deployment on **Vercel**.
+
 1. Push your changes to `main`.
 2. Connect your repository to Vercel.
-3. Configure environment variables in the Vercel dashboard.
+3. Configure all environment variables in the Vercel dashboard.
+4. Set up Stripe webhook endpoint pointing to your production URL.
+5. Configure Resend domain (if using email features).
+
+## 🔧 Troubleshooting
+
+### Database Connection Issues
+
+- Verify your Supabase URL and keys are correct
+- Check that migrations have been applied
+- Ensure PostGIS extension is enabled
+
+### Authentication Issues
+
+- Verify Supabase auth is configured correctly
+- Check that RLS policies are applied
+- Ensure service role key is set (for admin operations)
+
+### Stripe Webhook Issues
+
+- Verify webhook secret matches in Stripe dashboard
+- Check webhook logs in Stripe dashboard
+- Test locally with Stripe CLI: `stripe listen --forward-to localhost:3000/api/webhooks/stripe`
+
+### Push Notification Issues
+
+- Verify VAPID keys are set correctly
+- Check browser console for service worker errors
+- Ensure HTTPS in production (required for push notifications)
+
+### Build Errors
+
+- Run `npm run type-check` to identify TypeScript errors
+- Run `npm run lint` to check for code quality issues
+- Clear `.next` folder and rebuild: `rm -rf .next && npm run build`
 
 ## 📄 License
 
@@ -155,4 +250,4 @@ This project is licensed under the **ISC License** (as specified in `package.jso
 
 ---
 
-*For detailed development guidelines, please refer to [.junie/guidelines.md](.junie/guidelines.md).*
+_For detailed development guidelines, please refer to [.junie/guidelines.md](.junie/guidelines.md)._

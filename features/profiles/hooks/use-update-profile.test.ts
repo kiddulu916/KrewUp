@@ -55,7 +55,7 @@ describe('useUpdateProfile', () => {
       wrapper: createWrapper(),
     });
 
-    const profileData = { first_name: 'John', last_name: 'Doe' };
+    const profileData: any = { first_name: 'John', last_name: 'Doe' };
 
     await act(async () => {
       result.current.mutate(profileData);
@@ -74,7 +74,7 @@ describe('useUpdateProfile', () => {
     });
 
     await act(async () => {
-      await result.current.mutateAsync({ first_name: 'John' });
+      await result.current.mutateAsync({ first_name: 'John' } as any);
     });
 
     expect(mockRefresh).toHaveBeenCalled();
@@ -90,7 +90,7 @@ describe('useUpdateProfile', () => {
     let caughtError: Error | null = null;
     await act(async () => {
       try {
-        await result.current.mutateAsync({ first_name: 'John' });
+        await result.current.mutateAsync({ first_name: 'John' } as any);
       } catch (error: any) {
         caughtError = error;
       }
@@ -110,7 +110,7 @@ describe('useUpdateProfile', () => {
     let caughtError: Error | null = null;
     await act(async () => {
       try {
-        await result.current.mutateAsync({ first_name: 'John' });
+        await result.current.mutateAsync({ first_name: 'John' } as any);
       } catch (error: any) {
         caughtError = error;
       }
@@ -130,7 +130,7 @@ describe('useUpdateProfile', () => {
 
     let returnedData;
     await act(async () => {
-      returnedData = await result.current.mutateAsync({ first_name: 'John' });
+      returnedData = await result.current.mutateAsync({ first_name: 'John' } as any);
     });
 
     expect(returnedData).toEqual(updatedProfile);
@@ -149,7 +149,7 @@ describe('useUpdateProfile', () => {
     });
 
     act(() => {
-      result.current.mutate({ first_name: 'John' });
+      result.current.mutate({ first_name: 'John' } as any);
     });
 
     await waitFor(() => {

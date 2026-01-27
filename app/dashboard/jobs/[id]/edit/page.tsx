@@ -43,7 +43,7 @@ export default async function EditJobPage({ params }: EditJobPageProps) {
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-6">
-          <h1 className="text-3xl font-bold text-gray-900">Edit Job Post</h1>
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Edit Job Post</h1>
           <p className="mt-2 text-gray-600">Update your job posting details</p>
         </div>
 

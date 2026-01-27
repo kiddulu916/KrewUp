@@ -24,7 +24,7 @@ export default function WorkerSearchPage() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Find Experienced Workers</h1>
+        <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Find Experienced Workers</h1>
         <p className="mt-2 text-gray-600">
           Search for workers by years of experience and trade specialty
         </p>

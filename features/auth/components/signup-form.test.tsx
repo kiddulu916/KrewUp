@@ -221,7 +221,7 @@ describe('SignupForm', () => {
 
   it('should call signInWithGoogle on Google button click', async () => {
     const user = userEvent.setup();
-    vi.mocked(signInWithGoogle).mockResolvedValue(undefined);
+    vi.mocked(signInWithGoogle).mockResolvedValue(undefined as any);
 
     render(<SignupForm />);
 

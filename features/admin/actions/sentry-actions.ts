@@ -111,9 +111,8 @@ export async function getRecentIssues(
         headers: {
           Authorization: `Bearer ${config.authToken}`,
         },
-        // @ts-ignore - Next.js extended fetch API
         next: { revalidate: 300 }, // Cache for 5 minutes
-      }
+      } as RequestInit & { next?: { revalidate?: number } }
     );
 
     if (!response.ok) {
@@ -172,9 +171,8 @@ export async function getErrorRateData(): Promise<ErrorRateData[]> {
         headers: {
           Authorization: `Bearer ${config.authToken}`,
         },
-        // @ts-ignore - Next.js extended fetch API
         next: { revalidate: 300 }, // Cache for 5 minutes
-      }
+      } as RequestInit & { next?: { revalidate?: number } }
     );
 
     if (!response.ok) {
@@ -290,9 +288,8 @@ export async function getSentryStats(): Promise<SentryStats | null> {
         headers: {
           Authorization: `Bearer ${config.authToken}`,
         },
-        // @ts-ignore - Next.js extended fetch API
         next: { revalidate: 300 }, // Cache for 5 minutes
-      }
+      } as RequestInit & { next?: { revalidate?: number } }
     );
 
     if (!response.ok) {

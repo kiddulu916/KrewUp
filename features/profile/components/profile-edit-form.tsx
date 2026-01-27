@@ -43,6 +43,9 @@ export function ProfileEditForm({ profile }: Props) {
     },
   });
 
+  // * React Hook Form's watch() function cannot be memoized by React Compiler
+  // * This is a known limitation and safe to disable
+  // eslint-disable-next-line react-hooks/incompatible-library
   const watchTrade = watch('trade');
 
   async function onSubmit(data: ProfileSchema) {
@@ -190,6 +193,8 @@ export function ProfileEditForm({ profile }: Props) {
           disabled={isSubmitting}
           error={errors.bio?.message}
           helperText="Briefly describe your experience, skills, and what you're looking for"
+          maxLength={500}
+          showCharCount
         />
       </div>
 

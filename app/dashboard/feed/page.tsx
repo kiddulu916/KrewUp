@@ -4,6 +4,7 @@ import { InitialLocationCapture } from '@/features/dashboard/components/initial-
 import { cookies } from 'next/headers';
 import { FeedAdBanner } from '@/components/ads/feed-ad-banner';
 import { getFullName } from '@/lib/utils';
+import Link from 'next/link';
 
       
 
@@ -104,11 +105,11 @@ export default async function FeedPage() {
 
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
             Welcome back, {fullName}! 👋
           </h1>
           <p className="mt-2 text-gray-600">
-            Here's what's happening in your network
+            Here&apos;s what&apos;s happening in your network
           </p>
         </div>
 
@@ -134,24 +135,24 @@ export default async function FeedPage() {
                 <p className="text-gray-600">
                   Start browsing jobs to find your next opportunity
                 </p>
-                <a
+                <Link
                   href="/dashboard/jobs"
                   className="mt-2 inline-block text-krewup-blue hover:underline"
                 >
                   Browse Jobs →
-                </a>
+                </Link>
               </div>
             ) : (
               <div className="rounded-lg border-2 border-dashed border-gray-300 p-6 text-center">
                 <p className="text-gray-600">
                   Post your first job to start finding great workers
                 </p>
-                <a
+                <Link
                   href="/dashboard/jobs/new"
                   className="mt-2 inline-block text-krewup-blue hover:underline"
                 >
                   Post a Job →
-                </a>
+                </Link>
               </div>
             )}
           </div>

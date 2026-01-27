@@ -78,8 +78,8 @@ describe('useMessages', () => {
     });
 
     expect(result.current.messages).toHaveLength(2);
-    expect(result.current.messages[0].sender.name).toBe('John Doe');
-    expect(result.current.messages[1].sender.name).toBe('Jane Smith');
+    expect((result.current.messages as any)[0].sender.name).toBe('John Doe');
+    expect((result.current.messages as any)[1].sender.name).toBe('Jane Smith');
   });
 
   it('should handle empty messages', async () => {
@@ -153,7 +153,7 @@ describe('useMessages', () => {
       expect(result.current.messages.length).toBeGreaterThan(0);
     });
 
-    expect(result.current.messages[0].sender.name).toBe('Unknown User');
+    expect((result.current.messages as any)[0].sender.name).toBe('Unknown User');
   });
 
   it('should not fetch when conversationId is empty', () => {
@@ -228,6 +228,6 @@ describe('useMessages', () => {
       expect(result.current.messages.length).toBeGreaterThan(0);
     });
 
-    expect(result.current.messages[0].sender.name).toBe('Unknown User');
+    expect((result.current.messages as any)[0].sender.name).toBe('Unknown User');
   });
 });

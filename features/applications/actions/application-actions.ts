@@ -8,11 +8,11 @@ import { deleteDraft } from './draft-actions';
 import { saveApplicationDataToProfile } from './save-to-profile-actions';
 import type { ApplicationFormData } from '../types/application.types';
 import { logger } from '@/lib/utils/logger';
+import { success, error, handleActionError, requireAuth, getUserFriendlyError, validateInput } from '@/lib/utils/action-response';
+import type { ActionResponse } from '@/lib/utils/action-response';
+import { createApplicationSchema, updateApplicationStatusSchema, type CreateApplicationInput, type UpdateApplicationStatusInput } from '@/lib/validation/schemas';
 
-type ApplicationResult = {
-  success: boolean;
-  error?: string;
-};
+type ApplicationResult = ActionResponse<void>;
 
 type CreateApplicationData = {
   jobId: string;
@@ -20,21 +20,45 @@ type CreateApplicationData = {
 };
 
 /**
- * Submit a job application
+ * Submit a job application as a worker.
+ *
+ * Validates that the user is authenticated and is a worker, checks for duplicate
+ * applications, and creates a new application record with 'pending' status.
+ *
+ * @param data - Application data containing jobId and optional coverLetter
+ * @param data.jobId - UUID of the job to apply to
+ * @param data.coverLetter - Optional cover letter text (max 5000 characters)
+ * @returns Promise resolving to ApplicationResult with success status
+ * @throws Will return error if user is not authenticated, not a worker, or already applied
+ *
+ * @example
+ * ```ts
+ * const result = await createApplication({
+ *   jobId: '123e4567-e89b-12d3-a456-426614174000',
+ *   coverLetter: 'I am interested in this position...'
+ * });
+ * if (result.success) {
+ *   // Application submitted successfully
+ * }
+ * ```
  */
 export async function createApplication(
   data: CreateApplicationData
 ): Promise<ApplicationResult> {
-  try {
+  return handleActionError(async () => {
+    // Validate input
+    const validation = validateInput(createApplicationSchema, data);
+    if (!validation.success) return validation.error;
+    const validatedData: CreateApplicationInput = validation.data;
+
     const supabase = await createClient(await cookies());
 
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      return { success: false, error: 'Not authenticated' };
+    // Authentication check
+    const authResult = await requireAuth(supabase);
+    if (!authResult.success || !authResult.data) {
+      return error(authResult.error || 'Not authenticated');
     }
+    const user = authResult.data;
 
     // Check if user is a worker
     const { data: profile } = await supabase
@@ -44,71 +68,90 @@ export async function createApplication(
       .single();
 
     if (!profile || profile.role !== 'worker') {
-      return { success: false, error: 'Only workers can apply to jobs' };
+      return error('Only workers can apply to jobs');
     }
 
     // Check if already applied
     const { data: existingApp } = await supabase
       .from('job_applications')
       .select('id')
-      .eq('job_id', data.jobId)
+      .eq('job_id', validatedData.jobId)
       .eq('applicant_id', user.id)
       .single();
 
     if (existingApp) {
-      return { success: false, error: 'You have already applied to this job' };
+      return error('You have already applied to this job');
     }
 
     // Create application
-    const { error } = await supabase.from('job_applications').insert({
-      job_id: data.jobId,
+    const { error: insertError } = await supabase.from('job_applications').insert({
+      job_id: validatedData.jobId,
       applicant_id: user.id,
-      cover_letter: data.coverLetter || null,
+      cover_letter: validatedData.coverLetter || null,
       status: 'pending',
     });
 
-    if (error) {
-      logger.error('Error creating application', { error: error instanceof Error ? error.message : String(error) });
-      return { success: false, error: 'Failed to submit application' };
+    if (insertError) {
+      return error(getUserFriendlyError(insertError, 'Failed to submit application'));
     }
 
     revalidatePath('/dashboard/applications');
     revalidatePath('/dashboard/jobs');
 
-    return { success: true };
-  } catch (error) {
-    logger.error('Error in createApplication', { error: error instanceof Error ? error.message : String(error) });
-    return { success: false, error: 'An unexpected error occurred' };
-  }
+    return success();
+  }, 'Failed to create application');
 }
 
 /**
- * Update application status (for employers)
+ * Update the status of a job application (employer only).
+ *
+ * Allows employers to update the status of applications for their own job postings.
+ * Validates that the user is authenticated, owns the job, and the application exists.
+ *
+ * @param applicationId - UUID of the application to update
+ * @param status - New status for the application ('pending' | 'viewed' | 'hired' | 'rejected')
+ * @returns Promise resolving to ApplicationResult with success status
+ * @throws Will return error if user is not authenticated, doesn't own the job, or application not found
+ *
+ * @example
+ * ```ts
+ * const result = await updateApplicationStatus(
+ *   '123e4567-e89b-12d3-a456-426614174000',
+ *   'viewed'
+ * );
+ * if (result.success) {
+ *   // Status updated successfully
+ * }
+ * ```
  */
 export async function updateApplicationStatus(
   applicationId: string,
   status: 'pending' | 'viewed' | 'hired' | 'rejected'
 ): Promise<ApplicationResult> {
-  try {
+  return handleActionError(async () => {
+    // Validate input
+    const validation = validateInput(updateApplicationStatusSchema, { applicationId, status });
+    if (!validation.success) return validation.error;
+    const validatedData: UpdateApplicationStatusInput = validation.data;
+
     const supabase = await createClient(await cookies());
 
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      return { success: false, error: 'Not authenticated' };
+    // Authentication check
+    const authResult = await requireAuth(supabase);
+    if (!authResult.success || !authResult.data) {
+      return error(authResult.error || 'Not authenticated');
     }
+    const user = authResult.data;
 
     // Check if user is an employer and owns the job
     const { data: application } = await supabase
       .from('job_applications')
       .select('id, job_id')
-      .eq('id', applicationId)
+      .eq('id', validatedData.applicationId)
       .single();
 
     if (!application) {
-      return { success: false, error: 'Application not found' };
+      return error('Application not found');
     }
 
     // Verify the job belongs to the user
@@ -119,31 +162,42 @@ export async function updateApplicationStatus(
       .single();
 
     if (!job || job.employer_id !== user.id) {
-      return { success: false, error: 'You can only update applications to your jobs' };
+      return error('You can only update applications to your jobs');
     }
 
     // Update status
-    const { error } = await supabase
+    const { error: updateError } = await supabase
       .from('job_applications')
-      .update({ status })
-      .eq('id', applicationId);
+      .update({ status: validatedData.status })
+      .eq('id', validatedData.applicationId);
 
-    if (error) {
-      logger.error('Error updating application', { error: error instanceof Error ? error.message : String(error) });
-      return { success: false, error: 'Failed to update application status' };
+    if (updateError) {
+      return error(getUserFriendlyError(updateError, 'Failed to update application status'));
     }
 
     revalidatePath('/dashboard/applications');
+    revalidatePath('/dashboard/jobs');
 
-    return { success: true };
-  } catch (error) {
-    logger.error('Error in updateApplicationStatus', { error: error instanceof Error ? error.message : String(error) });
-    return { success: false, error: 'An unexpected error occurred' };
-  }
+    return success();
+  }, 'Failed to update application status');
 }
 
 /**
- * Check if user has applied to a job
+ * Check if the current authenticated user has already applied to a specific job.
+ *
+ * Returns false if user is not authenticated or has not applied.
+ * Used to prevent duplicate applications and show application status in UI.
+ *
+ * @param jobId - UUID of the job to check
+ * @returns Promise resolving to boolean indicating if user has applied
+ *
+ * @example
+ * ```ts
+ * const applied = await hasApplied('123e4567-e89b-12d3-a456-426614174000');
+ * if (applied) {
+ *   // Show "Already Applied" button
+ * }
+ * ```
  */
 export async function hasApplied(jobId: string): Promise<boolean> {
   try {
@@ -171,7 +225,24 @@ export async function hasApplied(jobId: string): Promise<boolean> {
 }
 
 /**
- * Get applications for a specific job (for employers)
+ * Get all applications for a specific job (employer only).
+ *
+ * Fetches applications for a job, including applicant profile information.
+ * Applications are sorted with boosted profiles first, then by creation date (newest first).
+ * Only the job owner can access this data.
+ *
+ * @param jobId - UUID of the job to get applications for
+ * @returns Promise resolving to object with success status and applications array
+ * @throws Will return error if user is not authenticated or doesn't own the job
+ *
+ * @example
+ * ```ts
+ * const result = await getJobApplications('123e4567-e89b-12d3-a456-426614174000');
+ * if (result.success && result.data) {
+ *   // Display applications list
+ *   result.data.forEach(app => console.log(app.applicant.name));
+ * }
+ * ```
  */
 export async function getJobApplications(jobId: string) {
   try {
@@ -247,8 +318,34 @@ export async function getJobApplications(jobId: string) {
 }
 
 /**
- * Submit comprehensive job application from wizard
- * Moves files from draft to application storage and creates final application
+ * Submit comprehensive job application from the application wizard.
+ *
+ * Creates a final application record, moves files from draft storage to application storage,
+ * saves application data to user profile for future auto-fill, and deletes the draft.
+ * This is the final submission step after completing all wizard steps.
+ *
+ * @param jobId - UUID of the job to apply to
+ * @param formData - Complete application form data from all wizard steps
+ * @param resumeUrl - Optional URL of the uploaded resume (may be in draft storage)
+ * @param coverLetterUrl - Optional URL of the uploaded cover letter (may be in draft storage)
+ * @param resumeExtractedText - Optional extracted text from resume for searchability
+ * @returns Promise resolving to object with success status and optional applicationId
+ * @throws Will return error if user is not authenticated, not a worker, or already applied
+ *
+ * @example
+ * ```ts
+ * const result = await submitApplication(
+ *   jobId,
+ *   formData,
+ *   resumeUrl,
+ *   coverLetterUrl,
+ *   extractedText
+ * );
+ * if (result.success) {
+ *   // Redirect to success page
+ *   router.push(`/dashboard/applications/${result.applicationId}`);
+ * }
+ * ```
  */
 export async function submitApplication(
   jobId: string,

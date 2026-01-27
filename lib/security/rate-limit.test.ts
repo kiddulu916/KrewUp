@@ -53,17 +53,17 @@ function createMockHeaders(headers: Record<string, string>) {
 function clearEnvironmentVars() {
   delete process.env.UPSTASH_REDIS_REST_URL;
   delete process.env.UPSTASH_REDIS_REST_TOKEN;
-  delete process.env.NODE_ENV;
+  delete (process.env as any).NODE_ENV;
   delete process.env.VERCEL_ENV;
 }
 
 function setDevelopmentEnv() {
-  process.env.NODE_ENV = 'development';
+  (process.env as any).NODE_ENV = 'development';
   clearRedisEnv();
 }
 
 function setProductionEnv() {
-  process.env.NODE_ENV = 'production';
+  (process.env as any).NODE_ENV = 'production';
 }
 
 function setRedisEnv() {

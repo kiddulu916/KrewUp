@@ -35,7 +35,7 @@ export default async function AddExperiencePage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-4xl font-bold bg-gradient-to-r from-krewup-blue to-krewup-orange bg-clip-text text-transparent">
+        <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold bg-gradient-to-r from-krewup-blue to-krewup-orange bg-clip-text text-transparent">
           Add Work Experience
         </h1>
         <p className="mt-2 text-gray-600">

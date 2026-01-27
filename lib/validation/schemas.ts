@@ -47,6 +47,24 @@ export const updateApplicationStatusSchema = z.object({
   }),
 });
 
+export const createApplicationSchema = z.object({
+  jobId: uuidSchema,
+  coverLetter: z.string().max(5000, 'Cover letter is too long').optional(),
+});
+
+export const getJobApplicationsSchema = z.object({
+  jobId: uuidSchema,
+});
+
+export const submitApplicationSchema = z.object({
+  jobId: uuidSchema,
+  formData: z.record(z.string(), z.unknown()), // ApplicationFormData is complex, validate at field level
+  resumeUrl: z.string().url().optional(),
+  coverLetterUrl: z.string().url().optional(),
+  resumeExtractedText: z.string().optional(),
+  customAnswers: z.record(z.string(), z.unknown()).optional(),
+});
+
 // * Message-related schemas
 export const sendMessageSchema = z.object({
   conversationId: uuidSchema,
@@ -65,6 +83,23 @@ export const updateProfileSchema = z.object({
   bio: z.string().max(1000, 'Bio is too long').optional(),
   location: z.string().max(200, 'Location is too long').optional(),
   phone: phoneSchema,
+});
+
+export const updateProfileDataSchema = z.object({
+  name: z.string().min(1, 'Name is required').max(100, 'Name is too long').optional(),
+  phone: phoneSchema,
+  location: z.string().max(200, 'Location is too long').optional(),
+  trade: z.string().max(100).optional(),
+  sub_trade: z.string().max(100).optional(),
+  bio: z.string().max(500, 'Bio is too long').optional(),
+  employer_type: z.string().max(50).optional(),
+  company_name: z.string().max(100).optional(),
+  profile_image_url: z.string().url().optional(),
+  coords: z.object({
+    lat: z.number().min(-90).max(90),
+    lng: z.number().min(-180).max(180),
+  }).optional(),
+  csrfToken: z.string().min(1, 'CSRF token is required'),
 });
 
 // * Content report schemas
@@ -124,10 +159,14 @@ export type SuspendUserInput = z.infer<typeof suspendUserSchema>;
 export type BanUserInput = z.infer<typeof banUserSchema>;
 export type CreateJobInput = z.infer<typeof createJobSchema>;
 export type UpdateJobInput = z.infer<typeof updateJobSchema>;
+export type CreateApplicationInput = z.infer<typeof createApplicationSchema>;
 export type UpdateApplicationStatusInput = z.infer<typeof updateApplicationStatusSchema>;
+export type GetJobApplicationsInput = z.infer<typeof getJobApplicationsSchema>;
+export type SubmitApplicationInput = z.infer<typeof submitApplicationSchema>;
 export type SendMessageInput = z.infer<typeof sendMessageSchema>;
 export type CreateConversationInput = z.infer<typeof createConversationSchema>;
 export type UpdateProfileInput = z.infer<typeof updateProfileSchema>;
+export type UpdateProfileDataInput = z.infer<typeof updateProfileDataSchema>;
 export type CreateContentReportInput = z.infer<typeof createContentReportSchema>;
 export type ReviewContentReportInput = z.infer<typeof reviewContentReportSchema>;
 export type DeletePortfolioPhotoInput = z.infer<typeof deletePortfolioPhotoSchema>;

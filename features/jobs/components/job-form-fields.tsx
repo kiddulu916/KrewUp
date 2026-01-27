@@ -1,6 +1,6 @@
 'use client';
 
-import { Input, Select } from '@/components/ui';
+import { Input, Select, Textarea } from '@/components/ui';
 import { LocationAutocomplete } from '@/components/common/location-autocomplete';
 import { JOB_TYPES } from '@/lib/constants';
 import type { JobData } from '../actions/job-actions';
@@ -57,17 +57,17 @@ export function JobFormFields({
         </div>
       </div>
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1.5">Job Description</label>
-        <textarea
-          className="flex min-h-[160px] w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-krewup-blue focus:border-transparent disabled:cursor-not-allowed disabled:opacity-50"
-          placeholder="Describe the job responsibilities, requirements, and any other relevant details..."
-          value={formData.description}
-          onChange={(e) => onFormDataChange({ description: e.target.value })}
-          required
-          disabled={isLoading}
-        />
-      </div>
+      <Textarea
+        label="Job Description"
+        className="min-h-[160px]"
+        placeholder="Describe the job responsibilities, requirements, and any other relevant details..."
+        value={formData.description}
+        onChange={(e) => onFormDataChange({ description: e.target.value })}
+        required
+        disabled={isLoading}
+        maxLength={2000}
+        showCharCount
+      />
 
       {/* Time Length for Temporary/Contract Jobs */}
       {isTemporaryOrContract && (

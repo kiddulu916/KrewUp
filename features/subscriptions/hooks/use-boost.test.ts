@@ -117,7 +117,7 @@ describe('Boost Hooks', () => {
 
   describe('useActivateBoost', () => {
     it('should activate boost successfully', async () => {
-      vi.mocked(activateProfileBoost).mockResolvedValue({ success: true });
+      vi.mocked(activateProfileBoost).mockResolvedValue({ success: true, expiresAt: new Date().toISOString() });
 
       const { result } = renderHook(() => useActivateBoost(), {
         wrapper: createWrapper(),
@@ -131,7 +131,7 @@ describe('Boost Hooks', () => {
     });
 
     it('should call the action with correct parameters', async () => {
-      vi.mocked(activateProfileBoost).mockResolvedValue({ success: true });
+      vi.mocked(activateProfileBoost).mockResolvedValue({ success: true, expiresAt: new Date().toISOString() });
 
       const { result } = renderHook(() => useActivateBoost(), {
         wrapper: createWrapper(),

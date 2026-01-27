@@ -30,7 +30,7 @@ export default async function NotificationSettingsPage() {
         >
           ← Back to Settings
         </Link>
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Notification Settings</h1>
+        <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">Notification Settings</h1>
         <p className="text-gray-600">
           Customize how and when you receive notifications from KrewUp
         </p>

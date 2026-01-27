@@ -157,8 +157,16 @@ export async function updateApplicationStatus(
     return { success: false, error: 'Application not found' };
   }
 
-  // @ts-ignore - Supabase types can be tricky with nested selects
-  if (application.jobs.employer_id !== user.id) {
+  // Type guard for nested Supabase select result
+  // With !inner join, Supabase returns jobs as a single object, not an array
+  type ApplicationWithJob = {
+    id: string;
+    job_id: string;
+    jobs: { employer_id: string };
+  };
+
+  const typedApplication = application as unknown as ApplicationWithJob;
+  if (typedApplication.jobs.employer_id !== user.id) {
     return { success: false, error: 'Not authorized' };
   }
 

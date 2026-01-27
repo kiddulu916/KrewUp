@@ -95,9 +95,9 @@ export default async function PublicProfilePage({ params }: Props) {
   const workExperience = workExperienceData || [];
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+    <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
       {/* Main Profile Content */}
-      <div className="lg:col-span-3 space-y-6">
+      <div className="md:col-span-2 lg:col-span-3 space-y-6">
         {/* Track profile view */}
         <ProfileViewTracker profileId={profileId} />
 

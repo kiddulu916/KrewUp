@@ -82,7 +82,7 @@ describe('useNotifications', () => {
     expect(result.current.isLoading).toBe(false);
     expect(result.current.notifications).toHaveLength(2);
     expect(result.current.notifications[0].title).toBe('New Application');
-    expect(result.current.notifications[0].read).toBe(false);
+    expect(result.current.notifications[0].read_at).toBe(null);
   });
 
   it('should handle empty notifications', () => {
@@ -112,7 +112,7 @@ describe('useNotifications', () => {
 
     const { result } = renderHookWithQuery(() => useNotifications());
 
-    expect(result.current.isError).toBe(true);
+    expect(result.current.error).not.toBeNull();
     expect(result.current.error?.message).toBe('Failed to fetch notifications');
   });
 

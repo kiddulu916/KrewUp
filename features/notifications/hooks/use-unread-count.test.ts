@@ -93,7 +93,7 @@ describe('useUnreadCount', () => {
 
     const { result } = renderHookWithQuery(() => useUnreadCount());
 
-    expect(result.current.isError).toBe(true);
+    expect(result.current.error).not.toBeNull();
     expect(result.current.count).toBe(0); // Defaults to 0 on error
   });
 

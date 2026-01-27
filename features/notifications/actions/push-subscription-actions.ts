@@ -2,7 +2,6 @@
 
 import { createClient, createServiceClient } from '@/lib/supabase/server';
 import { cookies } from 'next/headers';
-// @ts-ignore - web-push doesn't have type declarations
 import webpush from 'web-push';
 import { logger, sanitizeUserId } from '@/lib/utils/logger';
 

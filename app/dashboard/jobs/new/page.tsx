@@ -36,7 +36,7 @@ export default async function NewJobPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Post a Job</h1>
+        <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Post a Job</h1>
         <p className="mt-2 text-gray-600">
           Create a job posting to find skilled trade workers
         </p>

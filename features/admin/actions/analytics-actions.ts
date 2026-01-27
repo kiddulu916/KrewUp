@@ -471,8 +471,9 @@ export async function getSubscriptionMetrics(
   const mrr = subscriptions?.reduce((sum, sub) => sum + (sub.amount || 0), 0) || 0;
 
   // Calculate churn rate (users who canceled in this period)
-  // This requires tracking subscription status changes - simplified for now
-  const churnRate = 0; // TODO: Implement when subscription history tracking is added
+  // TODO: Implement churn calculation using subscription_history table
+  // The subscription_history table exists and tracks cancellation events
+  const churnRate = 0;
 
   // Get comparison if enabled
   let comparison = null;

@@ -190,14 +190,19 @@ export async function handleActionError<T>(
 }
 
 /**
- * Authentication guard for server actions
- * Returns an error response if user is not authenticated
+ * Authentication guard for server actions.
+ *
+ * Verifies that the current user is authenticated via Supabase auth.
+ * Returns an error response if user is not authenticated.
+ *
+ * @param supabase - Authenticated Supabase client instance
+ * @returns Promise resolving to ActionResponse with user data if authenticated, or error if not
  *
  * @example
  * ```ts
  * const authResult = await requireAuth(supabase);
  * if (!authResult.success) return authResult;
- * const user = authResult.data;
+ * const user = authResult.data; // { id: string, email?: string }
  * ```
  */
 export async function requireAuth(
@@ -216,13 +221,20 @@ export async function requireAuth(
 }
 
 /**
- * Admin authorization guard for server actions
- * Returns an error response if user is not an admin
+ * Admin authorization guard for server actions.
+ *
+ * Verifies that the current user has admin privileges (is_admin = true).
+ * Returns an error response if user is not an admin.
+ *
+ * @param supabase - Supabase client instance (can be service role for admin operations)
+ * @param userId - UUID of the user to check admin status for
+ * @returns Promise resolving to ActionResponse<void> - success if admin, error if not
  *
  * @example
  * ```ts
  * const adminResult = await requireAdmin(supabase, user.id);
  * if (!adminResult.success) return adminResult;
+ * // User is admin, proceed with admin operation
  * ```
  */
 export async function requireAdmin(
@@ -243,13 +255,20 @@ export async function requireAdmin(
 }
 
 /**
- * Pro subscription guard for server actions
- * Returns an error response if user doesn't have Pro subscription
+ * Pro subscription guard for server actions.
+ *
+ * Verifies that the current user has an active Pro subscription (subscription_status = 'pro').
+ * Returns an error response if user doesn't have Pro subscription.
+ *
+ * @param supabase - Supabase client instance
+ * @param userId - UUID of the user to check subscription status for
+ * @returns Promise resolving to ActionResponse<void> - success if Pro, error if not
  *
  * @example
  * ```ts
  * const proResult = await requirePro(supabase, user.id);
  * if (!proResult.success) return proResult;
+ * // User has Pro subscription, proceed with Pro feature
  * ```
  */
 export async function requirePro(

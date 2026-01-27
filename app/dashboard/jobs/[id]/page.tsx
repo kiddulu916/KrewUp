@@ -150,7 +150,7 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
         <CardHeader className="bg-linear-to-r from-krewup-blue to-krewup-light-blue">
           <div className="flex items-start justify-between">
             <div className="flex-1">
-              <CardTitle className="text-white text-3xl mb-2">{job.title}</CardTitle>
+              <CardTitle className="text-white text-2xl md:text-3xl mb-2">{job.title}</CardTitle>
               {job.employer && (
                 <p className="text-white/90 text-lg mt-2">
                   Posted by: <span className="font-semibold">{job.employer.company_name || getFullName(job.employer)}</span>

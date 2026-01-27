@@ -150,11 +150,13 @@ export async function POST(req: NextRequest) {
         }
 
         // Safely convert Unix timestamps (seconds) to ISO strings
-        const periodStart = (subscription as any).current_period_start
-          ? new Date((subscription as any).current_period_start * 1000).toISOString()
+        // In Stripe v20, current_period_start/end are on SubscriptionItem, not Subscription
+        const subscriptionItem = subscription.items.data[0];
+        const periodStart = subscriptionItem?.current_period_start
+          ? new Date(subscriptionItem.current_period_start * 1000).toISOString()
           : new Date().toISOString();
-        const periodEnd = (subscription as any).current_period_end
-          ? new Date((subscription as any).current_period_end * 1000).toISOString()
+        const periodEnd = subscriptionItem?.current_period_end
+          ? new Date(subscriptionItem.current_period_end * 1000).toISOString()
           : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(); // Default to 30 days
 
         const { error } = await supabaseAdmin.from('subscriptions').upsert({
@@ -162,7 +164,7 @@ export async function POST(req: NextRequest) {
           stripe_customer_id: session.customer as string,
           stripe_subscription_id: subscriptionId,
           stripe_price_id: priceId,
-          status: 'active' as any,
+          status: 'active',
           plan_type: planType,
           current_period_start: periodStart,
           current_period_end: periodEnd,
@@ -278,19 +280,27 @@ export async function POST(req: NextRequest) {
         }
 
         // Safely convert Unix timestamps (seconds) to ISO strings
-        const periodStart = (subscription as any).current_period_start
-          ? new Date((subscription as any).current_period_start * 1000).toISOString()
+        // In Stripe v20, current_period_start/end are on SubscriptionItem, not Subscription
+        const subscriptionItem2 = subscription.items.data[0];
+        const periodStart = subscriptionItem2?.current_period_start
+          ? new Date(subscriptionItem2.current_period_start * 1000).toISOString()
           : new Date().toISOString();
-        const periodEnd = (subscription as any).current_period_end
-          ? new Date((subscription as any).current_period_end * 1000).toISOString()
+        const periodEnd = subscriptionItem2?.current_period_end
+          ? new Date(subscriptionItem2.current_period_end * 1000).toISOString()
           : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+
+        // Map Stripe subscription status to our database status
+        const dbStatus = subscription.status === 'active' ? 'active' : 
+                        subscription.status === 'past_due' ? 'past_due' :
+                        subscription.status === 'canceled' ? 'canceled' :
+                        subscription.status === 'unpaid' ? 'past_due' : 'active';
 
         const { error: updateError } = await supabaseAdmin
           .from('subscriptions')
           .update({
             stripe_subscription_id: subscription.id,
             stripe_price_id: priceId,
-            status: subscription.status as any,
+            status: dbStatus,
             plan_type: planType,
             current_period_start: periodStart,
             current_period_end: periodEnd,
@@ -478,16 +488,24 @@ export async function POST(req: NextRequest) {
         }
 
         // Track in history
-        await supabaseAdmin.from('subscription_history').insert({
-          user_id: existingSubscription.user_id,
-          stripe_subscription_id: (invoice as any).subscription as string,
-          event_type: 'payment_failed',
-          status: 'past_due',
-          metadata: {
-            invoice_id: invoice.id,
-            amount_due: invoice.amount_due / 100,
-          },
-        });
+        // In Stripe v20, subscription is accessed via parent.subscription_details
+        const invoiceSubscription = invoice.parent?.subscription_details?.subscription;
+        const invoiceSubscriptionId = typeof invoiceSubscription === 'string'
+          ? invoiceSubscription
+          : invoiceSubscription?.id || null;
+
+        if (invoiceSubscriptionId) {
+          await supabaseAdmin.from('subscription_history').insert({
+            user_id: existingSubscription.user_id,
+            stripe_subscription_id: invoiceSubscriptionId,
+            event_type: 'payment_failed',
+            status: 'past_due',
+            metadata: {
+              invoice_id: invoice.id,
+              amount_due: invoice.amount_due / 100,
+            },
+          });
+        }
 
         break;
       }
@@ -495,7 +513,11 @@ export async function POST(req: NextRequest) {
       case 'invoice.payment_succeeded': {
         const invoice = event.data.object as Stripe.Invoice;
         const customerId = invoice.customer as string;
-        const subscriptionId = (invoice as any).subscription as string;
+        // In Stripe v20, subscription is accessed via parent.subscription_details
+        const invoiceSubscription2 = invoice.parent?.subscription_details?.subscription;
+        const subscriptionId = typeof invoiceSubscription2 === 'string'
+          ? invoiceSubscription2
+          : invoiceSubscription2?.id || null;
 
         // Skip if not a subscription payment (e.g. one-off invoice)
         if (!subscriptionId) break;

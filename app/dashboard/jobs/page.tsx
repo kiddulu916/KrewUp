@@ -60,7 +60,7 @@ export default async function JobsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-krewup-blue to-krewup-orange bg-clip-text text-transparent">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold bg-gradient-to-r from-krewup-blue to-krewup-orange bg-clip-text text-transparent">
             {isEmployer ? 'My Job Posts' : 'Browse Jobs'}
           </h1>
           <p className="mt-2 text-gray-600 text-lg">

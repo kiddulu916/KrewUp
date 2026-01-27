@@ -15,9 +15,10 @@ type Props = {
   lastSaved: Date | null;
   saveError: string | null;
   onRetry?: () => void;
+  onManualSave?: () => void;
 };
 
-export function AutoSaveIndicator({ isSaving, lastSaved, saveError, onRetry }: Props) {
+export function AutoSaveIndicator({ isSaving, lastSaved, saveError, onRetry, onManualSave }: Props) {
   // Error state
   if (saveError) {
     return (
@@ -74,6 +75,30 @@ export function AutoSaveIndicator({ isSaving, lastSaved, saveError, onRetry }: P
             addSuffix: true,
           })}
         </span>
+        {onManualSave && (
+          <button
+            onClick={onManualSave}
+            className="text-gray-600 hover:text-gray-800 underline ml-2"
+            aria-label="Save now"
+          >
+            Save now
+          </button>
+        )}
+      </div>
+    );
+  }
+
+  // Initial state (not saved yet)
+  if (onManualSave) {
+    return (
+      <div className="flex items-center gap-2 text-sm text-gray-500 mt-2">
+        <button
+          onClick={onManualSave}
+          className="text-gray-600 hover:text-gray-800 underline"
+          aria-label="Save progress"
+        >
+          Save progress
+        </button>
       </div>
     );
   }

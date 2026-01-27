@@ -1,9 +1,0 @@
-{
-  "enabledPlugins": {
-    "supabase@claude-plugins-official": false,
-    "playwright@claude-plugins-official": false,
-    "stripe@claude-plugins-official": false,
-    "typescript-lsp@claude-plugins-official": false,
-    "vercel@claude-plugins-official": false
-  }
-}

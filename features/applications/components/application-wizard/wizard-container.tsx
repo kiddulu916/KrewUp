@@ -87,6 +87,8 @@ export function ApplicationWizardContainer({ jobId, jobTitle }: Props) {
     setExtractedText,
     nextStep,
     prevStep,
+    goToStep,
+    handleAutoSave,
   } = useApplicationWizard(jobId, totalSteps);
 
   // Fetch job details to check for custom questions and get trades
@@ -108,9 +110,24 @@ export function ApplicationWizardContainer({ jobId, jobTitle }: Props) {
       // Extract all trades from the job posting
       let extractedTrades: string[] = [];
 
+      // Type guard for TradeSelection array
+      function isTradeSelectionArray(value: unknown): value is TradeSelection[] {
+        return (
+          Array.isArray(value) &&
+          value.length > 0 &&
+          value.every(
+            (item): item is TradeSelection =>
+              typeof item === 'object' &&
+              item !== null &&
+              'trade' in item &&
+              typeof item.trade === 'string'
+          )
+        );
+      }
+
       // Priority 1: Check trade_selections (newest format with structured data)
-      if (job?.trade_selections && Array.isArray(job.trade_selections) && job.trade_selections.length > 0) {
-        extractedTrades = (job.trade_selections as TradeSelection[])
+      if (job?.trade_selections && isTradeSelectionArray(job.trade_selections)) {
+        extractedTrades = job.trade_selections
           .map((ts) => ts.trade)
           .filter((t): t is string => Boolean(t && t.trim() !== ''));
       }
@@ -198,8 +215,19 @@ export function ApplicationWizardContainer({ jobId, jobTitle }: Props) {
       <div className="bg-white border-b sticky top-0 z-10 shadow-sm">
         <div className="max-w-4xl mx-auto px-4 py-4">
           <h1 className="text-2xl font-bold text-gray-900">Apply for {jobTitle}</h1>
-          <ProgressIndicator currentStep={getDisplayStep(currentStep)} totalSteps={totalSteps} />
-          <AutoSaveIndicator isSaving={isSaving} lastSaved={lastSaved} saveError={saveError} onRetry={retrySave} />
+          <ProgressIndicator
+            currentStep={getDisplayStep(currentStep)}
+            totalSteps={totalSteps}
+            onStepClick={goToStep}
+            hasScreeningQuestions={hasScreeningQuestions}
+          />
+          <AutoSaveIndicator
+            isSaving={isSaving}
+            lastSaved={lastSaved}
+            saveError={saveError}
+            onRetry={retrySave}
+            onManualSave={handleAutoSave}
+          />
         </div>
       </div>
 

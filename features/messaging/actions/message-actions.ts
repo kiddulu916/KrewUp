@@ -8,17 +8,37 @@ import { rateLimit, RATE_LIMITS } from '@/lib/security/rate-limit';
 import { logger, sanitizeUserId } from '@/lib/utils/logger';
 import { assertValidCsrfToken } from '@/lib/security/csrf';
 import type { Message } from '../types';
+import { success, error, handleActionError, requireAuth, getUserFriendlyError, validateInput } from '@/lib/utils/action-response';
+import { sendMessageSchema, type SendMessageInput } from '@/lib/validation/schemas';
+import type { ActionResponse } from '@/lib/utils/action-response';
 
-export type MessageResult<T = Message | void> = {
-  success: boolean;
-  data?: T;
-  error?: string;
-};
+export type MessageResult<T = Message | void> = ActionResponse<T>;
 
 /**
- * Send a message in a conversation
- * 
- * ! Rate limited: 30 messages per minute per IP
+ * Send a message in a conversation.
+ *
+ * Validates CSRF token, applies rate limiting, verifies user is a participant,
+ * and creates a new message. Updates conversation's last_message_at timestamp.
+ *
+ * @param conversationId - UUID of the conversation to send message in
+ * @param content - Message content (1-2000 characters, validated by schema)
+ * @param csrfToken - CSRF token for security validation
+ * @returns Promise resolving to MessageResult with success status and message data
+ * @throws Will return error if CSRF validation fails, rate limit exceeded, user not authenticated,
+ *         conversation not found, or user is not a participant
+ *
+ * @example
+ * ```ts
+ * const result = await sendMessage(
+ *   '123e4567-e89b-12d3-a456-426614174000',
+ *   'Hello, I am interested in this job.',
+ *   csrfToken
+ * );
+ * if (result.success && result.data) {
+ *   // Message sent successfully
+ *   console.log('Message ID:', result.data.id);
+ * }
+ * ```
  */
 export async function sendMessage(
   conversationId: string,
@@ -27,86 +47,91 @@ export async function sendMessage(
 ): Promise<MessageResult> {
   const csrfResult = await assertValidCsrfToken(csrfToken);
   if (!csrfResult.ok) {
-    return { success: false, error: csrfResult.error ?? 'Security validation failed' };
+    return error(csrfResult.error ?? 'Security validation failed');
   }
 
   // * Rate limiting - prevent message spam
   const rateLimitResult = await rateLimit('message:send', RATE_LIMITS.message);
   if (rateLimitResult) return rateLimitResult;
 
-  const supabase = await createClient(await cookies());
+  return handleActionError(async () => {
+    // Validate input
+    const validation = validateInput(sendMessageSchema, { conversationId, content });
+    if (!validation.success) return validation.error;
+    const validatedData: SendMessageInput = validation.data;
 
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser();
+    const supabase = await createClient(await cookies());
 
-  if (authError || !user) {
-    return { success: false, error: 'Not authenticated' };
-  }
+    // Authentication check
+    const authResult = await requireAuth(supabase);
+    if (!authResult.success || !authResult.data) {
+      return error(authResult.error || 'Not authenticated');
+    }
+    const user = authResult.data;
 
-  // Validate content
-  if (!content || content.trim().length === 0) {
-    return { success: false, error: 'Message cannot be empty' };
-  }
+    // Verify conversation exists and user is a participant
+    const { data: conversation } = await supabase
+      .from('conversations')
+      .select('id, participant_1_id, participant_2_id')
+      .eq('id', validatedData.conversationId)
+      .single();
 
-  if (content.length > 1000) {
-    return { success: false, error: 'Message is too long (max 1000 characters)' };
-  }
+    if (!conversation) {
+      return error('Conversation not found');
+    }
 
-  // Verify conversation exists and user is a participant
-  const { data: conversation } = await supabase
-    .from('conversations')
-    .select('id, participant_1_id, participant_2_id')
-    .eq('id', conversationId)
-    .single();
+    const isParticipant =
+      conversation.participant_1_id === user.id || conversation.participant_2_id === user.id;
 
-  if (!conversation) {
-    return { success: false, error: 'Conversation not found' };
-  }
+    if (!isParticipant) {
+      return error('You are not a participant in this conversation');
+    }
 
-  const isParticipant =
-    conversation.participant_1_id === user.id || conversation.participant_2_id === user.id;
+    // Insert message
+    const { data: message, error: insertError } = await supabase
+      .from('messages')
+      .insert({
+        conversation_id: validatedData.conversationId,
+        sender_id: user.id,
+        content: validatedData.content.trim(),
+      })
+      .select()
+      .single();
 
-  if (!isParticipant) {
-    return { success: false, error: 'You are not a participant in this conversation' };
-  }
+    if (insertError) {
+      return error(getUserFriendlyError(insertError, 'Failed to send message'));
+    }
 
-  // Insert message
-  const { data: message, error: insertError } = await supabase
-    .from('messages')
-    .insert({
-      conversation_id: conversationId,
-      sender_id: user.id,
-      content: content.trim(),
-    })
-    .select()
-    .single();
+    // Update conversation's last_message_at
+    await supabase
+      .from('conversations')
+      .update({ last_message_at: new Date().toISOString() })
+      .eq('id', validatedData.conversationId);
 
-  if (insertError) {
-    logger.error('Failed to send message', {
-      conversationId,
-      senderId: sanitizeUserId(user.id),
-      error: insertError.message,
-      code: insertError.code,
-    });
-    return { success: false, error: 'Failed to send message' };
-  }
+    revalidatePath('/dashboard/messages');
+    revalidatePath(`/dashboard/messages/${validatedData.conversationId}`);
 
-  // Update conversation's last_message_at
-  await supabase
-    .from('conversations')
-    .update({ last_message_at: new Date().toISOString() })
-    .eq('id', conversationId);
-
-  revalidatePath('/dashboard/messages');
-
-  return { success: true, data: message };
+    return success(message);
+  }, 'Failed to send message');
 }
 
 /**
- * Mark all messages in a conversation as read
- * Uses service role to bypass RLS since users can't update messages they didn't send
+ * Mark all unread messages in a conversation as read.
+ *
+ * Uses service role client to bypass RLS since users can't update messages they didn't send.
+ * Only marks messages from the other participant as read (not the user's own messages).
+ *
+ * @param conversationId - UUID of the conversation to mark messages as read
+ * @returns Promise resolving to MessageResult with success status
+ * @throws Will return error if user is not authenticated
+ *
+ * @example
+ * ```ts
+ * const result = await markMessagesAsRead('123e4567-e89b-12d3-a456-426614174000');
+ * if (result.success) {
+ *   // Messages marked as read, notification count will update
+ * }
+ * ```
  */
 export async function markMessagesAsRead(conversationId: string): Promise<MessageResult> {
   logger.debug('Marking messages as read', { conversationId });

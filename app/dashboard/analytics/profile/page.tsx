@@ -39,9 +39,9 @@ export default async function ProfileAnalyticsPage() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Profile Analytics</h1>
+        <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Profile Analytics</h1>
         <p className="mt-2 text-gray-600">
-          Track who's viewing your profile and monitor your visibility to employers
+          Track who&apos;s viewing your profile and monitor your visibility to employers
         </p>
       </div>
 
@@ -50,7 +50,7 @@ export default async function ProfileAnalyticsPage() {
         <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-xl p-6 text-white">
           <h2 className="text-xl font-bold mb-2">Unlock Full Analytics</h2>
           <p className="text-blue-100 mb-4">
-            Upgrade to Pro to see detailed analytics, charts, and who's viewing your profile.
+            Upgrade to Pro to see detailed analytics, charts, and who&apos;s viewing your profile.
           </p>
           <a
             href="/pricing"

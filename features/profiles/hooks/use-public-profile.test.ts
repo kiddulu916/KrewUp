@@ -81,7 +81,8 @@ describe('usePublicProfile', () => {
 
   it('should fetch employer profile with contractor data', async () => {
     const mockProfile = {
-      ...createMockUser({ id: validUserId, role: 'employer', employer_type: 'contractor' }),
+      ...createMockUser({ id: validUserId, role: 'employer' } as any),
+      employer_type: 'contractor',
       workers: null,
       contractors: [{
         company_name: 'ABC Electric',
