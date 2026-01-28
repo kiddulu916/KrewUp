@@ -11,7 +11,7 @@ export type OnboardingData = {
   phone: string;
   email: string;
   role: 'worker' | 'employer';
-  employer_type?: 'contractor' | 'recruiter';
+  employer_type?: 'contractor' | 'recruiter' | 'homeowner' | 'developer';
   company_name?: string; // Business name for employers
   trade: string;
   sub_trade?: string;
@@ -148,37 +148,31 @@ export async function completeOnboarding(data: OnboardingData): Promise<Onboardi
       return { success: false, error: `Failed to save worker profile: ${workerError.message}` };
     }
   } else if (data.role === 'employer') {
-    if (data.employer_type === 'contractor') {
-      const { error: contractorError } = await supabase
-        .from('contractors')
+    // Handle all employer types with their respective tables
+    const employerTableMap: Record<string, string> = {
+      contractor: 'contractors',
+      recruiter: 'recruiters',
+      homeowner: 'home_owners',
+      developer: 'developers',
+    };
+
+    const tableName = data.employer_type ? employerTableMap[data.employer_type] : null;
+
+    if (tableName) {
+      const { error: employerError } = await supabase
+        .from(tableName)
         .upsert({
           user_id: user.id,
           company_name: data.company_name || null,
         }, { onConflict: 'user_id' });
 
-      if (contractorError) {
-        logger.error('Contractor table upsert error', {
+      if (employerError) {
+        logger.error(`${data.employer_type} table upsert error`, {
           userId: sanitizeUserId(user.id),
-          error: contractorError.message,
-          code: contractorError.code,
+          error: employerError.message,
+          code: employerError.code,
         });
-        return { success: false, error: `Failed to save contractor profile: ${contractorError.message}` };
-      }
-    } else if (data.employer_type === 'recruiter') {
-      const { error: recruiterError } = await supabase
-        .from('recruiters')
-        .upsert({
-          user_id: user.id,
-          company_name: data.company_name || null,
-        }, { onConflict: 'user_id' });
-
-      if (recruiterError) {
-        logger.error('Recruiter table upsert error', {
-          userId: sanitizeUserId(user.id),
-          error: recruiterError.message,
-          code: recruiterError.code,
-        });
-        return { success: false, error: `Failed to save recruiter profile: ${recruiterError.message}` };
+        return { success: false, error: `Failed to save ${data.employer_type} profile: ${employerError.message}` };
       }
     }
   }
