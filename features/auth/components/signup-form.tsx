@@ -52,15 +52,21 @@ export function SignupForm() {
   }
 
   async function handleGoogleSignIn() {
+    console.log('[SignupForm] Google button clicked');
     await execute(async () => {
+      console.log('[SignupForm] Calling signInWithGoogle...');
       const result = await signInWithGoogle();
+      console.log('[SignupForm] signInWithGoogle result:', result);
       if (result.success && result.url) {
+        console.log('[SignupForm] Redirecting to:', result.url);
         window.location.href = result.url;
         return result;
       }
       if (!result.success) {
+        console.error('[SignupForm] Google sign-in failed:', result.error);
         throw new Error(result.error ?? 'Failed to sign up with Google');
       }
+      console.warn('[SignupForm] No URL returned from signInWithGoogle');
       return result;
     });
   }

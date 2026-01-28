@@ -88,7 +88,7 @@ export async function signIn(email: string, password: string): Promise<AuthResul
 
 /**
  * Sign up with email and password
- * 
+ *
  * ! Rate limited: 3 signups per minute per IP
  */
 export async function signUp(
@@ -96,9 +96,14 @@ export async function signUp(
   password: string,
   name: string
 ): Promise<AuthResult> {
+  console.log('[signUp] Starting signup for:', email);
+
   // * Rate limiting - prevent mass account creation
   const rateLimitResult = await rateLimit('auth:signUp', RATE_LIMITS.authSignup);
-  if (rateLimitResult) return rateLimitResult;
+  if (rateLimitResult) {
+    console.log('[signUp] Rate limited');
+    return rateLimitResult;
+  }
 
   const supabase = await createClient(await cookies());
 
@@ -111,16 +116,18 @@ export async function signUp(
     .maybeSingle();
 
   if (existingProfile) {
+    console.log('[signUp] Email already exists');
     return {
       success: false,
       error: 'An account with this email already exists. Please sign in instead.'
     };
   }
-  
+
   const nameParts = name.trim().split(' ');
   const firstName = nameParts[0] || 'New';
   const lastName = nameParts.slice(1).join(' ') || 'User';
 
+  console.log('[signUp] Calling supabase.auth.signUp...');
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
@@ -140,14 +147,18 @@ export async function signUp(
     return { success: false, error: error.message };
   }
 
+  console.log('[signUp] Signup response - user:', data.user?.id, 'session:', !!data.session);
+
   // If email confirmation is disabled, user is immediately logged in.
   // Return redirectTo so the client navigates; server redirect from
   // client-invoked actions is not always applied to the document.
   if (data.user && data.session) {
+    console.log('[signUp] Email confirmation disabled, redirecting to onboarding');
     revalidatePath('/', 'layout');
     return { success: true, redirectTo: '/onboarding' };
   }
 
+  console.log('[signUp] Email confirmation required, showing check email screen');
   return { success: true };
 }
 
@@ -155,6 +166,9 @@ export async function signUp(
  * Sign in with Google OAuth
  */
 export async function signInWithGoogle(): Promise<AuthResult> {
+  console.log('[signInWithGoogle] Starting Google OAuth flow');
+  console.log('[signInWithGoogle] NEXT_PUBLIC_APP_URL:', process.env.NEXT_PUBLIC_APP_URL);
+
   const supabase = await createClient(await cookies());
 
   const { data, error } = await supabase.auth.signInWithOAuth({
@@ -164,16 +178,22 @@ export async function signInWithGoogle(): Promise<AuthResult> {
     },
   });
 
+  console.log('[signInWithGoogle] OAuth response - data:', JSON.stringify(data));
+  console.log('[signInWithGoogle] OAuth response - error:', error ? JSON.stringify(error) : 'none');
+
   if (error) {
+    console.error('[signInWithGoogle] OAuth error:', error.message);
     return { success: false, error: error.message };
   }
 
   // * Return URL so the client can navigate; redirect() in server actions
   // invoked from onClick does not reliably move the browser to external URLs
   if (data.url) {
+    console.log('[signInWithGoogle] Returning OAuth URL:', data.url);
     return { success: true, url: data.url };
   }
 
+  console.warn('[signInWithGoogle] No URL in OAuth response');
   return { success: true };
 }
 

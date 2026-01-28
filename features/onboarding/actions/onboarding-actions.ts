@@ -1,7 +1,6 @@
 'use server';
 
 import { createClient } from '@/lib/supabase/server';
-import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
 import { cookies } from 'next/headers';
 import { addCertification } from '@/features/profiles/actions/certification-actions';
@@ -129,53 +128,57 @@ export async function completeOnboarding(data: OnboardingData): Promise<Onboardi
     return { success: false, error: userError.message };
   }
 
-  // 2. Update role-specific tables
+  // 2. Update role-specific tables using UPSERT to handle role switching
+  // (User may have signed up as worker but selected employer during onboarding)
   if (data.role === 'worker') {
     const { error: workerError } = await supabase
       .from('workers')
-      .update({
+      .upsert({
+        user_id: user.id,
         trade: data.trade || 'General Laborer',
         sub_trade: data.sub_trade || null,
-      })
-      .eq('user_id', user.id);
+      }, { onConflict: 'user_id' });
 
     if (workerError) {
-      logger.error('Worker table update error', {
+      logger.error('Worker table upsert error', {
         userId: sanitizeUserId(user.id),
         error: workerError.message,
         code: workerError.code,
       });
+      return { success: false, error: `Failed to save worker profile: ${workerError.message}` };
     }
   } else if (data.role === 'employer') {
     if (data.employer_type === 'contractor') {
       const { error: contractorError } = await supabase
         .from('contractors')
-        .update({
+        .upsert({
+          user_id: user.id,
           company_name: data.company_name || null,
-        })
-        .eq('user_id', user.id);
+        }, { onConflict: 'user_id' });
 
       if (contractorError) {
-        logger.error('Contractor table update error', {
+        logger.error('Contractor table upsert error', {
           userId: sanitizeUserId(user.id),
           error: contractorError.message,
           code: contractorError.code,
         });
+        return { success: false, error: `Failed to save contractor profile: ${contractorError.message}` };
       }
     } else if (data.employer_type === 'recruiter') {
       const { error: recruiterError } = await supabase
         .from('recruiters')
-        .update({
+        .upsert({
+          user_id: user.id,
           company_name: data.company_name || null,
-        })
-        .eq('user_id', user.id);
+        }, { onConflict: 'user_id' });
 
       if (recruiterError) {
-        logger.error('Recruiter table update error', {
+        logger.error('Recruiter table upsert error', {
           userId: sanitizeUserId(user.id),
           error: recruiterError.message,
           code: recruiterError.code,
         });
+        return { success: false, error: `Failed to save recruiter profile: ${recruiterError.message}` };
       }
     }
   }
@@ -247,5 +250,6 @@ export async function completeOnboarding(data: OnboardingData): Promise<Onboardi
   });
 
   revalidatePath('/', 'layout');
-  redirect('/dashboard/feed');
+  // Return success - client handles redirect (server redirect doesn't work reliably from onClick handlers)
+  return { success: true };
 }

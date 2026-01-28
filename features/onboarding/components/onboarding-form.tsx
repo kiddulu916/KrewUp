@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import Image from 'next/image';
 import { Button, Input, Select, Card, CardContent } from '@/components/ui';
 import { TRADES, TRADE_SUBCATEGORIES, EMPLOYER_TYPES } from '@/lib/constants';
 import { completeOnboarding, type OnboardingData } from '../actions/onboarding-actions';
@@ -42,53 +43,9 @@ export function OnboardingForm({ initialName = '', initialEmail = '' }: Props) {
     expires_at: '',
   });
 
-  // Capture device location on component mount
-  useEffect(() => {
-    captureLocation();
+  const updateFormData = useCallback((updates: Partial<OnboardingData>) => {
+    setFormData((prev) => ({ ...prev, ...updates }));
   }, []);
-
-  async function captureLocation() {
-    setLocationStatus('loading');
-
-    if (!navigator.geolocation) {
-      setLocationStatus('error');
-      return;
-    }
-
-    navigator.geolocation.getCurrentPosition(
-      async (position) => {
-        const { latitude, longitude } = position.coords;
-
-        try {
-          // Reverse geocode to get address
-          const address = await reverseGeocode(latitude, longitude);
-
-          updateFormData({
-            location: address,
-            coords: { lat: latitude, lng: longitude }
-          });
-
-          setLocationStatus('success');
-        } catch {
-          // Still save coords even if reverse geocoding fails
-          updateFormData({
-            location: `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`,
-            coords: { lat: latitude, lng: longitude }
-          });
-          setLocationStatus('success');
-        }
-      },
-      () => {
-        // Don't use fallback - let user know location is required
-        setLocationStatus('error');
-      },
-      {
-        enableHighAccuracy: true,
-        timeout: 30000, // Increased to 30 seconds for GPS lock
-        maximumAge: 0 // Don't use cached location
-      }
-    );
-  }
 
   async function reverseGeocode(lat: number, lng: number): Promise<string> {
     const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
@@ -128,9 +85,47 @@ export function OnboardingForm({ initialName = '', initialEmail = '' }: Props) {
     return data.results[0].formatted_address;
   }
 
-  function updateFormData(updates: Partial<OnboardingData>) {
-    setFormData((prev) => ({ ...prev, ...updates }));
-  }
+  const captureLocation = useCallback(() => {
+    setLocationStatus('loading');
+
+    if (!navigator.geolocation) {
+      setLocationStatus('error');
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const { latitude, longitude } = position.coords;
+
+        try {
+          const address = await reverseGeocode(latitude, longitude);
+          updateFormData({
+            location: address,
+            coords: { lat: latitude, lng: longitude }
+          });
+          setLocationStatus('success');
+        } catch {
+          updateFormData({
+            location: `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`,
+            coords: { lat: latitude, lng: longitude }
+          });
+          setLocationStatus('success');
+        }
+      },
+      () => setLocationStatus('error'),
+      {
+        enableHighAccuracy: true,
+        timeout: 30000,
+        maximumAge: 0
+      }
+    );
+  }, [updateFormData]);
+
+  // Capture device location on component mount (deferred to avoid synchronous setState in effect)
+  useEffect(() => {
+    const id = setTimeout(() => captureLocation(), 0);
+    return () => clearTimeout(id);
+  }, [captureLocation]);
 
   function handlePhoneChange(e: React.ChangeEvent<HTMLInputElement>) {
     const formatted = formatPhoneNumber(e.target.value);
@@ -138,10 +133,12 @@ export function OnboardingForm({ initialName = '', initialEmail = '' }: Props) {
   }
 
   async function handleSubmit() {
+    console.log('[OnboardingForm] Submit clicked, formData:', formData);
     await execute(async () => {
       // If contractor, upload license first
       let licensePhotoUrl: string | null = null;
       if (formData.employer_type === 'contractor' && licenseFile) {
+        console.log('[OnboardingForm] Uploading contractor license...');
         setIsUploadingLicense(true);
 
         // Use existing uploadCertificationPhoto action
@@ -149,13 +146,16 @@ export function OnboardingForm({ initialName = '', initialEmail = '' }: Props) {
         setIsUploadingLicense(false);
 
         if (!uploadResult.success || !uploadResult.data) {
+          console.error('[OnboardingForm] License upload failed:', uploadResult.error);
           throw new Error(uploadResult.error || 'Failed to upload license photo');
         }
 
         licensePhotoUrl = uploadResult.data.url;
+        console.log('[OnboardingForm] License uploaded:', licensePhotoUrl);
       }
 
       // Complete onboarding with license data
+      console.log('[OnboardingForm] Calling completeOnboarding...');
       const result = await completeOnboarding({
         ...formData,
         licenseData:
@@ -166,12 +166,15 @@ export function OnboardingForm({ initialName = '', initialEmail = '' }: Props) {
               }
             : undefined,
       });
+      console.log('[OnboardingForm] completeOnboarding result:', result);
 
       if (!result.success) {
+        console.error('[OnboardingForm] Onboarding failed:', result.error);
         throw new Error(result.error || 'Failed to complete onboarding');
       }
 
       // Success! Redirect to dashboard
+      console.log('[OnboardingForm] Success! Redirecting to dashboard...');
       window.location.href = '/dashboard/feed';
 
       return result;
@@ -188,7 +191,7 @@ export function OnboardingForm({ initialName = '', initialEmail = '' }: Props) {
               <span className="text-3xl">👋</span>
             </div>
             <h2 className="text-2xl font-bold bg-gradient-to-r from-krewup-blue to-krewup-orange bg-clip-text text-transparent">Welcome to KrewUp!</h2>
-            <p className="mt-2 text-sm text-gray-600">Let's set up your profile</p>
+            <p className="mt-2 text-sm text-gray-600">Let&apos;s set up your profile</p>
           </div>
 
           <div className="space-y-4">
@@ -312,7 +315,7 @@ export function OnboardingForm({ initialName = '', initialEmail = '' }: Props) {
                 </svg>
               </div>
               <div className="flex-1">
-                <h3 className="font-semibold text-gray-900">I'm a Worker</h3>
+                <h3 className="font-semibold text-gray-900">I&apos;m a Worker</h3>
                 <p className="mt-1 text-sm text-gray-600">
                   Find jobs, showcase skills, and connect with employers
                 </p>
@@ -340,7 +343,7 @@ export function OnboardingForm({ initialName = '', initialEmail = '' }: Props) {
                 </svg>
               </div>
               <div className="flex-1">
-                <h3 className="font-semibold text-gray-900">I'm an Employer</h3>
+                <h3 className="font-semibold text-gray-900">I&apos;m an Employer</h3>
                 <p className="mt-1 text-sm text-gray-600">
                   Post jobs, find skilled workers, and build your team
                 </p>
@@ -415,7 +418,7 @@ export function OnboardingForm({ initialName = '', initialEmail = '' }: Props) {
                     onChange={(e) => updateFormData({ bio: e.target.value })}
                   />
                   <p className="mt-1.5 text-sm text-gray-500">
-                    Briefly describe your experience and what you're looking for
+                    Briefly describe your experience and what you&apos;re looking for
                   </p>
                 </div>
               </>
@@ -619,11 +622,15 @@ export function OnboardingForm({ initialName = '', initialEmail = '' }: Props) {
                                 </div>
                               </div>
                             ) : (
-                              <img
-                                src={licensePreview}
-                                alt="License preview"
-                                className="w-full max-h-64 object-contain rounded-lg border border-gray-200"
-                              />
+                              <div className="relative w-full h-64 rounded-lg border border-gray-200 overflow-hidden">
+                                <Image
+                                  src={licensePreview}
+                                  alt="License preview"
+                                  fill
+                                  className="object-contain"
+                                  unoptimized
+                                />
+                              </div>
                             )}
                             <Button
                               type="button"

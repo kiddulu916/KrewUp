@@ -74,3 +74,4 @@ scripts/output/*.json
 .claude_settings.json
 .security-key
 logs/security/
+.claude/
