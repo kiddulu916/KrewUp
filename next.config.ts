@@ -11,6 +11,9 @@ const bundleAnalyzer = withBundleAnalyzer({
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   pageExtensions: ['ts', 'tsx', 'mdx', 'md', 'js', 'jsx', 'json'],
+  async rewrites() {
+    return [{ source: '/favicon.ico', destination: '/logo.png' }];
+  },
   images: {
     remotePatterns: [
       {
@@ -44,7 +47,7 @@ const nextConfig: NextConfig = {
           key: "Content-Security-Policy",
           value: [
             "default-src 'self'",
-            "script-src 'self' 'sha256-OBTN3RiyCV4Bq7dFqZ5a2pAXjnCcCYeTJMO2I/LYKeo=' 'sha256-ADi78Fkqkj3Tc6ZoBk0tVaGM4xoFjyMAhKSaVM9YusI=' 'sha256-LFbjsMCPcXVYQprqfJ4LImMtkqWUjSg16VPiANQblcU=' 'sha256-GOv7QUkQI4SLji3P9tbCcpsfIUYtwH+xGi7kTO8DKkU=' 'sha256-NQNaI4l+DcatPP5WQy08+vmerm0uLXck21E5jajW+8Y=' 'sha256-lUy0HuELAwGNRm6gol0w4OjBj67B/XTRP5IrqfDi5TQ=' https://js.stripe.com https://*.stripe.com https://maps.googleapis.com https://*.ingest.sentry.io https://*.sentry.io https://*.vercel-analytics.com https://*.vercel-insights.com https://pagead2.googlesyndication.com https://www.googletagmanager.com",
+            "script-src 'self' 'sha256-OBTN3RiyCV4Bq7dFqZ5a2pAXjnCcCYeTJMO2I/LYKeo=' 'sha256-ADi78Fkqkj3Tc6ZoBk0tVaGM4xoFjyMAhKSaVM9YusI=' 'sha256-LFbjsMCPcXVYQprqfJ4LImMtkqWUjSg16VPiANQblcU=' 'sha256-GOv7QUkQI4SLji3P9tbCcpsfIUYtwH+xGi7kTO8DKkU=' 'sha256-NQNaI4l+DcatPP5WQy08+vmerm0uLXck21E5jajW+8Y=' 'sha256-lUy0HuELAwGNRm6gol0w4OjBj67B/XTRP5IrqfDi5TQ=' 'sha256-UAglPzGs92TZ6PhYkt2Mp+b7DS9cCGNYjWZf6MH12Gk=' 'sha256-9epTgIgrRlDW6XvD8P0oHQOXCxU/nppLt8R9SviEzTM=' https://js.stripe.com https://*.stripe.com https://maps.googleapis.com https://*.ingest.sentry.io https://*.sentry.io https://*.vercel-analytics.com https://*.vercel-insights.com https://pagead2.googlesyndication.com https://www.googletagmanager.com",
             "worker-src 'self' blob:",
             "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
             "font-src 'self' https://fonts.gstatic.com",

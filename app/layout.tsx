@@ -12,6 +12,7 @@ import { SkipLink } from "@/components/ui/skip-link";
 export const metadata: Metadata = {
   title: "KrewUp - Connecting Skilled Trade Workers with Employers",
   description: "The premier job marketplace for skilled trade workers and contractors",
+  icons: { icon: "/logo.png" },
 };
 
 export default async function RootLayout({

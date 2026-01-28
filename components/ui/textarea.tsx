@@ -1,3 +1,5 @@
+'use client';
+
 import { TextareaHTMLAttributes, forwardRef, useState, useMemo } from 'react';
 import { cn } from '@/lib/utils';
 
