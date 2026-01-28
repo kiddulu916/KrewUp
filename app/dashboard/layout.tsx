@@ -9,7 +9,6 @@ import { BottomNav } from './bottom-nav';
 import { NotificationBell } from '@/features/notifications/components/notification-bell';
 import { ModerationGuard } from '@/features/auth/components/moderation-guard';
 import { getFullName } from '@/lib/utils';
-import Script from 'next/script';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import { Metadata } from 'next';
 
@@ -56,14 +55,6 @@ export default async function DashboardLayout({
       <SpeedInsights />
       {/* Mobile Header - Visible on mobile, hidden on tablet+ */}
       <header className="fixed top-0 left-0 right-0 z-40 h-16 bg-linear-to-r from-krewup-blue to-krewup-light-blue shadow-md md:hidden">
-        {/* Load Google AdSense script before interactive */}      
-        <Script
-          id="google-adsense"
-          async
-          strategy="beforeInteractive"
-          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4807961095325796"
-          crossOrigin="anonymous"
-        />
         <div className="flex h-full items-center justify-between px-4">
           <Link href="/dashboard/feed" className="flex items-center">
             <Image

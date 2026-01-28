@@ -428,6 +428,14 @@ STRIPE_PRICE_ID_PRO_ANNUAL=
 # Google Maps (for location autocomplete)
 NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=
 
+# AdSense (optional; ads only on content pages per inventory value policy)
+NEXT_PUBLIC_ADS_ENABLED=false
+NEXT_PUBLIC_AD_PROVIDER=adsense
+NEXT_PUBLIC_ADSENSE_CLIENT_ID=        # ca-pub-XXXXXXXXXXXXXXXX from AdSense console
+NEXT_PUBLIC_ADSENSE_SLOT_JOB_BANNER=  # Ad unit ID for feed banner
+NEXT_PUBLIC_ADSENSE_SLOT_IN_FEED=     # Ad unit ID for in-feed (job list)
+NEXT_PUBLIC_ADSENSE_SLOT_SIDEBAR=     # Ad unit ID for profile sidebar
+
 # Application
 NEXT_PUBLIC_APP_URL=            # For OAuth redirects
 NODE_ENV=development

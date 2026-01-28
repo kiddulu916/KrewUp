@@ -68,7 +68,7 @@ export function AdUnit({
       try {
         // Push ad to AdSense
         ((window as any).adsbygoogle = (window as any).adsbygoogle || []).push({});
-        setIsLoaded(true);
+        queueMicrotask(() => setIsLoaded(true));
       } catch (error) {
         console.error('[AdUnit] Failed to load ad:', error);
       }
@@ -83,6 +83,8 @@ export function AdUnit({
 
   const slotId = getAdSlotId(placement);
   if (!slotId) return null;
+
+  if (adConfig.provider === 'adsense' && !adConfig.adsenseClientId) return null;
 
   // Determine ad size
   const sizeKey = forceSize || (isMobile 
