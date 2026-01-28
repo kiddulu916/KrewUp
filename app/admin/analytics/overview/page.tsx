@@ -15,34 +15,39 @@ import type { SegmentValue } from '@/components/admin/segment-filter';
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
+type SearchParams = {
+  preset?: string;
+  startDate?: string;
+  endDate?: string;
+  compareEnabled?: string;
+  role?: string;
+  subscription?: string;
+  location?: string;
+  employerType?: string;
+};
+
 type Props = {
-  searchParams: {
-    preset?: string;
-    startDate?: string;
-    endDate?: string;
-    compareEnabled?: string;
-    role?: string;
-    subscription?: string;
-    location?: string;
-    employerType?: string;
-  };
+  searchParams: Promise<SearchParams>;
 };
 
 export default async function AnalyticsOverviewPage({ searchParams }: Props) {
+  // Await searchParams (required in Next.js 15)
+  const params = await searchParams;
+
   // Parse date range from searchParams
   const dateRange: DateRangeValue = {
-    preset: (searchParams.preset as any) || 'last30days',
-    startDate: searchParams.startDate ? new Date(searchParams.startDate) : undefined,
-    endDate: searchParams.endDate ? new Date(searchParams.endDate) : undefined,
-    compareEnabled: searchParams.compareEnabled === 'true',
+    preset: (params.preset as any) || 'last30days',
+    startDate: params.startDate ? new Date(params.startDate) : undefined,
+    endDate: params.endDate ? new Date(params.endDate) : undefined,
+    compareEnabled: params.compareEnabled === 'true',
   };
 
   // Parse segment filters from searchParams
   const segment: SegmentValue = {
-    role: searchParams.role as any,
-    subscription: searchParams.subscription as any,
-    location: searchParams.location || null,
-    employerType: searchParams.employerType as any,
+    role: params.role as any,
+    subscription: params.subscription as any,
+    location: params.location || null,
+    employerType: params.employerType as any,
   };
 
   // Fetch all analytics data in parallel
