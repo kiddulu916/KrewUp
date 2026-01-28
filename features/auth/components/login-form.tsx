@@ -29,10 +29,15 @@ export function LoginForm() {
 
   async function handleGoogleSignIn() {
     await execute(async () => {
-      await signInWithGoogle();
-      // Redirect to Google OAuth happens automatically
-      // The redirect() call in the server action will throw, which is expected
-      // The hook will re-throw NEXT_REDIRECT errors for Next.js to handle
+      const result = await signInWithGoogle();
+      if (result.success && result.url) {
+        window.location.href = result.url;
+        return result;
+      }
+      if (!result.success) {
+        throw new Error(result.error ?? 'Failed to sign in with Google');
+      }
+      return result;
     });
   }
 
@@ -131,7 +136,7 @@ export function LoginForm() {
       </form>
 
       <p className="text-center text-sm text-gray-600">
-        Don't have an account?{' '}
+        Don&apos;t have an account?{' '}
         <a href="/signup" className="font-medium text-krewup-blue hover:underline">
           Sign up
         </a>

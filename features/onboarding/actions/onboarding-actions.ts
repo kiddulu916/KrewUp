@@ -247,5 +247,5 @@ export async function completeOnboarding(data: OnboardingData): Promise<Onboardi
   });
 
   revalidatePath('/', 'layout');
-  return { success: true };
+  redirect('/dashboard/feed');
 }

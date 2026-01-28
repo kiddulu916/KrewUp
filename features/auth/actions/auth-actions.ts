@@ -11,6 +11,10 @@ const SUPPORT_EMAIL = 'support@krewup.net';
 export type AuthResult = {
   success: boolean;
   error?: string;
+  /** OAuth URL for client-side navigation (Google sign-in) */
+  url?: string;
+  /** Path for client-side redirect after signup */
+  redirectTo?: string;
 };
 
 /**
@@ -136,11 +140,12 @@ export async function signUp(
     return { success: false, error: error.message };
   }
 
-  // If email confirmation is disabled, user is immediately logged in
-  // Redirect to onboarding in this case
+  // If email confirmation is disabled, user is immediately logged in.
+  // Return redirectTo so the client navigates; server redirect from
+  // client-invoked actions is not always applied to the document.
   if (data.user && data.session) {
     revalidatePath('/', 'layout');
-    redirect('/onboarding');
+    return { success: true, redirectTo: '/onboarding' };
   }
 
   return { success: true };
@@ -163,8 +168,10 @@ export async function signInWithGoogle(): Promise<AuthResult> {
     return { success: false, error: error.message };
   }
 
+  // * Return URL so the client can navigate; redirect() in server actions
+  // invoked from onClick does not reliably move the browser to external URLs
   if (data.url) {
-    redirect(data.url);
+    return { success: true, url: data.url };
   }
 
   return { success: true };

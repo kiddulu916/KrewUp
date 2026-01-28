@@ -39,11 +39,13 @@ export default async function OnboardingPage() {
   // If profile is already complete, redirect to dashboard
   // Profile is complete if:
   // 1. Has proper name (not starting with 'User-')
-  // 2. Has proper location (not default)
+  // 2. Has proper location (not default; trigger uses 'Update Location')
   // 3. For workers: has trade record
   // 4. For employers: role is set
   const hasCompleteName = fullName && !fullName.startsWith('User-');
-  const hasProperLocation = profile?.location && profile.location !== 'Update your location';
+  const defaultLocations = ['Update your location', 'Update Location'];
+  const hasProperLocation =
+    !!profile?.location && !defaultLocations.includes(profile.location);
   const hasRoleData = profile?.role === 'worker' ? !!worker : profile?.role === 'employer';
   
   if (profile && hasCompleteName && hasProperLocation && hasRoleData) {

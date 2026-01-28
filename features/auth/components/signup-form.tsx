@@ -16,8 +16,13 @@ export function SignupForm() {
   const [validationError, setValidationError] = useState<string | null>(null);
   const { execute, isLoading, error } = useAsyncAction({
     showToast: false, // Handle errors manually for better UX
-    onSuccess: () => {
-      setSuccess(true);
+    onSuccess: (result: unknown) => {
+      const r = result as { redirectTo?: string };
+      if (r?.redirectTo) {
+        router.push(r.redirectTo);
+      } else {
+        setSuccess(true);
+      }
     },
   });
 
@@ -48,10 +53,15 @@ export function SignupForm() {
 
   async function handleGoogleSignIn() {
     await execute(async () => {
-      await signInWithGoogle();
-      // Redirect to Google OAuth happens automatically
-      // The redirect() call in the server action will throw, which is expected
-      // The hook will re-throw NEXT_REDIRECT errors for Next.js to handle
+      const result = await signInWithGoogle();
+      if (result.success && result.url) {
+        window.location.href = result.url;
+        return result;
+      }
+      if (!result.success) {
+        throw new Error(result.error ?? 'Failed to sign up with Google');
+      }
+      return result;
     });
   }
 
@@ -76,7 +86,7 @@ export function SignupForm() {
           </div>
           <h2 className="mt-4 text-2xl font-bold text-gray-900">Check your email</h2>
           <p className="mt-2 text-sm text-gray-600">
-            We've sent a verification link to <strong>{email}</strong>
+            We&apos;ve sent a verification link to <strong>{email}</strong>
           </p>
           <p className="mt-4 text-sm text-gray-500">
             Click the link in the email to verify your account and complete signup.

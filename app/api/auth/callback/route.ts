@@ -52,13 +52,14 @@ export async function GET(request: Request) {
       // If profile is incomplete (default values from trigger), redirect to onboarding
       // Check:
       // 1. Name starts with 'User-' (default from trigger)
-      // 2. Location is default
+      // 2. Location is default (trigger uses 'Update Location')
       // 3. For workers: no worker record OR trade is default 'General Laborer'
-      const hasIncompleteProfile = 
-        !fullName || 
+      const defaultLocations = ['Update your location', 'Update Location'];
+      const hasIncompleteProfile =
+        !fullName ||
         fullName.startsWith('User-') ||
         !profile?.location ||
-        profile.location === 'Update your location' ||
+        defaultLocations.includes(profile.location) ||
         (profile?.role === 'worker' && (!worker || worker.trade === 'General Laborer'));
 
       if (profile && hasIncompleteProfile) {
