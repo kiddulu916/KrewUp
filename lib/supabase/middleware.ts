@@ -29,8 +29,11 @@ import * as Sentry from '@sentry/nextjs';
  * ```
  */
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+function getSupabaseEnv() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  return { supabaseUrl, supabaseKey };
+}
 
 /**
  * Check if user has admin access for /admin/* routes
@@ -64,17 +67,22 @@ async function checkAdminAccess(
 }
 
 export async function updateSession(request: NextRequest) {
-  // Create an unmodified response
-  let supabaseResponse = NextResponse.next({
-    request: {
-      headers: request.headers,
-    },
-  });
-  
-  const supabase = createServerClient(
-    supabaseUrl!,
-    supabaseKey!,
-    {
+  const { supabaseUrl, supabaseKey } = getSupabaseEnv();
+  if (!supabaseUrl || !supabaseKey) {
+    return NextResponse.next({
+      request: { headers: request.headers },
+    });
+  }
+
+  try {
+    // Create an unmodified response
+    let supabaseResponse = NextResponse.next({
+      request: {
+        headers: request.headers,
+      },
+    });
+
+    const supabase = createServerClient(supabaseUrl, supabaseKey, {
       cookies: {
         getAll() {
           return request.cookies.getAll();
@@ -91,9 +99,8 @@ export async function updateSession(request: NextRequest) {
           });
         },
       },
-    }
-  );
-  
+    });
+
   // IMPORTANT: Avoid writing any logic between createServerClient and
   // supabase.auth.getUser(). A simple mistake could make it very hard to debug
   // issues with users being randomly logged out.
@@ -163,4 +170,9 @@ export async function updateSession(request: NextRequest) {
   }
 
   return supabaseResponse;
+  } catch {
+    return NextResponse.next({
+      request: { headers: request.headers },
+    });
+  }
 }

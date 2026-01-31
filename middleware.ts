@@ -1,5 +1,5 @@
 import { updateSession } from '@/lib/supabase/middleware';
-import { type NextRequest } from 'next/server';
+import { type NextRequest, NextResponse } from 'next/server';
 import { ensureCsrfCookie } from '@/lib/security/csrf';
 
 /**
@@ -16,8 +16,14 @@ import { ensureCsrfCookie } from '@/lib/security/csrf';
  * - Custom redirects based on subscription status
  */
 export async function middleware(request: NextRequest) {
-  const response = await updateSession(request);
-  return ensureCsrfCookie(request, response);
+  try {
+    const response = await updateSession(request);
+    return ensureCsrfCookie(request, response);
+  } catch {
+    return NextResponse.next({
+      request: { headers: request.headers },
+    });
+  }
 }
 
 /**
