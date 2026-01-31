@@ -1,8 +1,20 @@
 import * as Sentry from '@sentry/nextjs';
-import { createHash } from 'crypto';
 
 /**
- * Sanitizes a user ID by hashing it with SHA-256
+ * Deterministic hash for log sanitization.
+ * Uses djb2 algorithm - Edge/browser compatible (no Node crypto).
+ * Sufficient for PII anonymization in logs; not cryptographically secure.
+ */
+function hashString(str: string): string {
+  let h = 5381;
+  for (let i = 0; i < str.length; i++) {
+    h = ((h * 33) ^ str.charCodeAt(i)) >>> 0;
+  }
+  return h.toString(16).substring(0, 12);
+}
+
+/**
+ * Sanitizes a user ID by hashing it
  * This prevents PII from being logged to production systems
  *
  * @example
@@ -16,9 +28,7 @@ export function sanitizeUserId(userId: string | undefined | null): string {
     return 'hash:none';
   }
 
-  const hash = createHash('sha256').update(userId).digest('hex');
-  // Return first 12 chars of hash with prefix to indicate it's been sanitized
-  return `hash:${hash.substring(0, 12)}`;
+  return `hash:${hashString(userId)}`;
 }
 
 /**
@@ -38,13 +48,10 @@ export function sanitizeEmail(email: string | undefined | null): string {
 
   const [localPart, domain] = email.split('@');
   if (!localPart || !domain) {
-    // Invalid email format, just hash the whole thing
-    const hash = createHash('sha256').update(email).digest('hex');
-    return `hash:${hash.substring(0, 12)}`;
+    return `hash:${hashString(email)}`;
   }
 
-  const hash = createHash('sha256').update(localPart).digest('hex');
-  return `hash:${hash.substring(0, 12)}@${domain}`;
+  return `hash:${hashString(localPart)}@${domain}`;
 }
 
 /**
