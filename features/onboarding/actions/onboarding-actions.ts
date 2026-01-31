@@ -5,6 +5,7 @@ import { revalidatePath } from 'next/cache';
 import { cookies } from 'next/headers';
 import { addCertification } from '@/features/profiles/actions/certification-actions';
 import { logger, sanitizeUserId, sanitizeEmail } from '@/lib/utils/logger';
+import { getUserFriendlyError } from '@/lib/utils/action-response';
 
 export type OnboardingData = {
   name: string;
@@ -92,7 +93,7 @@ export async function completeOnboarding(data: OnboardingData): Promise<Onboardi
         error: insertError.message,
         code: insertError.code,
       });
-      return { success: false, error: `Failed to create profile: ${insertError.message}` };
+      return { success: false, error: getUserFriendlyError(insertError, 'Failed to create profile') };
     }
     logger.info('Profile created successfully', {
       userId: sanitizeUserId(user.id),
@@ -125,7 +126,7 @@ export async function completeOnboarding(data: OnboardingData): Promise<Onboardi
     .eq('id', user.id);
 
   if (userError) {
-    return { success: false, error: userError.message };
+    return { success: false, error: getUserFriendlyError(userError, 'Failed to update profile') };
   }
 
   // 2. Update role-specific tables using UPSERT to handle role switching
@@ -145,7 +146,7 @@ export async function completeOnboarding(data: OnboardingData): Promise<Onboardi
         error: workerError.message,
         code: workerError.code,
       });
-      return { success: false, error: `Failed to save worker profile: ${workerError.message}` };
+      return { success: false, error: getUserFriendlyError(workerError, 'Failed to save worker profile') };
     }
   } else if (data.role === 'employer') {
     // Handle all employer types with their respective tables
@@ -172,7 +173,7 @@ export async function completeOnboarding(data: OnboardingData): Promise<Onboardi
           error: employerError.message,
           code: employerError.code,
         });
-        return { success: false, error: `Failed to save ${data.employer_type} profile: ${employerError.message}` };
+        return { success: false, error: getUserFriendlyError(employerError, `Failed to save ${data.employer_type} profile`) };
       }
     }
   }

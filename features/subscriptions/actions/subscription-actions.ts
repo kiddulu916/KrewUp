@@ -6,6 +6,7 @@ import { revalidatePath } from 'next/cache';
 import { cookies } from 'next/headers';
 import type { Subscription } from '@/types/subscription';
 import { logger, sanitizeUserId } from '@/lib/utils/logger';
+import { getUserFriendlyError } from '@/lib/utils/action-response';
 
 export type SubscriptionResult = {
   success: boolean;
@@ -46,7 +47,7 @@ export async function getMySubscription(): Promise<SubscriptionResult> {
 
   if (error && error.code !== 'PGRST116') {
     // PGRST116 = no rows returned (acceptable)
-    return { success: false, error: error.message };
+    return { success: false, error: getUserFriendlyError(error, 'Failed to fetch subscription') };
   }
 
   // If no subscription exists, return free tier
@@ -169,7 +170,7 @@ export async function createCheckoutSession(priceId: string): Promise<CheckoutRe
     });
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Failed to create checkout session',
+      error: getUserFriendlyError(error, 'Failed to create checkout session'),
     };
   }
 }
@@ -221,7 +222,7 @@ export async function createPortalSession(): Promise<CheckoutResult> {
     });
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Failed to create portal session',
+      error: getUserFriendlyError(error, 'Failed to create portal session'),
     };
   }
 }

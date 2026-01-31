@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useId, useRef, useState } from 'react';
+import { useCallback, useEffect, useId, useRef, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -23,6 +23,12 @@ export function SuspendUserDialog({
   const titleId = useId();
   const [suspendReason, setSuspendReason] = useState('');
   const [suspendDuration, setSuspendDuration] = useState(7);
+
+  const handleClose = useCallback(() => {
+    setSuspendReason('');
+    setSuspendDuration(7);
+    onClose();
+  }, [onClose]);
 
   useEffect(() => {
     if (!isOpen || !dialogRef.current) {
@@ -87,15 +93,9 @@ export function SuspendUserDialog({
         previouslyFocusedElementRef.current.focus();
       }
     };
-  }, [isOpen, onClose]);
+  }, [isOpen, handleClose]);
 
   if (!isOpen) return null;
-
-  const handleClose = () => {
-    setSuspendReason('');
-    setSuspendDuration(7);
-    onClose();
-  };
 
   const handleConfirm = async () => {
     await onConfirm(suspendReason, suspendDuration);

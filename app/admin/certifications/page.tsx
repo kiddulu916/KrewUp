@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server';
 import { cookies } from 'next/headers';
 import { CertificationQueue } from '@/features/admin/components/certification-queue';
 import { getFullName } from '@/lib/utils';
+import { logger } from '@/lib/utils/logger';
 
 // Force dynamic rendering - always fetch fresh data
 export const dynamic = 'force-dynamic';
@@ -64,7 +65,9 @@ export default async function CertificationsPage({
   const { data: rawCertifications, error } = await query;
 
   if (error) {
-    console.error('[admin/certifications] Error fetching certifications:', error);
+    logger.error('admin/certifications error fetching certifications', {
+      error: error instanceof Error ? error.message : String(error),
+    });
   }
 
   // Transform the data to flatten the nested structure and compute full names

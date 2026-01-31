@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server';
 import { cookies } from 'next/headers';
 import { ModerationQueue } from '@/features/admin/components/moderation-queue';
 import { getFullName } from '@/lib/utils';
+import { logger } from '@/lib/utils/logger';
 
   
 
@@ -47,7 +48,9 @@ export default async function ModerationPage({
   const { data: rawReports, error } = await query;
 
   if (error) {
-    console.error('Error fetching content reports:', error);
+    logger.error('Error fetching content reports', {
+      error: error instanceof Error ? error.message : String(error),
+    });
   }
 
   // Transform the data to flatten the profiles and compute full names

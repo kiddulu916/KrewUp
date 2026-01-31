@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { Card, CardContent } from '@/components/ui/card';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
@@ -16,6 +16,7 @@ import { UserInfoCard } from '@/components/admin/user-management/user-info-card'
 import { ModerationActionsCard } from '@/components/admin/user-management/moderation-actions-card';
 import { ProSubscriptionCard } from '@/components/admin/user-management/pro-subscription-card';
 import { ModerationHistoryCard } from '@/components/admin/user-management/moderation-history-card';
+import { logger } from '@/lib/utils/logger';
 import type {
   UserProfile,
   ModerationAction,
@@ -34,21 +35,7 @@ export default function UsersPage() {
   const [roleFilter, setRoleFilter] = useState('all');
   const [subscriptionFilter, setSubscriptionFilter] = useState('all');
 
-  useEffect(() => {
-    fetchUsers();
-  }, []);
-
-  useEffect(() => {
-    filterUsers();
-  }, [users, searchQuery, roleFilter, subscriptionFilter]);
-
-  useEffect(() => {
-    if (selectedUser) {
-      fetchUserDetails(selectedUser.id);
-    }
-  }, [selectedUser]);
-
-  const fetchUsers = async () => {
+  const fetchUsers = useCallback(async () => {
     try {
       const supabase = createClient();
       const { data, error } = await supabase
@@ -59,14 +46,16 @@ export default function UsersPage() {
       if (error) throw error;
       setUsers(data || []);
     } catch (error) {
-      console.error('Error fetching users:', error);
+      logger.error('Error fetching users', {
+        error: error instanceof Error ? error.message : String(error),
+      });
       toast.error('Failed to load users');
     } finally {
       setLoading(false);
     }
-  };
+  }, [toast]);
 
-  const fetchUserDetails = async (userId: string) => {
+  const fetchUserDetails = useCallback(async (userId: string) => {
     try {
       const [historyResult, statusResult] = await Promise.all([
         getUserModerationHistory(userId),
@@ -79,11 +68,14 @@ export default function UsersPage() {
 
       setModerationStatus(statusResult);
     } catch (error) {
-      console.error('Error fetching user details:', error);
+      logger.error('Error fetching user details', {
+        error: error instanceof Error ? error.message : String(error),
+        userId,
+      });
     }
-  };
+  }, []);
 
-  const filterUsers = () => {
+  const filterUsers = useCallback(() => {
     let filtered = users;
 
     // Search filter
@@ -109,7 +101,21 @@ export default function UsersPage() {
     }
 
     setFilteredUsers(filtered);
-  };
+  }, [users, searchQuery, roleFilter, subscriptionFilter]);
+
+  useEffect(() => {
+    fetchUsers();
+  }, [fetchUsers]);
+
+  useEffect(() => {
+    filterUsers();
+  }, [filterUsers]);
+
+  useEffect(() => {
+    if (selectedUser) {
+      fetchUserDetails(selectedUser.id);
+    }
+  }, [selectedUser, fetchUserDetails]);
 
   const handleUserSelect = (user: UserProfile) => {
     setSelectedUser(user);

@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server';
 import { cookies } from 'next/headers';
+import { logger } from '@/lib/utils/logger';
 
 export type PipelineStage = 'pending' | 'viewed' | 'contacted' | 'hired' | 'rejected';
 
@@ -113,7 +114,9 @@ export async function getCandidatePipelineMetrics(
     const { data: applications, error } = await query;
 
     if (error) {
-      console.error('Error fetching applications:', error);
+      logger.error('Error fetching applications', {
+        error: error instanceof Error ? error.message : String(error),
+      });
       return { success: false, error: 'Failed to fetch applications' };
     }
 
@@ -188,7 +191,9 @@ export async function getCandidatePipelineMetrics(
       },
     };
   } catch (error) {
-    console.error('Error in getCandidatePipelineMetrics:', error);
+    logger.error('Error in getCandidatePipelineMetrics', {
+      error: error instanceof Error ? error.message : String(error),
+    });
     return { success: false, error: 'Unexpected error occurred' };
   }
 }
@@ -272,7 +277,9 @@ export async function getPipelineApplications(
     const { data: applications, error } = await query;
 
     if (error) {
-      console.error('Error fetching applications:', error);
+      logger.error('Error fetching applications', {
+        error: error instanceof Error ? error.message : String(error),
+      });
       return { success: false, error: 'Failed to fetch applications' };
     }
 
@@ -316,7 +323,9 @@ export async function getPipelineApplications(
 
     return { success: true, data: result };
   } catch (error) {
-    console.error('Error in getPipelineApplications:', error);
+    logger.error('Error in getPipelineApplications', {
+      error: error instanceof Error ? error.message : String(error),
+    });
     return { success: false, error: 'Unexpected error occurred' };
   }
 }

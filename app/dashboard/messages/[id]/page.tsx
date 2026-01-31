@@ -3,6 +3,8 @@ import { createClient } from '@/lib/supabase/server';
 import { ChatWindow } from '@/features/messaging/components/chat-window';
 import { ConversationList } from '@/features/messaging/components/conversation-list';
 import { getFullName, getInitials } from '@/lib/utils';
+import { logger } from '@/lib/utils/logger';
+import Image from 'next/image';
 import Link from 'next/link';
 import { cookies } from 'next/headers';
 
@@ -35,12 +37,15 @@ export default async function ConversationPage({ params }: Props) {
     .single();
 
   if (error) {
-    console.error('[ConversationPage] Error fetching conversation:', error);
+    logger.error('ConversationPage error fetching conversation', {
+      error: error instanceof Error ? error.message : String(error),
+      conversationId,
+    });
     redirect('/dashboard/messages');
   }
 
   if (!conversation) {
-    console.error('[ConversationPage] Conversation not found:', conversationId);
+    logger.error('ConversationPage conversation not found', { conversationId });
     redirect('/dashboard/messages');
   }
 
@@ -50,7 +55,7 @@ export default async function ConversationPage({ params }: Props) {
     conversation.participant_2_id === user.id;
 
   if (!isParticipant) {
-    console.error('[ConversationPage] User is not a participant');
+    logger.error('ConversationPage user is not a participant', { conversationId });
     redirect('/dashboard/messages');
   }
 
@@ -68,12 +73,15 @@ export default async function ConversationPage({ params }: Props) {
     .single();
 
   if (profileError) {
-    console.error('[ConversationPage] Error fetching profile:', profileError);
+    logger.error('ConversationPage error fetching profile', {
+      error: profileError instanceof Error ? profileError.message : String(profileError),
+      otherParticipantId,
+    });
     redirect('/dashboard/messages');
   }
 
   if (!otherProfile) {
-    console.error('[ConversationPage] Other participant profile not found');
+    logger.error('ConversationPage other participant profile not found', { otherParticipantId });
     redirect('/dashboard/messages');
   }
 
@@ -112,9 +120,11 @@ export default async function ConversationPage({ params }: Props) {
           </Link>
           <div className="flex items-center gap-2">
             {otherProfile.profile_image_url ? (
-              <img
+              <Image
                 src={otherProfile.profile_image_url}
                 alt={getFullName(otherProfile)}
+                width={32}
+                height={32}
                 className="h-8 w-8 rounded-full object-cover border-2 border-white shadow-md"
               />
             ) : (

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { Component, ReactNode } from 'react';
+import { logger } from '@/lib/utils/logger';
 import { Button } from './button';
 
 interface Props {
@@ -25,7 +26,10 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error('ErrorBoundary caught an error:', error, errorInfo);
+    logger.error('ErrorBoundary caught an error', {
+      error: error?.message,
+      componentStack: errorInfo?.componentStack,
+    });
 
     if (this.props.onError) {
       this.props.onError(error, errorInfo);

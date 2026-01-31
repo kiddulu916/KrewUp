@@ -86,7 +86,7 @@ export function ListItemSkeleton({
       <div className="flex-1 space-y-2">
         {Array.from({ length: lines }).map((_, index) => (
           // * Uses index as key because items are static, non-interactive placeholders
-          // eslint-disable-next-line react/no-array-index-key
+           
           <div
             key={index}
             className={cn('h-3 rounded bg-gray-200', lineWidths[index] ?? 'w-full')}
@@ -124,7 +124,7 @@ export function ListSkeleton({
     <div className={cn('divide-y divide-gray-100', className)}>
       {Array.from({ length: count }).map((_, index) => (
         // * Uses index as key because items are static, non-interactive placeholders
-        // eslint-disable-next-line react/no-array-index-key
+         
         <ListItemSkeleton
           key={index}
           showAvatar={showAvatar}

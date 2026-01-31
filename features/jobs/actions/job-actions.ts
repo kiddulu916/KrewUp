@@ -11,6 +11,7 @@ import type { GeoCoords } from '@/types';
 import type { Job } from '@/types/database';
 import { assertValidCsrfToken } from '@/lib/security/csrf';
 import { logger } from '@/lib/utils/logger';
+import { getUserFriendlyError } from '@/lib/utils/action-response';
 
 export type TradeSelection = {
   trade: string;
@@ -175,7 +176,7 @@ export async function createJob(
 
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Failed to create job'
+      error: getUserFriendlyError(error, 'Failed to create job')
     };
   }
 }
@@ -236,7 +237,7 @@ export async function updateJob(
         .eq('id', jobId);
 
       if (updateError) {
-        return { success: false, error: updateError.message };
+        return { success: false, error: getUserFriendlyError(updateError, 'Failed to update job') };
       }
     }
   } else {
@@ -248,7 +249,7 @@ export async function updateJob(
       .eq('id', jobId);
 
     if (updateError) {
-      return { success: false, error: updateError.message };
+      return { success: false, error: getUserFriendlyError(updateError, 'Failed to update job') };
     }
   }
 
@@ -295,7 +296,7 @@ export async function deleteJob(jobId: string, csrfToken: string): Promise<JobRe
     .eq('id', jobId);
 
   if (deleteError) {
-    return { success: false, error: deleteError.message };
+    return { success: false, error: getUserFriendlyError(deleteError, 'Failed to delete job') };
   }
 
   revalidatePath('/dashboard/jobs');

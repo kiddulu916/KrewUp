@@ -2,590 +2,345 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Development Commands
+<!-- AUTO-MANAGED: project-description -->
 
-### Local Development
+## Overview
+
+**KrewUp** - A job marketplace platform connecting skilled trade workers with employers. Built with Next.js 16, TypeScript, Supabase (PostgreSQL + Auth + Storage), and Stripe for subscriptions.
+
+**Key Features:**
+
+- Worker profiles with certifications, experience, and portfolio
+- Employer job postings with custom screening questions
+- Real-time messaging between workers and employers
+- Pro subscriptions with profile boosts and proximity alerts
+- Admin dashboard for user management and content moderation
+- PostGIS-powered location-based job search
+
+<!-- END AUTO-MANAGED -->
+
+<!-- AUTO-MANAGED: build-commands -->
+
+## Build & Development Commands
 
 ```bash
+# Development
 npm run dev                 # Start Next.js dev server (port 3000)
 npm run build               # Production build
-npm start                   # Start production server (requires .env.local)
-```
+npm start                   # Start production server
 
-### Type Checking & Linting
-
-```bash
-npm run type-check          # Run TypeScript compiler without emitting files
+# Type Checking & Linting
+npm run type-check          # TypeScript compiler check
 npm run lint                # Run ESLint
-```
 
-### Testing
+# Testing
+npm test                    # Run Vitest component tests
+npm run test:watch          # Watch mode
+npm run test:e2e            # Playwright E2E tests
+npm run test:e2e:ui         # Playwright with UI
+npm run test:e2e:mobile     # Mobile E2E tests
+npm run test:all            # Component + E2E tests
 
-```bash
-# Unit/Component Tests (Vitest)
-npm test                    # Run component tests in __tests__/components/
-npm run test:watch          # Run tests in watch mode
-npm run test:ui             # Run tests with Vitest UI
-npm run test:components     # Explicitly run component tests
+# Performance
+npm run lighthouse          # Lighthouse audit
+npm run lighthouse:mobile   # Mobile audit
 
-# E2E Tests (Playwright)
-npm run test:e2e            # Run all E2E tests headless
-npm run test:e2e:ui         # Run E2E tests with Playwright UI
-npm run test:e2e:headed     # Run E2E tests with browser visible
-npm run test:e2e:mobile     # Run mobile-specific E2E tests
-npm run test:e2e:tablet     # Run tablet-specific E2E tests
+# Database
+npm run seed                # Seed database
+npm run seed:clean          # Clean seed
 
-# Performance Tests
-npm run lighthouse          # Run Lighthouse performance audit
-npm run lighthouse:mobile   # Mobile Lighthouse audit
-npm run lighthouse:desktop  # Desktop Lighthouse audit
-npm run test:perf          # Alias for lighthouse
-
-# All Tests
-npm run test:all            # Run component tests + E2E tests sequentially
-```
-
-### Running Individual Tests
-
-```bash
-# Run specific Vitest test file
-npx vitest __tests__/components/ui/button.test.tsx
-
-# Run specific Playwright test
-npx playwright test e2e/auth.spec.ts
-
-# Run single test case by name
-npx playwright test -g "should allow user to login"
-```
-
-### Mobile/Android (Capacitor)
-
-```bash
-npx cap sync android        # Sync web build to Android project
+# Mobile (Capacitor)
+npx cap sync android        # Sync to Android
 npx cap open android        # Open in Android Studio
 ```
 
-## Sentry Integration
+<!-- END AUTO-MANAGED -->
 
-These examples should be used as guidance when configuring Sentry functionality within a project.
+<!-- AUTO-MANAGED: architecture -->
 
-**Configuration Files:**
-
-- Client: `instrumentation-client.ts`
-- Server: `sentry.server.config.ts`
-- Edge: `sentry.edge.config.ts`
-
-**Usage:** Import with `import * as Sentry from "@sentry/nextjs"` (no need to reinitialize).
-
-**Key APIs:**
-
-- `Sentry.captureException(error)` - Capture exceptions in try/catch blocks
-- `Sentry.startSpan({ op, name }, callback)` - Create performance spans for UI clicks (`op: "ui.click"`) or API calls (`op: "http.client"`)
-- `Sentry.logger` - Structured logging with `logger.trace/debug/info/warn/error/fatal`
-- Use `logger.fmt` template literal for variable interpolation: ``logger.debug(logger.fmt`Cache miss for user: ${userId}`)``
-
-## Architecture Overview
-
-### Feature-Based Structure
-
-KrewUp uses a **domain-driven feature architecture** where each feature module is self-contained:
+## Architecture
 
 ```
-features/[feature-name]/
-├── actions/         # Server Actions ('use server')
-├── components/      # Feature-specific React components
-├── hooks/          # Custom React hooks for data fetching
-├── types/          # TypeScript type definitions
-└── utils/          # Feature-specific utilities
+krewup/
+├── app/                    # Next.js App Router pages
+│   ├── (auth)/             # Auth layout group
+│   ├── (dashboard)/        # Dashboard layout group
+│   ├── (marketing)/        # Marketing layout group
+│   ├── admin/              # Admin dashboard (11 pages)
+│   ├── api/                # API routes (webhooks, cron)
+│   ├── dashboard/          # User dashboard pages
+│   └── layout.tsx          # Root layout
+├── features/               # Feature modules (16 modules)
+│   ├── [feature]/
+│   │   ├── actions/        # Server Actions ('use server')
+│   │   ├── components/     # Feature-specific components
+│   │   ├── hooks/          # React Query hooks
+│   │   ├── types/          # TypeScript types
+│   │   └── utils/          # Feature utilities
+├── components/             # Shared UI components
+│   ├── admin/              # Admin-specific components
+│   ├── ads/                # AdSense components
+│   ├── common/             # Shared utilities
+│   ├── layout/             # Layout components
+│   ├── providers/          # Context providers
+│   └── ui/                 # Base UI components
+├── lib/                    # Shared utilities
+│   ├── supabase/           # Supabase clients (server, client, service)
+│   ├── stripe/             # Stripe client
+│   ├── security/           # CSRF, rate limiting
+│   ├── utils/              # General utilities
+│   └── validation/         # Zod schemas
+├── hooks/                  # Global React hooks
+├── stores/                 # Zustand stores
+├── providers/              # App-level providers
+├── supabase/               # Database migrations
+│   └── migrations/         # SQL migrations (001-044)
+├── e2e/                    # Playwright E2E tests
+└── __tests__/              # Vitest component tests
 ```
 
-Each feature owns its full stack: from UI components to server-side data mutations. This keeps related code co-located and makes features easy to understand and modify.
+**Feature Modules** (16 total):
+admin, analytics, applications, auth, dashboard, endorsements, jobs, messaging, notifications, onboarding, portfolio, profile, profiles, proximity-alerts, subscriptions, support
 
-**Other Key Directories:**
+<!-- END AUTO-MANAGED -->
 
-- `stores/` - Zustand state stores for client-side global state
-- `components/` - Shared UI components (button, card, modal, etc.)
-- `lib/` - Shared utilities, Supabase clients, Stripe client
-- `hooks/` - Global custom React hooks
+<!-- AUTO-MANAGED: conventions -->
+
+## Code Conventions
 
 ### Server Actions Pattern
 
-**All data mutations use Next.js Server Actions** (not API routes). Server Actions are preferred because:
-
-- Automatic cookie-based authentication handling
-- Better TypeScript support end-to-end
-- Simpler than API routes for internal operations
-- No need to manage request/response serialization
-
-**Standard Server Action Pattern:**
+All mutations use Next.js Server Actions with consistent structure:
 
 ```typescript
-'use server';
+"use server";
+import { createClient } from "@/lib/supabase/server";
+import { cookies } from "next/headers";
+import { revalidatePath } from "next/cache";
+import { logger, sanitizeUserId } from "@/lib/utils/logger";
+import { getUserFriendlyError } from "@/lib/utils/action-response";
 
-import { createClient } from '@/lib/supabase/server';
-import { revalidatePath } from 'next/cache';
-import { cookies } from 'next/headers';
+export async function myAction(
+  data,
+): Promise<{ success: boolean; error?: string; data?: T }> {
+  try {
+    const supabase = await createClient(await cookies());
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) return { success: false, error: "Not authenticated" };
 
-export async function myAction(data: FormData): Promise<{ success: boolean; error?: string }> {
-  // 1. Create authenticated Supabase client
-  const supabase = await createClient(await cookies());
+    // ... operation
+    if (error) {
+      logger.error("Operation failed", {
+        userId: sanitizeUserId(user.id),
+        error: error.message,
+      });
+      return {
+        success: false,
+        error: getUserFriendlyError(error, "Operation failed"),
+      };
+    }
 
-  // 2. Get and verify current user
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
-  if (authError || !user) {
-    return { success: false, error: 'Not authenticated' };
+    revalidatePath("/affected/path");
+    return { success: true };
+  } catch (error: any) {
+    logger.error("Error in myAction", {
+      error: error?.message || String(error),
+    });
+    return {
+      success: false,
+      error: getUserFriendlyError(error, "Operation failed"),
+    };
   }
-
-  // 3. Perform authorization checks if needed
-  const { data: profile } = await supabase
-    .from('users')
-    .select('role, subscription_status')
-    .eq('id', user.id)
-    .single();
-
-  if (profile?.role !== 'employer') {
-    return { success: false, error: 'Unauthorized' };
-  }
-
-  // 4. Execute database operation
-  const { error } = await supabase.from('table').insert({ ... });
-
-  if (error) {
-    return { success: false, error: error.message };
-  }
-
-  // 5. Revalidate Next.js cache for affected routes
-  revalidatePath('/dashboard/jobs');
-
-  return { success: true };
 }
 ```
 
-**Key conventions:**
+**Optional patterns** (used selectively):
 
-- Always return `{ success: boolean; error?: string; data?: T }` shape
-- Always verify authentication first
-- Check authorization (role, subscription status) before mutations
-- Call `revalidatePath()` after successful mutations
-- Use `createClient(await cookies())` for user-scoped operations
-- Use `createServiceClient()` only for admin/webhook operations that bypass RLS
+- CSRF validation: `assertValidCsrfToken(data.csrfToken)` for user-facing forms
+- Sentry tags: `Sentry.setTag('feature', 'name')` for critical operations
 
-### Supabase Client Architecture
+### Supabase Clients
 
-**Three client types** with different purposes:
+- **Server**: `createClient(await cookies())` - User-scoped, respects RLS
+- **Service**: `createServiceClient()` - Admin only, bypasses RLS
+- **Browser**: `createClient()` - Client components, real-time
 
-1. **Server Client** (`lib/supabase/server.ts`):
+### React Query Hooks
 
-   ```typescript
-   import { createClient } from "@/lib/supabase/server";
-   import { cookies } from "next/headers";
-
-   const supabase = await createClient(await cookies());
-   ```
-
-   - Use in: Server Components, Server Actions, API routes
-   - Respects Row Level Security (RLS)
-   - Authenticated as current user via cookies
-   - Must await both `cookies()` and `createClient()`
-
-2. **Service Role Client** (`lib/supabase/server.ts`):
-
-   ```typescript
-   import { createServiceClient } from "@/lib/supabase/server";
-
-   const supabase = await createServiceClient();
-   ```
-
-   - Use in: Admin operations, webhooks, cron jobs
-   - **Bypasses RLS** - has full database access
-   - Never uses user cookies
-   - Use with caution - only for trusted server-side operations
-
-3. **Browser Client** (`lib/supabase/client.ts`):
-
-   ```typescript
-   import { createClient } from "@/lib/supabase/client";
-
-   const supabase = createClient();
-   ```
-
-   - Use in: Client Components only
-   - Handles real-time subscriptions
-   - Authenticated via browser cookies
-   - Memoized to prevent multiple instances
-
-### Authentication & Authorization
-
-**Multi-Layer Protection:**
-
-1. **Middleware** (`middleware.ts` + `lib/supabase/middleware.ts`):
-   - Refreshes Supabase sessions on every request
-   - Protects `/dashboard/*` routes (redirects to `/login` if not authenticated)
-   - Protects `/admin/*` routes (returns 404 if not admin to hide existence)
-   - Runs on all routes except static files and Next.js internals
-
-2. **Server Actions**:
-   - Every action verifies `user` exists via `supabase.auth.getUser()`
-   - Role checks: `profile.role === 'worker'` or `'employer'`
-   - Admin checks: `profile.is_admin === true`
-   - Subscription checks: `profile.subscription_status === 'pro'` for Pro features
-
-3. **Database (RLS)**:
-   - Row Level Security policies enforce data access at database level
-   - Service role client bypasses RLS (use only for admin operations)
-   - Policies ensure users can only read/write their own data
-
-4. **Moderation System**:
-   - `user_moderation_actions` table tracks warnings, suspensions, bans
-   - `ModerationGuard` component (client-side) checks status every 5 minutes
-   - Logs out and redirects banned/suspended users
-   - Admin can issue moderation actions via admin dashboard
-
-### Database Patterns
-
-**PostGIS for Location:**
+Feature hooks use React Query for data fetching:
 
 ```typescript
-// Creating a job with coordinates
-const { lat, lng } = coords;
-await supabase.rpc("create_job_with_coords", {
-  p_employer_id: user.id,
-  p_location: location,
-  p_lat: lat,
-  p_lng: lng,
-  // ... other fields
-});
-
-// Behind the scenes (in Postgres function):
-// ST_SetSRID(ST_MakePoint(p_lng, p_lat), 4326)
-```
-
-**JSONB for Flexible Data:**
-
-- `job_applications.form_data` - Complete application form as JSON
-- `job_applications.custom_answers` - Answers to custom screening questions
-- `jobs.custom_questions` - Employer's custom screening questions
-- `jobs.trade_selections` - Structured array of trade + subtrades
-
-**Key Tables:**
-
-- `profiles` - User profiles (role, subscription_status, is_admin, coords)
-- `jobs` - Job postings with PostGIS geometry for location
-- `job_applications` - Applications with comprehensive form_data
-- `certifications` - Worker certifications with verification_status
-- `subscriptions` - Stripe subscription data synced via webhook
-- `messages` - Direct messaging between users
-- `notifications` - In-app notifications
-- `content_reports` - User-submitted moderation reports
-- `user_moderation_actions` - Moderation history (warnings, bans, suspensions)
-- `admin_activity_log` - Audit trail for all admin actions
-
-### Stripe Integration
-
-**Checkout Flow:**
-
-1. User clicks upgrade to Pro on `/pricing` page
-2. `createCheckoutSession` Server Action creates Stripe Checkout session
-3. User completes payment on Stripe-hosted page
-4. Webhook receives `checkout.session.completed` event
-5. Webhook creates `subscriptions` record and updates `profiles.subscription_status = 'pro'`
-
-**Webhook Handler** (`app/api/webhooks/stripe/route.ts`):
-
-- Handles: `checkout.session.completed`, `customer.subscription.updated`, `customer.subscription.deleted`, `invoice.payment_failed`
-- Uses service role client to bypass RLS
-- Updates `subscriptions` table and `profiles.subscription_status`
-- For workers: activates 7-day profile boost on subscription start/renewal
-- Validates webhook signature with `STRIPE_WEBHOOK_SECRET`
-
-**Pro Feature Gating:**
-
-```typescript
-// In Server Action
-const { data: profile } = await supabase
-  .from("users")
-  .select("subscription_status")
-  .eq("id", user.id)
-  .single();
-
-if (profile?.subscription_status !== "pro") {
-  return { success: false, error: "This feature requires a Pro subscription" };
-}
-```
-
-### Admin Dashboard
-
-**Access Control:**
-
-- `profiles.is_admin` boolean flag determines admin status
-- Middleware returns 404 for `/admin/*` if not admin (hides existence)
-- All admin Server Actions verify `is_admin` flag
-- Service role client used for admin operations
-
-**Key Admin Features:**
-
-- **User Management** (`/admin/users`): View users, suspend/ban accounts
-- **Certification Verification** (`/admin/certifications`): Approve/reject worker certifications
-- **Content Moderation** (`/admin/moderation`): Review reports, take action (warn/suspend/ban), remove content
-- **Analytics** (`/admin/analytics`): Platform metrics and usage statistics
-- **Sentry Monitoring** (`/admin/monitoring`): Error tracking and performance monitoring
-- **Platform Settings** (`/admin/settings`): Configuration (maintenance mode, signup control, etc.)
-
-**Audit Trail:**
-
-- All admin actions logged to `admin_activity_log`
-- Includes: admin_id, action_type, target_user_id, details (JSONB), timestamp
-
-### Testing Strategy
-
-**Three-Layer Testing:**
-
-1. **Unit/Component Tests** (Vitest + Testing Library):
-   - Located in `__tests__/components/`
-   - Test individual components in isolation
-   - Mock Supabase clients and external dependencies
-   - Run fast, no database required
-
-2. **E2E Tests** (Playwright):
-   - Located in `e2e/`
-   - Test complete user flows against real UI
-   - Multi-device: Desktop Chrome, iPhone 13 Pro, iPad Pro
-   - Covers: auth, profiles, jobs, applications, messaging, payments, admin
-   - Requires Supabase database (test users created/cleaned up)
-
-3. **Performance Tests** (Lighthouse):
-   - Configuration in `lighthouserc.json`
-   - Automated performance, accessibility, SEO audits
-   - Separate mobile/desktop configurations
-
-**Test Database Setup:**
-
-- E2E tests use real Supabase instance
-- Test users created in `beforeAll` hooks
-- Cleaned up in `afterAll` hooks
-- Seed data created per-test as needed
-
-### Pro Features
-
-**Gated by `profiles.subscription_status === 'pro'`:**
-
-**For Workers:**
-
-- Profile boost (continuous for entire Pro subscription)
-  - Boosted profiles shown first to employers
-  - `is_profile_boosted` flag, `boost_expires_at` is null (no expiration)
-  - Activated on subscription start, lasts entire Pro duration
-  - Removed automatically when subscription cancels/expires
-  - Managed by cron job at `/api/cron/reset-expired-boosts`
-- Proximity alerts for new jobs within radius
-  - Configurable radius and trade filters
-  - Checked by cron at `/api/cron/check-proximity-alerts`
-- Profile view tracking ("X people viewed your profile")
-
-**For Employers:**
-
-- Custom screening questions (max 5 per job)
-  - Stored in `jobs.custom_questions` JSONB
-  - Answers in `job_applications.custom_answers` JSONB
-- Advanced candidate filtering
-  - Filter by verified certifications
-  - Filter by experience level
-- Job analytics dashboard
-  - Total views, unique visitors, applications
-  - Conversion rate tracking
-  - Date range filtering (7/30/all time)
-
-### Sentry Integration
-
-**Comprehensive Monitoring:**
-
-- Client: Browser errors, performance, session replay
-- Server: Error tracking, performance monitoring
-- Edge: Separate edge runtime configuration
-- User context automatically added from Supabase auth
-- Configured in `sentry.client.config.ts`, `sentry.server.config.ts`, `sentry.edge.config.ts`
-- Tunnel route: `/monitoring` (avoids ad blockers)
-
-## Important Implementation Details
-
-### Environment Variables
-
-Required variables (see `.env.example`):
-
-```bash
-# Supabase
-NEXT_PUBLIC_SUPABASE_URL=
-NEXT_PUBLIC_SUPABASE_ANON_KEY=
-SUPABASE_SERVICE_ROLE_KEY=      # Server-only, bypasses RLS
-
-# Stripe
-NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=
-STRIPE_SECRET_KEY=
-STRIPE_WEBHOOK_SECRET=
-STRIPE_PRICE_ID_PRO_MONTHLY=
-STRIPE_PRICE_ID_PRO_ANNUAL=
-
-# Google Maps (for location autocomplete)
-NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=
-
-# AdSense (optional; ads only on content pages per inventory value policy)
-NEXT_PUBLIC_ADS_ENABLED=false
-NEXT_PUBLIC_AD_PROVIDER=adsense
-NEXT_PUBLIC_ADSENSE_CLIENT_ID=        # ca-pub-XXXXXXXXXXXXXXXX from AdSense console
-NEXT_PUBLIC_ADSENSE_SLOT_JOB_BANNER=  # Ad unit ID for feed banner
-NEXT_PUBLIC_ADSENSE_SLOT_IN_FEED=     # Ad unit ID for in-feed (job list)
-NEXT_PUBLIC_ADSENSE_SLOT_SIDEBAR=     # Ad unit ID for profile sidebar
-
-# Application
-NEXT_PUBLIC_APP_URL=            # For OAuth redirects
-NODE_ENV=development
-```
-
-### Data Fetching Pattern
-
-**React Query for client-side data:**
-
-```typescript
-// Custom hook in features/[feature]/hooks/
-export function useJobs(filters: JobFilters) {
+"use client";
+export function useFeature() {
   return useQuery({
-    queryKey: ["jobs", filters],
+    queryKey: ["feature"],
     queryFn: async () => {
-      const supabase = createClient(); // Browser client
-      const query = supabase.from("jobs").select("*");
-
-      // Apply filters...
-
-      const { data, error } = await query;
-      if (error) throw error;
-      return data;
+      /* ... */
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 30000,
   });
 }
 ```
 
-**Global React Query config** (`app/layout.tsx`):
+### Import Aliases
 
-- `staleTime: 5 * 60 * 1000` (5 minutes)
-- `gcTime: 10 * 60 * 1000` (10 minutes cache)
+- `@/*` - Root
+- `@/components/*` - Shared components
+- `@/features/*` - Feature modules
+- `@/lib/*` - Utilities
+- `@/hooks/*` - Global hooks
+- `@/stores/*` - Zustand stores
 
-### Image Handling
+### Naming Conventions
 
-**Supabase Storage Buckets:**
+- **Files**: kebab-case (`job-actions.ts`)
+- **Components**: PascalCase (`JobCard.tsx` or `job-card.tsx`)
+- **Hooks**: camelCase with `use` prefix (`useJobs`)
+- **Actions**: camelCase (`createJob`, `updateProfile`)
+- **Types**: PascalCase (`JobData`, `UserProfile`)
 
-- `profile-images` - User profile pictures
-- `certification-photos` - Certification document uploads
-- `application-files` - Resume/document uploads for applications
+<!-- END AUTO-MANAGED -->
 
-**Upload Pattern:**
+<!-- AUTO-MANAGED: patterns -->
+
+## Detected Patterns
+
+### Authentication Flow
+
+1. Middleware refreshes Supabase session on every request
+2. Server Actions verify user via `supabase.auth.getUser()`
+3. Role checks: `profile.role === 'worker' | 'employer'`
+4. Admin checks: `profile.is_admin === true`
+5. Database RLS policies as final layer
+
+### Feature Module Structure
+
+Each feature is self-contained:
+
+- `actions/` - Server Actions for mutations
+- `components/` - React components
+- `hooks/` - React Query hooks for data
+- `types/` - TypeScript definitions
+
+### Onboarding Flow
+
+Role-based table structure with dynamic mapping:
 
 ```typescript
-// Browser compression first
-import imageCompression from "browser-image-compression";
-const compressedFile = await imageCompression(file, { maxSizeMB: 1 });
+// Employer types map to specific tables
+const employerTableMap = {
+  contractor: "contractors",
+  recruiter: "recruiters",
+  homeowner: "home_owners",
+  developer: "developers",
+};
+```
 
-// Server action upload
-export async function uploadImage(formData: FormData) {
-  const file = formData.get("file") as File;
-  const supabase = await createClient(await cookies());
+- Workers → `workers` table (trade, sub_trade)
+- Employers → role-specific table (company_name)
+- Uses `upsert` with `onConflict: 'user_id'` for role switching support
 
-  const fileName = `${userId}/${Date.now()}.${ext}`;
-  const { data, error } = await supabase.storage
-    .from("bucket-name")
-    .upload(fileName, file);
+### Error Handling
 
-  if (error) return { success: false, error: error.message };
+- Server Actions return `{ success: false, error: string }`
+- Use `getUserFriendlyError(error, fallbackMessage)` to convert technical errors to user-friendly messages
+- Structured logging via `logger.error()` with sanitized user IDs
+- Try/catch blocks catch unexpected errors and return error responses
+- CSRF validation via `assertValidCsrfToken()` for user-facing mutations (profiles, jobs, messaging)
 
-  const publicUrl = supabase.storage.from("bucket-name").getPublicUrl(fileName);
-  return { success: true, url: publicUrl.data.publicUrl };
+### Employer Type Gating
+
+Job posting restricted to specific employer types:
+
+```typescript
+import { ALLOWED_JOB_POSTING_EMPLOYER_TYPES } from "@/lib/constants";
+
+if (!ALLOWED_JOB_POSTING_EMPLOYER_TYPES.includes(profile.employer_type)) {
+  return {
+    success: false,
+    error: "Only contractors and developers can post jobs",
+  };
 }
 ```
 
-### Mobile Responsiveness
+### Subscription Gating
 
-**Layout Approach:**
+```typescript
+// Check if user has Pro access (subscription or lifetime)
+const isPro =
+  profile?.subscription_status === "pro" || profile?.is_lifetime_pro === true;
+if (!isPro) {
+  return { success: false, error: "Pro subscription required" };
+}
+```
 
-- Mobile-first design with Tailwind CSS
-- Dashboard uses responsive sidebar
-  - Mobile: Bottom navigation bar
-  - Tablet+: Left sidebar
-- Tested across viewports: iPhone 13 Pro, iPad Pro, Desktop (1920x1080)
-- Automated E2E tests for mobile in `e2e/mobile-responsiveness.spec.ts`
+### Location Data (PostGIS)
 
-### API Routes vs Server Actions
+- Jobs and profiles store coordinates as PostGIS geometry
+- RPC functions: `update_user_coords`, `create_job_with_coords`, proximity queries
+- Always use RPC functions for coordinate updates (handles PostGIS conversion)
+- Google Maps API for location autocomplete
 
-**Use Server Actions for:**
+### Push Notifications
 
-- All internal mutations (create job, update profile, etc.)
-- Authentication checks
-- Database queries
+- Web Push API with VAPID keys configuration
+- Graceful degradation: checks `isPushConfigured` before sending
+- Uses `web-push` library for server-side notification delivery
+- Subscriptions stored in `push_subscriptions` table with endpoint/keys
 
-**Use API Routes only for:**
+<!-- END AUTO-MANAGED -->
 
-- **Webhooks** (external services calling in): `/api/webhooks/stripe`
-- **Cron jobs** (scheduled tasks): `/api/cron/reset-expired-boosts`
-- **External integrations** that must be HTTP endpoints
+<!-- AUTO-MANAGED: git-insights -->
 
-## Common Development Tasks
+## Git Insights
 
-### Adding a New Feature
+**Commit Style**: Conventional commits with scope
 
-1. Create feature module in `features/[feature-name]/`
-2. Add Server Actions in `actions/` with auth/authorization
-3. Create UI components in `components/`
-4. Add custom hooks for data fetching in `hooks/`
-5. Add TypeScript types in `types/`
-6. Create route page in `app/dashboard/[route]/page.tsx`
-7. Write E2E tests in `e2e/[feature].spec.ts`
-8. Update `revalidatePath()` calls as needed
+- `feat(scope):` - New features
+- `fix(scope):` - Bug fixes
+- `refactor(scope):` - Code improvements
+- `chore:` - Maintenance tasks
 
-### Adding a Database Table
+**Recent Focus Areas**:
 
-1. Create migration in `supabase/migrations/XXX_table_name.sql`
-2. Include: table schema, RLS policies, indexes, triggers
-3. Apply migration: Run locally first, then in production
-4. Add TypeScript types in feature's `types/` directory
-5. Create Server Actions for CRUD operations
-6. Test with E2E tests
+- Error handling improvements (getUserFriendlyError utility)
+- Onboarding flow enhancements (employer type expansion, table mapping)
+- Structured logging migration (console → logger with sanitizeUserId)
+- Type safety enhancements (AllowedJobPostingEmployerType)
+- Job posting employer type restrictions
+- Analytics and search params handling
 
-### Debugging Authentication Issues
+<!-- END AUTO-MANAGED -->
 
-1. Check middleware is running: `console.log` in `middleware.ts`
-2. Verify cookies are being set: Check browser DevTools → Application → Cookies
-3. Check Supabase client type:
-   - Server Actions: `createClient(await cookies())`
-   - Admin operations: `createServiceClient()`
-   - Client Components: browser `createClient()`
-4. Verify RLS policies in Supabase dashboard
-5. Check user session: `await supabase.auth.getUser()` in Server Action
+<!-- MANUAL -->
+
+## Additional Notes
+
+### Environment Variables
+
+See `.env.example` for required variables:
+
+- Supabase: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`
+- Stripe: `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, price IDs
+- Google Maps: `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY`
+- AdSense: `NEXT_PUBLIC_ADSENSE_CLIENT_ID`, slot IDs
 
 ### Testing Stripe Locally
 
-1. Install Stripe CLI: `brew install stripe/stripe-cli/stripe`
-2. Login: `stripe login`
-3. Forward webhooks: `stripe listen --forward-to localhost:3000/api/webhooks/stripe`
-4. Use test cards: `4242 4242 4242 4242` (Visa success)
-5. Check webhook logs in terminal and Stripe dashboard
+1. `stripe login`
+2. `stripe listen --forward-to localhost:3000/api/webhooks/stripe`
+3. Use test card: `4242 4242 4242 4242`
 
-### Deploying to Production
+### Database Migrations
 
-1. Push to main branch (Vercel auto-deploys)
-2. Ensure environment variables are set in Vercel dashboard
-3. Configure Stripe webhook in Stripe dashboard to point to production URL
-4. Test authentication flows in production
-5. Monitor Sentry for errors
-6. Check Vercel logs for build/runtime issues
+Migrations in `supabase/migrations/` (001-044). Always test locally first.
 
-## Migration Strategy
+### Deployment
 
-Database migrations are in `supabase/migrations/` numbered sequentially:
+Push to main branch triggers Vercel auto-deploy. Ensure env vars are set in Vercel dashboard.
 
-- `001_` through `044_` applied in order
-- Latest migrations add storage buckets, RLS policies, notification system
-- Apply new migrations via Supabase dashboard or CLI
-- Always test migrations locally first
+For full reference, see `CLAUDE.md.backup` which contains the complete original documentation.
 
-## Project Progress
-
-See `docs/plans/progress-checklist.md` for detailed phase-by-phase progress tracking.
+<!-- END MANUAL -->

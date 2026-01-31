@@ -1,5 +1,6 @@
 import * as Sentry from '@sentry/nextjs';
 import { z, ZodError, ZodSchema } from 'zod';
+import { logger } from '@/lib/utils/logger';
 
 /**
  * Standard response shape for all server actions
@@ -184,7 +185,9 @@ export async function handleActionError<T>(
   try {
     return await action();
   } catch (err) {
-    console.error('[Action Error]:', err);
+    logger.error('Action error', {
+      error: err instanceof Error ? err.message : String(err),
+    });
     return error(getUserFriendlyError(err, defaultErrorMessage));
   }
 }

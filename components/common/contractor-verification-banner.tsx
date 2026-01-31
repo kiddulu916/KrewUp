@@ -20,18 +20,18 @@ export function ContractorVerificationBanner() {
                 <strong>Your contractor license is currently being reviewed by our team.</strong>
               </p>
               <p>
-                You'll be able to post jobs once your license is verified, which usually takes
+                You&apos;ll be able to post jobs once your license is verified, which usually takes
                 <strong> 24-48 hours</strong>.
               </p>
               <p>
-                We'll send you an email notification as soon as verification is complete.
+                We&apos;ll send you an email notification as soon as verification is complete.
                 Thank you for your patience!
               </p>
             </div>
 
             <div className="mt-4 pt-4 border-t border-yellow-300">
               <p className="text-xs text-yellow-700">
-                <strong>Need help?</strong> Contact support if you haven't heard back within 48 hours.
+                <strong>Need help?</strong> Contact support if you haven&apos;t heard back within 48 hours.
               </p>
             </div>
           </div>

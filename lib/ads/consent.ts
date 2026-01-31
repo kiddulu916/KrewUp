@@ -2,11 +2,12 @@
 
 /**
  * Ad Consent Management
- * 
+ *
  * Handles GDPR/CCPA consent for ad personalization and tracking.
  * Stores consent in localStorage and provides hooks for UI.
  */
 
+import { logger } from '@/lib/utils/logger';
 import type { AdConsentStatus } from './types';
 
 const CONSENT_STORAGE_KEY = 'krewup_ad_consent';
@@ -49,7 +50,9 @@ export function saveConsentStatus(consent: AdConsentStatus): void {
       });
     }
   } catch (error) {
-    console.error('Failed to save consent status:', error);
+    logger.error('Failed to save consent status', {
+      error: error instanceof Error ? error.message : String(error),
+    });
   }
 }
 

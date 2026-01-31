@@ -7,6 +7,7 @@ import { rateLimit, RATE_LIMITS } from '@/lib/security/rate-limit';
 import { validateFile, ALLOWED_IMAGE_TYPES, FILE_SIZE_LIMITS } from '@/lib/security/file-validation';
 import { logger, sanitizeUserId } from '@/lib/utils/logger';
 import { deletePortfolioPhotoSchema, reorderPortfolioPhotosSchema } from '@/lib/validation/schemas';
+import { getUserFriendlyError } from '@/lib/utils/action-response';
 
 /**
  * Upload a portfolio photo
@@ -82,7 +83,7 @@ export async function uploadPortfolioPhoto(formData: FormData): Promise<{ succes
     .upload(fileName, file);
 
   if (uploadError) {
-    return { success: false, error: uploadError.message };
+    return { success: false, error: getUserFriendlyError(uploadError, 'Failed to upload photo') };
   }
 
   // 7. Get public URL
@@ -104,7 +105,7 @@ export async function uploadPortfolioPhoto(formData: FormData): Promise<{ succes
     await supabase.storage
       .from('portfolio-images')
       .remove([fileName]);
-    return { success: false, error: dbError.message };
+    return { success: false, error: getUserFriendlyError(dbError, 'Failed to save photo') };
   }
 
   revalidatePath('/dashboard/profile/edit');
@@ -170,7 +171,7 @@ export async function deletePortfolioPhoto(imageId: string): Promise<{ success: 
     .eq('id', imageId);
 
   if (deleteError) {
-    return { success: false, error: deleteError.message };
+    return { success: false, error: getUserFriendlyError(deleteError, 'Failed to delete photo') };
   }
 
   revalidatePath('/dashboard/profile/edit');

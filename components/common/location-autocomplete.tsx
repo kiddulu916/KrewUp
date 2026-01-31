@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Input } from '@/components/ui';
 import { useAsyncAction } from '@/hooks/use-async-action';
+import { logger } from '@/lib/utils/logger';
 
 // Load Google Maps API dynamically
 function loadGoogleMapsScript(apiKey: string): Promise<void> {
@@ -113,7 +114,9 @@ export function LocationAutocomplete({
         });
       })
       .catch((error) => {
-        console.error('Error loading Google Maps:', error);
+        logger.error('Error loading Google Maps', {
+          error: error instanceof Error ? error.message : String(error),
+        });
       });
 
     return () => {
@@ -178,12 +181,17 @@ export function LocationAutocomplete({
                 reject(new Error('Could not determine address from your location'));
               }
             } catch (error) {
-              console.error('Geocoding error:', error);
+              logger.error('Geocoding error', {
+                error: error instanceof Error ? error.message : String(error),
+              });
               reject(new Error('Failed to get address from location. Please try typing it manually.'));
             }
           },
           (error) => {
-            console.error('Geolocation error:', error);
+            logger.error('Geolocation error', {
+              error: error instanceof Error ? error.message : String(error),
+              code: (error as { code?: number })?.code,
+            });
             let errorMessage = 'Failed to get your location. ';
             if (error.code === error.PERMISSION_DENIED) {
               errorMessage += 'Please grant location permission and try again.';

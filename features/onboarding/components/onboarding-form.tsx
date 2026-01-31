@@ -8,6 +8,7 @@ import { completeOnboarding, type OnboardingData } from '../actions/onboarding-a
 import { uploadCertificationPhoto } from '@/features/profiles/actions/certification-actions';
 import { formatPhoneNumber } from '@/lib/utils/phone';
 import { useAsyncAction } from '@/hooks/use-async-action';
+import { logger } from '@/lib/utils/logger';
 
 type Props = {
   initialName?: string;
@@ -146,7 +147,7 @@ export function OnboardingForm({ initialName = '', initialEmail = '' }: Props) {
         setIsUploadingLicense(false);
 
         if (!uploadResult.success || !uploadResult.data) {
-          console.error('[OnboardingForm] License upload failed:', uploadResult.error);
+          logger.error('OnboardingForm license upload failed', { error: uploadResult.error });
           throw new Error(uploadResult.error || 'Failed to upload license photo');
         }
 
@@ -169,7 +170,7 @@ export function OnboardingForm({ initialName = '', initialEmail = '' }: Props) {
       console.log('[OnboardingForm] completeOnboarding result:', result);
 
       if (!result.success) {
-        console.error('[OnboardingForm] Onboarding failed:', result.error);
+        logger.error('OnboardingForm onboarding failed', { error: result.error });
         throw new Error(result.error || 'Failed to complete onboarding');
       }
 

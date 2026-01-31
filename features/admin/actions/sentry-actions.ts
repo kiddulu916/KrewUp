@@ -1,5 +1,7 @@
 'use server';
 
+import { logger } from '@/lib/utils/logger';
+
 /**
  * Sentry API Integration
  *
@@ -116,7 +118,10 @@ export async function getRecentIssues(
     );
 
     if (!response.ok) {
-      console.error('Failed to fetch Sentry issues:', response.statusText);
+      logger.error('Failed to fetch Sentry issues', {
+        status: response.status,
+        statusText: response.statusText,
+      });
       return [];
     }
 
@@ -135,7 +140,9 @@ export async function getRecentIssues(
       status: issue.status || 'unresolved',
     }));
   } catch (error) {
-    console.error('Error fetching Sentry issues:', error);
+    logger.error('Error fetching Sentry issues', {
+      error: error instanceof Error ? error.message : String(error),
+    });
     return [];
   }
 }
@@ -176,7 +183,10 @@ export async function getErrorRateData(): Promise<ErrorRateData[]> {
     );
 
     if (!response.ok) {
-      console.error('Failed to fetch Sentry stats:', response.statusText);
+      logger.error('Failed to fetch Sentry stats', {
+        status: response.status,
+        statusText: response.statusText,
+      });
       return [];
     }
 
@@ -187,7 +197,9 @@ export async function getErrorRateData(): Promise<ErrorRateData[]> {
       errors: stat[1],
     }));
   } catch (error) {
-    console.error('Error fetching Sentry stats:', error);
+    logger.error('Error fetching Sentry stats', {
+      error: error instanceof Error ? error.message : String(error),
+    });
     return [];
   }
 }
@@ -256,7 +268,9 @@ export async function getSystemHealth(
       message,
     };
   } catch (error) {
-    console.error('Error calculating system health:', error);
+    logger.error('Error calculating system health', {
+      error: error instanceof Error ? error.message : String(error),
+    });
     return {
       status: 'degraded',
       errorRate: 0,
@@ -293,7 +307,10 @@ export async function getSentryStats(): Promise<SentryStats | null> {
     );
 
     if (!response.ok) {
-      console.error('Failed to fetch Sentry project stats:', response.statusText);
+      logger.error('Failed to fetch Sentry project stats', {
+        status: response.status,
+        statusText: response.statusText,
+      });
       return null;
     }
 
@@ -305,7 +322,9 @@ export async function getSentryStats(): Promise<SentryStats | null> {
       blacklisted: data.stats?.['24h']?.[2]?.[1] || 0,
     };
   } catch (error) {
-    console.error('Error fetching Sentry project stats:', error);
+    logger.error('Error fetching Sentry project stats', {
+      error: error instanceof Error ? error.message : String(error),
+    });
     return null;
   }
 }

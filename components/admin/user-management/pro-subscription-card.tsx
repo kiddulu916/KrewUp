@@ -9,6 +9,7 @@ import {
   grantProSubscription,
   revokeProSubscription,
 } from '@/features/admin/actions/user-actions';
+import { logger } from '@/lib/utils/logger';
 import type { UserProfile } from './types';
 
 type ProSubscriptionCardProps = {
@@ -47,7 +48,9 @@ export function ProSubscriptionCard({
         toast.error(result.error || 'Failed to grant Pro subscription');
       }
     } catch (error) {
-      console.error('Error granting Pro:', error);
+      logger.error('Error granting Pro', {
+        error: error instanceof Error ? error.message : String(error),
+      });
       toast.error('Failed to grant Pro subscription');
     } finally {
       setActionLoading(false);
@@ -69,7 +72,9 @@ export function ProSubscriptionCard({
         toast.error(result.error || 'Failed to revoke Pro subscription');
       }
     } catch (error) {
-      console.error('Error revoking Pro:', error);
+      logger.error('Error revoking Pro', {
+        error: error instanceof Error ? error.message : String(error),
+      });
       toast.error('Failed to revoke Pro subscription');
     } finally {
       setActionLoading(false);

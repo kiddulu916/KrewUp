@@ -335,7 +335,7 @@ export default async function ApplicationDetailPage({ params }: Props) {
                       )}
                       {formData.hasDriversLicense !== undefined && (
                         <div className="grid grid-cols-3 gap-4">
-                          <p className="text-sm font-medium text-gray-500">Driver's License:</p>
+                          <p className="text-sm font-medium text-gray-500">Driver&apos;s License:</p>
                           <p className="text-gray-900 col-span-2">
                             {formData.hasDriversLicense ? 'Yes' : 'No'}
                             {formData.licenseClass && ` (Class ${formData.licenseClass})`}

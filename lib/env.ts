@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { logger } from '@/lib/utils/logger';
 
 /**
  * Schema for client-side environment variables (NEXT_PUBLIC_*)
@@ -79,8 +80,9 @@ export function getClientEnv(): ClientEnv {
   });
 
   if (!result.success) {
-    console.error('❌ Invalid client environment variables:');
-    console.error(result.error.flatten().fieldErrors);
+    logger.error('Invalid client environment variables', {
+      fieldErrors: result.error.flatten().fieldErrors,
+    });
     throw new Error('Invalid client environment configuration');
   }
 
@@ -111,8 +113,9 @@ export function getServerEnv(): ServerEnv {
   });
 
   if (!result.success) {
-    console.error('❌ Invalid server environment variables:');
-    console.error(result.error.flatten().fieldErrors);
+    logger.error('Invalid server environment variables', {
+      fieldErrors: result.error.flatten().fieldErrors,
+    });
     throw new Error('Invalid server environment configuration');
   }
 
@@ -215,7 +218,9 @@ export function validateEnv(): void {
 
     console.log('✅ Environment variables validated successfully');
   } catch (error) {
-    console.error('❌ Environment validation failed:', error);
+    logger.error('Environment validation failed', {
+      error: error instanceof Error ? error.message : String(error),
+    });
     // ! In production, we want to fail fast
     if (process.env.NODE_ENV === 'production') {
       throw error;

@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server';
 import { cookies } from 'next/headers';
 import { revalidatePath } from 'next/cache';
 import { logger, sanitizeUserId } from '@/lib/utils/logger';
+import { getUserFriendlyError } from '@/lib/utils/action-response';
 
 /**
  * Activate profile boost for the current user (Pro feature)
@@ -78,7 +79,7 @@ export async function activateProfileBoost() {
     logger.error('Error in activateProfileBoost', {
       error: error.message || String(error)
     });
-    return { success: false, error: error.message || 'Failed to activate profile boost' };
+    return { success: false, error: getUserFriendlyError(error, 'Failed to activate profile boost') };
   }
 }
 
@@ -120,7 +121,7 @@ export async function deactivateProfileBoost() {
     logger.error('Error in deactivateProfileBoost', {
       error: error.message || String(error)
     });
-    return { success: false, error: error.message || 'Failed to deactivate profile boost' };
+    return { success: false, error: getUserFriendlyError(error, 'Failed to deactivate profile boost') };
   }
 }
 
@@ -168,6 +169,6 @@ export async function getBoostStatus() {
     logger.error('Error in getBoostStatus', {
       error: error.message || String(error)
     });
-    return { success: false, error: error.message || 'Failed to fetch boost status' };
+    return { success: false, error: getUserFriendlyError(error, 'Failed to fetch boost status') };
   }
 }

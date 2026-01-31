@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Button, Input } from '@/components/ui';
 import { signIn, signInWithGoogle } from '../actions/auth-actions';
 import { useAsyncAction } from '@/hooks/use-async-action';
+import { logger } from '@/lib/utils/logger';
 
 export function LoginForm() {
   const router = useRouter();
@@ -39,7 +40,7 @@ export function LoginForm() {
         return result;
       }
       if (!result.success) {
-        console.error('[LoginForm] Google sign-in failed:', result.error);
+        logger.error('LoginForm Google sign-in failed', { error: result.error });
         throw new Error(result.error ?? 'Failed to sign in with Google');
       }
       console.warn('[LoginForm] No URL returned from signInWithGoogle');

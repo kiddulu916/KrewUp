@@ -13,6 +13,7 @@ import {
   type ActionResponse,
 } from '@/lib/utils/action-response';
 import { suspendUserSchema, banUserSchema } from '@/lib/validation/schemas';
+import { logger } from '@/lib/utils/logger';
 
 /**
  * Suspend a user temporarily
@@ -77,7 +78,10 @@ export async function suspendUser(
     });
 
     if (logError) {
-      console.error('Error logging activity:', logError);
+      logger.error('Error logging activity', {
+        error: logError instanceof Error ? logError.message : String(logError),
+        action: 'suspended_user',
+      });
       // ! Don't fail the action if logging fails
     }
 
@@ -139,7 +143,10 @@ export async function banUser(userId: string, reason: string): Promise<ActionRes
     });
 
     if (logError) {
-      console.error('Error logging activity:', logError);
+      logger.error('Error logging activity', {
+        error: logError instanceof Error ? logError.message : String(logError),
+        action: 'banned_user',
+      });
       // ! Don't fail the action if logging fails
     }
 
@@ -196,7 +203,9 @@ export async function unbanUser(userId: string) {
     .eq('id', latestBan.id);
 
   if (moderationError) {
-    console.error('Error creating moderation action:', moderationError);
+    logger.error('Error deleting ban record (unban)', {
+      error: moderationError instanceof Error ? moderationError.message : String(moderationError),
+    });
     return { success: false, error: 'Failed to unban user' };
   }
 
@@ -209,7 +218,10 @@ export async function unbanUser(userId: string) {
   });
 
   if (logError) {
-    console.error('Error logging activity:', logError);
+    logger.error('Error logging activity', {
+      error: logError instanceof Error ? logError.message : String(logError),
+      action: 'unbanned_user',
+    });
   }
 
   revalidatePath('/admin/users');
@@ -249,7 +261,10 @@ export async function grantProSubscription(userId: string, reason: string) {
     .eq('id', userId);
 
   if (updateError) {
-    console.error('Error updating subscription status:', updateError);
+    logger.error('Error updating subscription status', {
+      error: updateError instanceof Error ? updateError.message : String(updateError),
+      action: 'grant_pro',
+    });
     return { success: false, error: 'Failed to grant Pro subscription' };
   }
 
@@ -271,7 +286,9 @@ export async function grantProSubscription(userId: string, reason: string) {
     });
 
   if (subscriptionError) {
-    console.error('Error creating subscription record:', subscriptionError);
+    logger.error('Error creating subscription record', {
+      error: subscriptionError instanceof Error ? subscriptionError.message : String(subscriptionError),
+    });
     // Don't fail the whole operation, just log it
   }
 
@@ -285,7 +302,10 @@ export async function grantProSubscription(userId: string, reason: string) {
   });
 
   if (logError) {
-    console.error('Error logging activity:', logError);
+    logger.error('Error logging activity', {
+      error: logError instanceof Error ? logError.message : String(logError),
+      action: 'granted_pro',
+    });
   }
 
   revalidatePath('/admin/users');
@@ -325,7 +345,10 @@ export async function revokeProSubscription(userId: string, reason: string) {
     .eq('id', userId);
 
   if (updateError) {
-    console.error('Error updating subscription status:', updateError);
+    logger.error('Error updating subscription status', {
+      error: updateError instanceof Error ? updateError.message : String(updateError),
+      action: 'revoke_pro',
+    });
     return { success: false, error: 'Failed to revoke Pro subscription' };
   }
 
@@ -337,7 +360,9 @@ export async function revokeProSubscription(userId: string, reason: string) {
     .eq('status', 'active');
 
   if (subscriptionError) {
-    console.error('Error canceling subscriptions:', subscriptionError);
+    logger.error('Error canceling subscriptions', {
+      error: subscriptionError instanceof Error ? subscriptionError.message : String(subscriptionError),
+    });
   }
 
   // Log activity
@@ -350,7 +375,10 @@ export async function revokeProSubscription(userId: string, reason: string) {
   });
 
   if (logError) {
-    console.error('Error logging activity:', logError);
+    logger.error('Error logging activity', {
+      error: logError instanceof Error ? logError.message : String(logError),
+      action: 'revoked_pro',
+    });
   }
 
   revalidatePath('/admin/users');
@@ -393,7 +421,9 @@ export async function getUserModerationHistory(userId: string) {
     .order('created_at', { ascending: false });
 
   if (error) {
-    console.error('Error fetching moderation history:', error);
+    logger.error('Error fetching moderation history', {
+      error: error instanceof Error ? error.message : String(error),
+    });
     return { success: false, error: 'Failed to fetch moderation history', data: null };
   }
 

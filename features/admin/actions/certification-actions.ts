@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
 import { cookies } from 'next/headers';
+import { logger } from '@/lib/utils/logger';
 
 export async function approveCertification(certificationId: string) {
   const supabase = await createClient(await cookies());
@@ -47,7 +48,10 @@ export async function approveCertification(certificationId: string) {
     .eq('id', certificationId);
 
   if (updateError) {
-    console.error('Error approving certification:', updateError);
+    logger.error('Error approving certification', {
+      error: updateError instanceof Error ? updateError.message : String(updateError),
+      certificationId,
+    });
     return { success: false, error: 'Failed to approve certification' };
   }
 
@@ -59,7 +63,10 @@ export async function approveCertification(certificationId: string) {
       .eq('id', cert.user_id);
 
     if (profileError) {
-      console.error('Error updating profile:', profileError);
+      logger.error('Error updating profile (job posting)', {
+        error: profileError instanceof Error ? profileError.message : String(profileError),
+        certificationId,
+      });
       // Don't fail the whole operation, just log it
     }
   }
@@ -77,7 +84,10 @@ export async function approveCertification(certificationId: string) {
   });
 
   if (logError) {
-    console.error('Error logging activity:', logError);
+    logger.error('Error logging activity', {
+      error: logError instanceof Error ? logError.message : String(logError),
+      action: 'verified_cert',
+    });
     // Don't fail the whole operation, just log it
   }
 
@@ -125,7 +135,10 @@ export async function rejectCertification(
     .eq('id', certificationId);
 
   if (updateError) {
-    console.error('Error rejecting certification:', updateError);
+    logger.error('Error rejecting certification', {
+      error: updateError instanceof Error ? updateError.message : String(updateError),
+      certificationId,
+    });
     return { success: false, error: 'Failed to reject certification' };
   }
 
@@ -139,7 +152,10 @@ export async function rejectCertification(
   });
 
   if (logError) {
-    console.error('Error logging activity:', logError);
+    logger.error('Error logging activity', {
+      error: logError instanceof Error ? logError.message : String(logError),
+      action: 'rejected_cert',
+    });
     // Don't fail the whole operation, just log it
   }
 
@@ -180,7 +196,10 @@ export async function flagCertification(
     .eq('id', certificationId);
 
   if (updateError) {
-    console.error('Error flagging certification:', updateError);
+    logger.error('Error flagging certification', {
+      error: updateError instanceof Error ? updateError.message : String(updateError),
+      certificationId,
+    });
     return { success: false, error: 'Failed to flag certification' };
   }
 
@@ -194,7 +213,10 @@ export async function flagCertification(
   });
 
   if (logError) {
-    console.error('Error logging activity:', logError);
+    logger.error('Error logging activity', {
+      error: logError instanceof Error ? logError.message : String(logError),
+      action: 'flagged_cert',
+    });
   }
 
   revalidatePath('/admin/certifications');

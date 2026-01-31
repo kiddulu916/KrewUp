@@ -1,1 +1,10 @@
+#!/usr/bin/env bash
+# Load Node.js paths (git hooks use minimal PATH; nvm/fnm aren't loaded)
+. "$HOME/.nvm/nvm.sh" 2>/dev/null || true
+. "$HOME/.local/share/fnm/fnm.sh" 2>/dev/null || true
+# Fallback: add nvm default node explicitly (nvm.sh may not fully load in non-interactive shells)
+if ! command -v npx >/dev/null 2>&1 && [ -d "$HOME/.nvm/versions/node" ]; then
+  NODE_VER=$(ls -1 "$HOME/.nvm/versions/node" 2>/dev/null | tail -1)
+  [ -n "$NODE_VER" ] && export PATH="$HOME/.nvm/versions/node/$NODE_VER/bin:$PATH"
+fi
 npx lint-staged

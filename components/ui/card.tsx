@@ -111,7 +111,6 @@ export function CardSkeleton({ lines = 3, className }: CardSkeletonProps) {
         {Array.from({ length: lines }).map((_, index) => (
           <div
             // * Uses index as key because items are static, non-interactive placeholders
-            // eslint-disable-next-line react/no-array-index-key
             key={index}
             className={cn(
               'h-4 rounded bg-gray-200',

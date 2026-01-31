@@ -14,13 +14,16 @@
  */
 
 import { createClient } from '@supabase/supabase-js';
+import { logger } from '@/lib/utils/logger';
 
 // Configuration
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
 if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) {
-  console.error('Missing environment variables: NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY');
+  logger.error('Missing environment variables', {
+    hint: 'NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY',
+  });
   process.exit(1);
 }
 
@@ -239,7 +242,7 @@ async function seedUsers() {
   for (const user of SAMPLE_USERS) {
     const { error } = await supabase.from('users').upsert(user, { onConflict: 'id' });
     if (error) {
-      console.error(`Failed to seed user ${user.email}:`, error.message);
+      logger.error('Failed to seed user', { email: user.email, error: error.message });
     } else {
       console.log(`  Created user: ${user.email}`);
     }
@@ -249,7 +252,7 @@ async function seedUsers() {
   for (const worker of SAMPLE_WORKERS) {
     const { error } = await supabase.from('workers').upsert(worker, { onConflict: 'user_id' });
     if (error) {
-      console.error(`Failed to seed worker ${worker.user_id}:`, error.message);
+      logger.error('Failed to seed worker', { user_id: worker.user_id, error: error.message });
     }
   }
 
@@ -262,7 +265,7 @@ async function seedJobs() {
   for (const job of SAMPLE_JOBS) {
     const { error } = await supabase.from('jobs').upsert(job, { onConflict: 'id' });
     if (error) {
-      console.error(`Failed to seed job ${job.title}:`, error.message);
+      logger.error('Failed to seed job', { title: job.title, error: error.message });
     } else {
       console.log(`  Created job: ${job.title}`);
     }
@@ -292,7 +295,7 @@ async function seedApplications() {
     }
     
     if (error) {
-      console.error(`Failed to seed application ${app.id}:`, error.message);
+      logger.error('Failed to seed application', { id: app.id, error: error.message });
     } else if (!error && applicationData.form_data) {
       console.log(`  Created application: ${app.id}`);
     }
@@ -307,14 +310,14 @@ async function seedMessages() {
   for (const conv of SAMPLE_CONVERSATIONS) {
     const { error } = await supabase.from('conversations').upsert(conv, { onConflict: 'id' });
     if (error) {
-      console.error(`Failed to seed conversation ${conv.id}:`, error.message);
+      logger.error('Failed to seed conversation', { id: conv.id, error: error.message });
     }
   }
 
   for (const msg of SAMPLE_MESSAGES) {
     const { error } = await supabase.from('messages').upsert(msg, { onConflict: 'id' });
     if (error) {
-      console.error(`Failed to seed message ${msg.id}:`, error.message);
+      logger.error('Failed to seed message', { id: msg.id, error: error.message });
     } else {
       console.log(`  Created message: ${msg.id}`);
     }
@@ -360,4 +363,9 @@ async function main() {
   console.log('update the user IDs to match existing auth users.');
 }
 
-main().catch(console.error);
+main().catch((err) => {
+  logger.error('Seed script failed', {
+    error: err instanceof Error ? err.message : String(err),
+  });
+  process.exit(1);
+});

@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
 import { cookies } from 'next/headers';
 import { assertValidCsrfToken } from '@/lib/security/csrf';
+import { logger } from '@/lib/utils/logger';
 
 /**
  * Get all content reports with related data
@@ -48,7 +49,9 @@ export async function getContentReports(status?: string) {
   const { data, error } = await query;
 
   if (error) {
-    console.error('Error fetching content reports:', error);
+    logger.error('Error fetching content reports', {
+      error: error instanceof Error ? error.message : String(error),
+    });
     return { success: false, error: 'Failed to fetch content reports', data: null };
   }
 
@@ -130,7 +133,11 @@ export async function getReportedContent(contentType: string, contentId: string)
   }
 
   if (error) {
-    console.error(`Error fetching ${contentType}:`, error);
+    logger.error(`Error fetching ${contentType}`, {
+      error: error instanceof Error ? error.message : String(error),
+      contentType,
+      contentId,
+    });
     return { success: false, error: `Failed to fetch ${contentType}`, data: null };
   }
 
@@ -205,7 +212,9 @@ export async function removeContent(
   }
 
   if (contentError) {
-    console.error('Error removing content:', contentError);
+    logger.error('Error removing content', {
+      error: contentError instanceof Error ? contentError.message : String(contentError),
+    });
     return { success: false, error: 'Failed to remove content' };
   }
 
@@ -222,7 +231,9 @@ export async function removeContent(
     .eq('id', reportId);
 
   if (reportError) {
-    console.error('Error updating report:', reportError);
+    logger.error('Error updating report', {
+      error: reportError instanceof Error ? reportError.message : String(reportError),
+    });
     return { success: false, error: 'Failed to update report' };
   }
 
@@ -239,7 +250,10 @@ export async function removeContent(
   });
 
   if (logError) {
-    console.error('Error logging activity:', logError);
+    logger.error('Error logging activity', {
+      error: logError instanceof Error ? logError.message : String(logError),
+      action: 'removed_content',
+    });
   }
 
   revalidatePath('/admin/moderation');
@@ -298,7 +312,9 @@ export async function warnUser(
     });
 
   if (moderationError) {
-    console.error('Error creating warning:', moderationError);
+    logger.error('Error creating warning', {
+      error: moderationError instanceof Error ? moderationError.message : String(moderationError),
+    });
     return { success: false, error: 'Failed to warn user' };
   }
 
@@ -315,7 +331,9 @@ export async function warnUser(
     .eq('id', reportId);
 
   if (reportError) {
-    console.error('Error updating report:', reportError);
+    logger.error('Error updating report', {
+      error: reportError instanceof Error ? reportError.message : String(reportError),
+    });
     return { success: false, error: 'Failed to update report' };
   }
 
@@ -333,7 +351,10 @@ export async function warnUser(
   });
 
   if (logError) {
-    console.error('Error logging activity:', logError);
+    logger.error('Error logging activity', {
+      error: logError instanceof Error ? logError.message : String(logError),
+      action: 'warned_user',
+    });
   }
 
   revalidatePath('/admin/moderation');
@@ -400,7 +421,9 @@ export async function suspendUserFromReport(
     });
 
   if (moderationError) {
-    console.error('Error creating suspension:', moderationError);
+    logger.error('Error creating suspension', {
+      error: moderationError instanceof Error ? moderationError.message : String(moderationError),
+    });
     return { success: false, error: 'Failed to suspend user' };
   }
 
@@ -417,7 +440,9 @@ export async function suspendUserFromReport(
     .eq('id', reportId);
 
   if (reportError) {
-    console.error('Error updating report:', reportError);
+    logger.error('Error updating report', {
+      error: reportError instanceof Error ? reportError.message : String(reportError),
+    });
     return { success: false, error: 'Failed to update report' };
   }
 
@@ -437,7 +462,10 @@ export async function suspendUserFromReport(
   });
 
   if (logError) {
-    console.error('Error logging activity:', logError);
+    logger.error('Error logging activity', {
+      error: logError instanceof Error ? logError.message : String(logError),
+      action: 'suspended_user',
+    });
   }
 
   revalidatePath('/admin/moderation');
@@ -496,7 +524,9 @@ export async function banUserFromReport(
     });
 
   if (moderationError) {
-    console.error('Error creating ban:', moderationError);
+    logger.error('Error creating ban', {
+      error: moderationError instanceof Error ? moderationError.message : String(moderationError),
+    });
     return { success: false, error: 'Failed to ban user' };
   }
 
@@ -513,7 +543,9 @@ export async function banUserFromReport(
     .eq('id', reportId);
 
   if (reportError) {
-    console.error('Error updating report:', reportError);
+    logger.error('Error updating report', {
+      error: reportError instanceof Error ? reportError.message : String(reportError),
+    });
     return { success: false, error: 'Failed to update report' };
   }
 
@@ -531,7 +563,10 @@ export async function banUserFromReport(
   });
 
   if (logError) {
-    console.error('Error logging activity:', logError);
+    logger.error('Error logging activity', {
+      error: logError instanceof Error ? logError.message : String(logError),
+      action: 'banned_user',
+    });
   }
 
   revalidatePath('/admin/moderation');
@@ -584,7 +619,9 @@ export async function dismissReport(
     .eq('id', reportId);
 
   if (reportError) {
-    console.error('Error dismissing report:', reportError);
+    logger.error('Error dismissing report', {
+      error: reportError instanceof Error ? reportError.message : String(reportError),
+    });
     return { success: false, error: 'Failed to dismiss report' };
   }
 
@@ -600,7 +637,10 @@ export async function dismissReport(
   });
 
   if (logError) {
-    console.error('Error logging activity:', logError);
+    logger.error('Error logging activity', {
+      error: logError instanceof Error ? logError.message : String(logError),
+      action: 'dismissed_report',
+    });
   }
 
   revalidatePath('/admin/moderation');

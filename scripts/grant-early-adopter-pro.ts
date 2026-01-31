@@ -20,6 +20,7 @@ import { config } from 'dotenv';
 import { createServerClient } from '@supabase/ssr';
 import { writeFileSync } from 'fs';
 import { join } from 'path';
+import { logger } from '@/lib/utils/logger';
 
 // Load environment variables from .env.local
 config({ path: '.env.local' });
@@ -114,7 +115,7 @@ async function grantToWorkers(supabase: ReturnType<typeof createServiceClient>):
     .limit(GRANT_LIMITS.workers);
 
   if (fetchError) {
-    console.error(`❌ Failed to fetch workers:`, fetchError.message);
+    logger.error('Failed to fetch workers', { error: fetchError.message });
     result.failed = GRANT_LIMITS.workers;
     return result;
   }
@@ -150,7 +151,7 @@ async function grantToWorkers(supabase: ReturnType<typeof createServiceClient>):
         .eq('id', worker.id);
 
       if (updateError) {
-        console.error(`❌ Failed to grant to user ${worker.id}:`, updateError.message);
+        logger.error('Failed to grant to user', { userId: worker.id, error: updateError.message });
         result.failed++;
       } else {
         console.log(`✅ Granted to user ${worker.id} (${maskEmail(worker.email)})`);
@@ -193,7 +194,10 @@ async function grantToEmployerType(
     .limit(limit);
 
   if (fetchError) {
-    console.error(`❌ Failed to fetch ${categoryName.toLowerCase()}:`, fetchError.message);
+    logger.error(`Failed to fetch ${categoryName.toLowerCase()}`, {
+      error: fetchError.message,
+      category: categoryName,
+    });
     result.failed = limit;
     return result;
   }
@@ -229,7 +233,7 @@ async function grantToEmployerType(
         .eq('id', employer.id);
 
       if (updateError) {
-        console.error(`❌ Failed to grant to user ${employer.id}:`, updateError.message);
+        logger.error('Failed to grant to user', { userId: employer.id, error: updateError.message });
         result.failed++;
       } else {
         console.log(`✅ Granted to user ${employer.id} (${maskEmail(employer.email)})`);
@@ -374,7 +378,9 @@ async function main() {
 
     process.exit(0);
   } catch (error) {
-    console.error('\n❌ Fatal error:', error instanceof Error ? error.message : error);
+    logger.error('Grant early-adopter-pro fatal error', {
+      error: error instanceof Error ? error.message : String(error),
+    });
     process.exit(1);
   }
 }

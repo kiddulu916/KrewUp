@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useId, useRef, useState } from 'react';
+import { useCallback, useEffect, useId, useRef, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -22,6 +22,11 @@ export function BanUserDialog({
   const previouslyFocusedElementRef = useRef<HTMLElement | null>(null);
   const titleId = useId();
   const [banReason, setBanReason] = useState('');
+
+  const handleClose = useCallback(() => {
+    setBanReason('');
+    onClose();
+  }, [onClose]);
 
   useEffect(() => {
     if (!isOpen || !dialogRef.current) {
@@ -86,14 +91,9 @@ export function BanUserDialog({
         previouslyFocusedElementRef.current.focus();
       }
     };
-  }, [isOpen, onClose]);
+  }, [isOpen, handleClose]);
 
   if (!isOpen) return null;
-
-  const handleClose = () => {
-    setBanReason('');
-    onClose();
-  };
 
   const handleConfirm = async () => {
     await onConfirm(banReason);

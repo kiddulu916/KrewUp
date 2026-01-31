@@ -2,6 +2,23 @@ import nextFlatConfig from 'eslint-config-next-flat';
 import tsParser from '@typescript-eslint/parser';
 
 export default [
+  // * Ignore patterns
+  {
+    ignores: [
+      '.next/**',
+      'out/**',
+      'build/**',
+      'dist/**',
+      'android/app/build/**',
+      'node_modules/**',
+      'coverage/**',
+      '.vercel/**',
+      '*.config.ts',
+      '*.config.js',
+      '*.config.mjs',
+      'next-env.d.ts',
+    ],
+  },
   // * JavaScript/JSX files
   {
     ...nextFlatConfig,

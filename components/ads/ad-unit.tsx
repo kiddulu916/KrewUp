@@ -5,6 +5,7 @@ import { adConfig, shouldShowAds, getAdSlotId } from '@/lib/ads/config';
 import { AD_SIZE_DIMENSIONS, PLACEMENT_SIZES, type AdPlacement, type AdSize } from '@/lib/ads/types';
 import { getConsentStatus } from '@/lib/ads/consent';
 import { cn } from '@/lib/utils';
+import { logger } from '@/lib/utils/logger';
 
 interface AdUnitProps {
   /** Placement location for the ad */
@@ -70,7 +71,10 @@ export function AdUnit({
         ((window as any).adsbygoogle = (window as any).adsbygoogle || []).push({});
         queueMicrotask(() => setIsLoaded(true));
       } catch (error) {
-        console.error('[AdUnit] Failed to load ad:', error);
+        logger.error('AdUnit failed to load ad', {
+          error: error instanceof Error ? error.message : String(error),
+          placement,
+        });
       }
     }
   }, [showAds, placement]);

@@ -6,6 +6,7 @@
  */
 
 import * as Sentry from '@sentry/nextjs';
+import { logger } from '@/lib/utils/logger';
 
 // * Allowed MIME types for images
 export const ALLOWED_IMAGE_TYPES = [
@@ -106,7 +107,9 @@ export async function validateFileType(
       }
     }
   } catch (err) {
-    console.error('Error reading file bytes:', err);
+    logger.error('Error reading file bytes', {
+      error: err instanceof Error ? err.message : String(err),
+    });
     // * Allow if we can't check magic bytes (edge case)
   }
 

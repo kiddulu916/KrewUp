@@ -209,8 +209,8 @@ export function LicensePreviewCard({ license }: LicensePreviewCardProps) {
         {status === 'pending' && (
           <div className="rounded-lg bg-yellow-50 border border-yellow-200 p-4">
             <p className="text-sm text-yellow-800">
-              Your license is being reviewed by our team. You'll be able to post jobs once
-              verified, which usually takes <strong>24-48 hours</strong>. We'll send you an
+              Your license is being reviewed by our team. You&apos;ll be able to post jobs once
+              verified, which usually takes <strong>24-48 hours</strong>. We&apos;ll send you an
               email notification when complete.
             </p>
           </div>

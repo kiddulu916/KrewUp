@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -18,6 +18,7 @@ import {
   searchUsersForAdmin,
   getAdminActivityLog,
 } from '@/features/admin/actions/settings-actions';
+import { logger } from '@/lib/utils/logger';
 
 type PlatformSetting = {
   key: string;
@@ -79,11 +80,7 @@ export default function SettingsPage() {
   const [showRevokeDialog, setShowRevokeDialog] = useState(false);
   const [adminActionLoading, setAdminActionLoading] = useState(false);
 
-  useEffect(() => {
-    loadData();
-  }, []);
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     setLoading(true);
     try {
       const [settingsResult, adminsResult, activityResult] = await Promise.all([
@@ -108,12 +105,18 @@ export default function SettingsPage() {
         setActivityLog(activityResult.data || []);
       }
     } catch (error) {
-      console.error('Error loading data:', error);
+      logger.error('Error loading data', {
+        error: error instanceof Error ? error.message : String(error),
+      });
       toast.error('Failed to load settings data');
     } finally {
       setLoading(false);
     }
-  };
+  }, [toast]);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
   const handleEditSetting = (key: string, currentValue: any) => {
     setEditingKey(key);
@@ -154,7 +157,10 @@ export default function SettingsPage() {
         toast.error(result.error || 'Failed to update setting');
       }
     } catch (error) {
-      console.error('Error saving setting:', error);
+      logger.error('Error saving setting', {
+        error: error instanceof Error ? error.message : String(error),
+        key: editingKey,
+      });
       toast.error('Failed to update setting');
     } finally {
       setSaveLoading(false);
@@ -174,7 +180,10 @@ export default function SettingsPage() {
         setSearchResults(result.data || []);
       }
     } catch (error) {
-      console.error('Error searching users:', error);
+      logger.error('Error searching users', {
+        error: error instanceof Error ? error.message : String(error),
+        query,
+      });
     }
   };
 
@@ -202,7 +211,9 @@ export default function SettingsPage() {
         toast.error(result.error || 'Failed to grant admin access');
       }
     } catch (error) {
-      console.error('Error granting admin:', error);
+      logger.error('Error granting admin', {
+        error: error instanceof Error ? error.message : String(error),
+      });
       toast.error('Failed to grant admin access');
     } finally {
       setAdminActionLoading(false);
@@ -229,7 +240,9 @@ export default function SettingsPage() {
         toast.error(result.error || 'Failed to revoke admin access');
       }
     } catch (error) {
-      console.error('Error revoking admin:', error);
+      logger.error('Error revoking admin', {
+        error: error instanceof Error ? error.message : String(error),
+      });
       toast.error('Failed to revoke admin access');
     } finally {
       setAdminActionLoading(false);

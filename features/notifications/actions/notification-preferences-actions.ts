@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server';
 import { cookies } from 'next/headers';
 import { revalidatePath } from 'next/cache';
 import { logger, sanitizeUserId } from '@/lib/utils/logger';
+import { getUserFriendlyError } from '@/lib/utils/action-response';
 
 export interface NotificationPreferences {
   id: string;
@@ -77,13 +78,13 @@ export async function getNotificationPreferences(): Promise<{
           .single();
 
         if (createError) {
-          return { success: false, error: createError.message };
+          return { success: false, error: getUserFriendlyError(createError, 'Failed to create preferences') };
         }
 
         return { success: true, data: newPrefs };
       }
 
-      return { success: false, error: error.message };
+      return { success: false, error: getUserFriendlyError(error, 'Failed to fetch preferences') };
     }
 
     return { success: true, data };
@@ -130,7 +131,7 @@ export async function updateNotificationPreferences(
       .single();
 
     if (error) {
-      return { success: false, error: error.message };
+      return { success: false, error: getUserFriendlyError(error, 'Failed to update preferences') };
     }
 
     // Revalidate settings page

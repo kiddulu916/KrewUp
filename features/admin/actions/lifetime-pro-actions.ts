@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
 import { cookies } from 'next/headers';
+import { logger } from '@/lib/utils/logger';
 
 /**
  * Grant lifetime Pro status to a user
@@ -68,7 +69,10 @@ export async function grantLifetimePro(
     .eq('id', userId);
 
   if (error) {
-    console.error('Grant lifetime Pro error:', error);
+    logger.error('Grant lifetime Pro error', {
+      error: error instanceof Error ? error.message : String(error),
+      userId,
+    });
     return { success: false, error: 'Failed to grant lifetime Pro' };
   }
 
@@ -84,7 +88,10 @@ export async function grantLifetimePro(
     });
 
   if (logError) {
-    console.error('Error logging activity:', logError);
+    logger.error('Error logging activity', {
+      error: logError instanceof Error ? logError.message : String(logError),
+      action: 'grant_lifetime_pro',
+    });
   }
 
   revalidatePath('/admin/users');
@@ -155,7 +162,10 @@ export async function revokeLifetimePro(
     .eq('id', userId);
 
   if (error) {
-    console.error('Revoke lifetime Pro error:', error);
+    logger.error('Revoke lifetime Pro error', {
+      error: error instanceof Error ? error.message : String(error),
+      userId,
+    });
     return { success: false, error: 'Failed to revoke lifetime Pro' };
   }
 
@@ -171,7 +181,10 @@ export async function revokeLifetimePro(
     });
 
   if (logError) {
-    console.error('Error logging activity:', logError);
+    logger.error('Error logging activity', {
+      error: logError instanceof Error ? logError.message : String(logError),
+      action: 'revoke_lifetime_pro',
+    });
   }
 
   revalidatePath('/admin/users');

@@ -13,6 +13,7 @@ import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { SuspendUserDialog } from './suspend-user-dialog';
 import { BanUserDialog } from './ban-user-dialog';
 import { getFullName } from '@/lib/utils';
+import { logger } from '@/lib/utils/logger';
 import type { UserProfile, ModerationStatus } from './types';
 
 type ModerationActionsCardProps = {
@@ -92,7 +93,9 @@ export function ModerationActionsCard({
         toast.error(result.error || 'Failed to unban user');
       }
     } catch (error) {
-      console.error('Error unbanning user:', error);
+      logger.error('Error unbanning user', {
+        error: error instanceof Error ? error.message : String(error),
+      });
       toast.error('Failed to unban user');
     } finally {
       setActionLoading(false);

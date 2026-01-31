@@ -1,5 +1,6 @@
 // lib/email/client.ts
 import { Resend } from 'resend';
+import { logger } from '@/lib/utils/logger';
 
 if (!process.env.RESEND_API_KEY) {
   console.warn('RESEND_API_KEY is not set. Email functionality will be disabled.');
@@ -29,7 +30,7 @@ export async function sendEmail({
   text,
 }: EmailParams): Promise<{ success: boolean; error?: string; id?: string }> {
   if (!resend) {
-    console.error('Email client not initialized. Check RESEND_API_KEY.');
+    logger.error('Email client not initialized', { hint: 'Check RESEND_API_KEY' });
     return { success: false, error: 'Email service not configured' };
   }
 
@@ -43,14 +44,22 @@ export async function sendEmail({
     });
 
     if (error) {
-      console.error('Email send error:', error);
+      logger.error('Email send error', {
+        error: error instanceof Error ? error.message : String(error),
+        to,
+        subject,
+      });
       return { success: false, error: error.message };
     }
 
     console.log('Email sent successfully:', data?.id);
     return { success: true, id: data?.id };
   } catch (error) {
-    console.error('Email send exception:', error);
+    logger.error('Email send exception', {
+      error: error instanceof Error ? error.message : String(error),
+      to,
+      subject,
+    });
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error',

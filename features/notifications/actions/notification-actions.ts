@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server';
 import { cookies } from 'next/headers';
 import { revalidatePath } from 'next/cache';
 import { logger, sanitizeUserId } from '@/lib/utils/logger';
+import { getUserFriendlyError } from '@/lib/utils/action-response';
 
 export interface Notification {
   id: string;
@@ -42,7 +43,7 @@ export async function getMyNotifications() {
         userId: sanitizeUserId(user.id),
         error: error.message,
       });
-      return { success: false, error: error.message };
+      return { success: false, error: getUserFriendlyError(error, 'Failed to fetch notifications') };
     }
 
     return { success: true, notifications: data as Notification[] };
@@ -50,7 +51,7 @@ export async function getMyNotifications() {
     logger.error('Error in getMyNotifications', {
       error: error?.message || String(error),
     });
-    return { success: false, error: error.message || 'Failed to fetch notifications' };
+    return { success: false, error: getUserFriendlyError(error, 'Failed to fetch notifications') };
   }
 }
 
@@ -80,7 +81,7 @@ export async function getUnreadCount() {
         userId: sanitizeUserId(user.id),
         error: error.message,
       });
-      return { success: false, error: error.message, count: 0 };
+      return { success: false, error: getUserFriendlyError(error, 'Failed to fetch unread count'), count: 0 };
     }
 
     return { success: true, count: count || 0 };
@@ -88,7 +89,7 @@ export async function getUnreadCount() {
     logger.error('Error in getUnreadCount', {
       error: error?.message || String(error),
     });
-    return { success: false, error: error.message || 'Failed to fetch unread count', count: 0 };
+    return { success: false, error: getUserFriendlyError(error, 'Failed to fetch unread count'), count: 0 };
   }
 }
 
@@ -119,7 +120,7 @@ export async function markNotificationAsRead(notificationId: string) {
         notificationId,
         error: error.message,
       });
-      return { success: false, error: error.message };
+      return { success: false, error: getUserFriendlyError(error, 'Failed to mark notification as read') };
     }
 
     revalidatePath('/dashboard/notifications');
@@ -128,7 +129,7 @@ export async function markNotificationAsRead(notificationId: string) {
     logger.error('Error in markNotificationAsRead', {
       error: error?.message || String(error),
     });
-    return { success: false, error: error.message || 'Failed to mark notification as read' };
+    return { success: false, error: getUserFriendlyError(error, 'Failed to mark notification as read') };
   }
 }
 
@@ -158,7 +159,7 @@ export async function markAllNotificationsAsRead() {
         userId: sanitizeUserId(user.id),
         error: error.message,
       });
-      return { success: false, error: error.message };
+      return { success: false, error: getUserFriendlyError(error, 'Failed to mark all notifications as read') };
     }
 
     revalidatePath('/dashboard/notifications');
@@ -167,7 +168,7 @@ export async function markAllNotificationsAsRead() {
     logger.error('Error in markAllNotificationsAsRead', {
       error: error?.message || String(error),
     });
-    return { success: false, error: error.message || 'Failed to mark all notifications as read' };
+    return { success: false, error: getUserFriendlyError(error, 'Failed to mark all notifications as read') };
   }
 }
 
@@ -198,7 +199,7 @@ export async function deleteNotification(notificationId: string) {
         notificationId,
         error: error.message,
       });
-      return { success: false, error: error.message };
+      return { success: false, error: getUserFriendlyError(error, 'Failed to delete notification') };
     }
 
     revalidatePath('/dashboard/notifications');
@@ -207,6 +208,6 @@ export async function deleteNotification(notificationId: string) {
     logger.error('Error in deleteNotification', {
       error: error?.message || String(error),
     });
-    return { success: false, error: error.message || 'Failed to delete notification' };
+    return { success: false, error: getUserFriendlyError(error, 'Failed to delete notification') };
   }
 }

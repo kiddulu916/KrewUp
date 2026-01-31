@@ -147,17 +147,17 @@ export default function TestSentrySanitizationPage() {
           <div>
             <strong className="block mb-1">✅ GOOD - Sanitized Data:</strong>
             <code className="block bg-white p-2 rounded border">
-              user.id: "hash:e3b0c44298fc"<br/>
-              email: "hash:a1b2c3d4e5f6@example.com"<br/>
-              userId: "hash:e3b0c44298fc"
+              user.id: &quot;hash:e3b0c44298fc&quot;<br/>
+              email: &quot;hash:a1b2c3d4e5f6@example.com&quot;<br/>
+              userId: &quot;hash:e3b0c44298fc&quot;
             </code>
           </div>
           <div>
             <strong className="block mb-1">❌ BAD - Plain Text (should NOT appear):</strong>
             <code className="block bg-white p-2 rounded border">
-              user.id: "test-user-uuid-12345"<br/>
-              email: "testuser@example.com"<br/>
-              userId: "test-user-uuid-12345"
+              user.id: &quot;test-user-uuid-12345&quot;<br/>
+              email: &quot;testuser@example.com&quot;<br/>
+              userId: &quot;test-user-uuid-12345&quot;
             </code>
           </div>
         </div>

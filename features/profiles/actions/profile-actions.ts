@@ -5,6 +5,7 @@ import { revalidatePath } from 'next/cache';
 import { cookies } from 'next/headers';
 import { logger } from '@/lib/utils/logger';
 import { assertValidCsrfToken } from '@/lib/security/csrf';
+import { getUserFriendlyError } from '@/lib/utils/action-response';
 
 import type { GeoCoords } from '@/types';
 
@@ -204,7 +205,7 @@ export async function updateProfileLocation(data: {
   });
 
   if (updateError) {
-    return { success: false, error: updateError.message };
+    return { success: false, error: getUserFriendlyError(updateError, 'Failed to update location') };
   }
 
   revalidatePath('/dashboard/feed');

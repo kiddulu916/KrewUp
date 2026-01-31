@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
 import { cookies } from 'next/headers';
+import { logger } from '@/lib/utils/logger';
 
 /**
  * Get all platform settings
@@ -34,7 +35,9 @@ export async function getPlatformSettings() {
     .order('key', { ascending: true });
 
   if (error) {
-    console.error('Error fetching platform settings:', error);
+    logger.error('Error fetching platform settings', {
+      error: error instanceof Error ? error.message : String(error),
+    });
     return { success: false, error: 'Failed to fetch settings', data: null };
   }
 
@@ -81,7 +84,10 @@ export async function updatePlatformSetting(
     });
 
   if (error) {
-    console.error('Error updating platform setting:', error);
+    logger.error('Error updating platform setting', {
+      error: error instanceof Error ? error.message : String(error),
+      key,
+    });
     return { success: false, error: 'Failed to update setting' };
   }
 
@@ -99,7 +105,10 @@ export async function updatePlatformSetting(
   });
 
   if (logError) {
-    console.error('Error logging activity:', logError);
+    logger.error('Error logging activity', {
+      error: logError instanceof Error ? logError.message : String(logError),
+      action: 'updated_setting',
+    });
   }
 
   revalidatePath('/admin/settings');
@@ -137,7 +146,9 @@ export async function getAdminUsers() {
     .order('first_name', { ascending: true });
 
   if (error) {
-    console.error('Error fetching admin users:', error);
+    logger.error('Error fetching admin users', {
+      error: error instanceof Error ? error.message : String(error),
+    });
     return { success: false, error: 'Failed to fetch admin users', data: null };
   }
 
@@ -189,7 +200,9 @@ export async function grantAdminAccess(userId: string, reason: string) {
     .eq('id', userId);
 
   if (updateError) {
-    console.error('Error granting admin access:', updateError);
+    logger.error('Error granting admin access', {
+      error: updateError instanceof Error ? updateError.message : String(updateError),
+    });
     return { success: false, error: 'Failed to grant admin access' };
   }
 
@@ -203,7 +216,10 @@ export async function grantAdminAccess(userId: string, reason: string) {
   });
 
   if (logError) {
-    console.error('Error logging activity:', logError);
+    logger.error('Error logging activity', {
+      error: logError instanceof Error ? logError.message : String(logError),
+      action: 'granted_admin',
+    });
   }
 
   revalidatePath('/admin/settings');
@@ -250,7 +266,9 @@ export async function revokeAdminAccess(userId: string, reason: string) {
     .eq('id', userId);
 
   if (updateError) {
-    console.error('Error revoking admin access:', updateError);
+    logger.error('Error revoking admin access', {
+      error: updateError instanceof Error ? updateError.message : String(updateError),
+    });
     return { success: false, error: 'Failed to revoke admin access' };
   }
 
@@ -264,7 +282,10 @@ export async function revokeAdminAccess(userId: string, reason: string) {
   });
 
   if (logError) {
-    console.error('Error logging activity:', logError);
+    logger.error('Error logging activity', {
+      error: logError instanceof Error ? logError.message : String(logError),
+      action: 'revoked_admin',
+    });
   }
 
   revalidatePath('/admin/settings');
@@ -309,7 +330,10 @@ export async function searchUsersForAdmin(query: string) {
     .limit(10);
 
   if (error) {
-    console.error('Error searching users:', error);
+    logger.error('Error searching users', {
+      error: error instanceof Error ? error.message : String(error),
+      query,
+    });
     return { success: false, error: 'Failed to search users', data: null };
   }
 
@@ -362,7 +386,9 @@ export async function getAdminActivityLog(limit: number = 50) {
     .limit(limit);
 
   if (error) {
-    console.error('Error fetching admin activity log:', error);
+    logger.error('Error fetching admin activity log', {
+      error: error instanceof Error ? error.message : String(error),
+    });
     return { success: false, error: 'Failed to fetch activity log', data: null };
   }
 

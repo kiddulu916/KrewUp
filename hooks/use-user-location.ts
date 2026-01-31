@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { logger } from '@/lib/utils/logger';
 
 export type UserLocation = {
   lat: number;
@@ -48,7 +49,10 @@ export function useUserLocation() {
         });
       },
       (error) => {
-        console.error('Geolocation error:', error);
+        logger.error('Geolocation error', {
+          error: error instanceof Error ? error.message : String(error),
+          code: (error as { code?: number })?.code,
+        });
         setState({
           location: { lat: 41.8781, lng: -87.6298 }, // Chicago fallback
           loading: false,

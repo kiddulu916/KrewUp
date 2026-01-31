@@ -3,6 +3,7 @@
 
 import { createClient } from '@/lib/supabase/server';
 import { cookies } from 'next/headers';
+import { logger } from '@/lib/utils/logger';
 
 export type WorkerProfile = {
   id: string;
@@ -62,13 +63,17 @@ export async function searchWorkersByExperience(
       });
 
     if (error) {
-      console.error('Error searching workers by experience:', error);
+      logger.error('Error searching workers by experience', {
+        error: error instanceof Error ? error.message : String(error),
+      });
       return { success: false, error: 'Failed to search workers' };
     }
 
     return { success: true, workers: workers || [] };
   } catch (error) {
-    console.error('Error in searchWorkersByExperience:', error);
+    logger.error('Error in searchWorkersByExperience', {
+      error: error instanceof Error ? error.message : String(error),
+    });
     return { success: false, error: 'Unexpected error occurred' };
   }
 }
@@ -91,13 +96,19 @@ export async function getWorkerExperience(
       });
 
     if (error) {
-      console.error('Error calculating experience:', error);
+      logger.error('Error calculating experience', {
+        error: error instanceof Error ? error.message : String(error),
+        workerId,
+      });
       return { success: false, error: 'Failed to calculate experience' };
     }
 
     return { success: true, years: data || 0 };
   } catch (error) {
-    console.error('Error in getWorkerExperience:', error);
+    logger.error('Error in getWorkerExperience', {
+      error: error instanceof Error ? error.message : String(error),
+      workerId,
+    });
     return { success: false, error: 'Unexpected error occurred' };
   }
 }

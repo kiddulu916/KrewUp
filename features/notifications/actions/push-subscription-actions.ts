@@ -4,6 +4,7 @@ import { createClient, createServiceClient } from '@/lib/supabase/server';
 import { cookies } from 'next/headers';
 import webpush from 'web-push';
 import { logger, sanitizeUserId } from '@/lib/utils/logger';
+import { getUserFriendlyError } from '@/lib/utils/action-response';
 
 // Web Push VAPID keys configuration
 const VAPID_PUBLIC_KEY = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
@@ -71,7 +72,7 @@ export async function savePushSubscription(
         endpoint: subscription.endpoint,
         error: error.message,
       });
-      return { success: false, error: error.message };
+      return { success: false, error: getUserFriendlyError(error, 'Failed to save subscription') };
     }
 
     return { success: true };
@@ -113,7 +114,7 @@ export async function removePushSubscription(
         endpoint,
         error: error.message,
       });
-      return { success: false, error: error.message };
+      return { success: false, error: getUserFriendlyError(error, 'Failed to remove subscription') };
     }
 
     return { success: true };
@@ -155,7 +156,7 @@ export async function getUserPushSubscriptions(): Promise<{
         userId: sanitizeUserId(user.id),
         error: error.message,
       });
-      return { success: false, error: error.message };
+      return { success: false, error: getUserFriendlyError(error, 'Failed to fetch subscriptions') };
     }
 
     return { success: true, subscriptions: data };
@@ -203,7 +204,7 @@ export async function sendPushNotification(
         userId: sanitizeUserId(userId),
         error: error.message,
       });
-      return { success: false, sent: 0, failed: 0, error: error.message };
+      return { success: false, sent: 0, failed: 0, error: getUserFriendlyError(error, 'Failed to fetch subscriptions') };
     }
 
     if (!subscriptions || subscriptions.length === 0) {

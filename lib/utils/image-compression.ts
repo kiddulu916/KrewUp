@@ -1,4 +1,5 @@
 import imageCompression from 'browser-image-compression';
+import { logger } from '@/lib/utils/logger';
 
 /**
  * Resize and compress profile image to 400x400px JPEG
@@ -17,7 +18,9 @@ export async function resizeProfileImage(file: File): Promise<File> {
     const compressedFile = await imageCompression(file, options);
     return compressedFile;
   } catch (error) {
-    console.error('Image compression error:', error);
+    logger.error('Image compression error', {
+      error: error instanceof Error ? error.message : String(error),
+    });
     throw new Error('Failed to process image');
   }
 }

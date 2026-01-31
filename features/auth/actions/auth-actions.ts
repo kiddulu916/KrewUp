@@ -5,6 +5,7 @@ import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
 import { cookies } from 'next/headers';
 import { rateLimit, RATE_LIMITS } from '@/lib/security/rate-limit';
+import { logger } from '@/lib/utils/logger';
 
 const SUPPORT_EMAIL = 'support@krewup.net';
 
@@ -142,8 +143,9 @@ export async function signUp(
   });
 
   if (error) {
-    console.error('[signUp] Supabase error:', error);
-    console.error('[signUp] Error details:', JSON.stringify(error, null, 2));
+    logger.error('signUp Supabase error', {
+      error: error instanceof Error ? error.message : String(error),
+    });
     return { success: false, error: error.message };
   }
 
@@ -182,7 +184,9 @@ export async function signInWithGoogle(): Promise<AuthResult> {
   console.log('[signInWithGoogle] OAuth response - error:', error ? JSON.stringify(error) : 'none');
 
   if (error) {
-    console.error('[signInWithGoogle] OAuth error:', error.message);
+    logger.error('signInWithGoogle OAuth error', {
+      error: error instanceof Error ? error.message : String(error),
+    });
     return { success: false, error: error.message };
   }
 

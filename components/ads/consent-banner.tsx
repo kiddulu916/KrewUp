@@ -67,7 +67,7 @@ export function ConsentBanner() {
                 We use cookies and similar technologies to show you relevant ads and improve your experience.
                 {isEuOrCalifornia && (
                   <span className="block mt-1">
-                    As you're in {region === 'eu' ? 'the EU' : 'California'}, we need your explicit consent.
+                    As you&apos;re in {region === 'eu' ? 'the EU' : 'California'}, we need your explicit consent.
                   </span>
                 )}
               </p>

@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server';
 import { cookies } from 'next/headers';
+import { logger } from '@/lib/utils/logger';
 import type { AdPlacement, AdImpression } from './types';
 
 /**
@@ -31,13 +32,21 @@ export async function trackAdImpression(
       });
 
     if (error) {
-      console.error('[trackAdImpression] Error:', error);
+      logger.error('trackAdImpression error', {
+        error: error instanceof Error ? error.message : String(error),
+        placement,
+        provider,
+      });
       return { success: false };
     }
 
     return { success: true };
   } catch (error) {
-    console.error('[trackAdImpression] Error:', error);
+    logger.error('trackAdImpression error', {
+      error: error instanceof Error ? error.message : String(error),
+      placement,
+      provider,
+    });
     return { success: false };
   }
 }
@@ -60,13 +69,19 @@ export async function trackAdClick(
       .eq('id', impressionId);
 
     if (error) {
-      console.error('[trackAdClick] Error:', error);
+      logger.error('trackAdClick error', {
+        error: error instanceof Error ? error.message : String(error),
+        impressionId,
+      });
       return { success: false };
     }
 
     return { success: true };
   } catch (error) {
-    console.error('[trackAdClick] Error:', error);
+    logger.error('trackAdClick error', {
+      error: error instanceof Error ? error.message : String(error),
+      impressionId,
+    });
     return { success: false };
   }
 }
@@ -120,7 +135,10 @@ export async function getAdMetrics(dateRange: { start: Date; end: Date }) {
       },
     };
   } catch (error) {
-    console.error('[getAdMetrics] Error:', error);
+    logger.error('getAdMetrics error', {
+      error: error instanceof Error ? error.message : String(error),
+      dateRange,
+    });
     return { success: false, error: 'Failed to fetch metrics' };
   }
 }

@@ -1,3 +1,5 @@
+import { logger } from '@/lib/utils/logger';
+
 export async function extractTextFromPDF(buffer: ArrayBuffer): Promise<string> {
   try {
     // Dynamic import for pdf-parse to handle ESM/CJS compatibility
@@ -20,15 +22,19 @@ export async function extractTextFromPDF(buffer: ArrayBuffer): Promise<string> {
     }
 
     if (!parseFunction || typeof parseFunction !== 'function') {
-      console.error('pdf-parse module structure:', Object.keys(pdfParseModule));
-      console.error('pdf-parse default:', pdfParseModule.default);
+      logger.error('pdf-parse module structure invalid', {
+        keys: Object.keys(pdfParseModule),
+        hasDefault: !!pdfParseModule.default,
+      });
       throw new Error('pdf-parse library not loaded correctly. Module structure: ' + Object.keys(pdfParseModule).join(', '));
     }
 
     const data = await parseFunction(Buffer.from(buffer));
     return data.text;
   } catch (error) {
-    console.error('PDF parsing error:', error);
+    logger.error('PDF parsing error', {
+      error: error instanceof Error ? error.message : String(error),
+    });
     throw new Error('Failed to extract text from PDF: ' + (error instanceof Error ? error.message : String(error)));
   }
 }

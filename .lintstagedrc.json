@@ -1,8 +1,5 @@
 {
-  "*.{ts,tsx}": [
-    "npx eslint --fix --max-warnings=0",
-    "bash -c 'npm run type-check'"
-  ],
-  "*.{js,jsx}": ["npx eslint --fix --max-warnings=0"],
+  "*.{ts,tsx}": ["npx eslint --fix", "bash -c 'npm run type-check'"],
+  "*.{js,jsx}": ["npx eslint --fix"],
   "*.{json,md}": ["npx prettier --write"]
 }

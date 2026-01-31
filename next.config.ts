@@ -10,7 +10,7 @@ const bundleAnalyzer = withBundleAnalyzer({
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
-  pageExtensions: ['ts', 'tsx', 'mdx', 'md', 'js', 'jsx', 'json'],
+  pageExtensions: ['ts', 'tsx', 'mdx', 'md', 'js', 'jsx'],
   async rewrites() {
     return [{ source: '/favicon.ico', destination: '/logo.png' }];
   },
