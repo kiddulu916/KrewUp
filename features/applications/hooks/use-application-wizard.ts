@@ -223,23 +223,12 @@ export function useApplicationWizard(jobId: string, totalSteps: number = 8) {
     loadApplicationData();
   }, [jobId, form]);
 
-  // Auto-save every 30 seconds
-  useEffect(() => {
-    const interval = setInterval(async () => {
-      if (form.formState.isDirty) {
-        await handleAutoSave();
-      }
-    }, 30000); // 30 seconds
-
-    return () => clearInterval(interval);
-  }, [form.formState.isDirty]);
-
   /**
    * Save current form state as a draft
    * Called automatically every 30 seconds if form is dirty
    * Also called manually on step navigation
    */
-  async function handleAutoSave() {
+  const handleAutoSave = useCallback(async () => {
     setIsSaving(true);
     setSaveError(null);
 
@@ -265,7 +254,18 @@ export function useApplicationWizard(jobId: string, totalSteps: number = 8) {
     } finally {
       setIsSaving(false);
     }
-  }
+  }, [jobId, form, resumeUrl, coverLetterUrl, extractedText]);
+
+  // Auto-save every 30 seconds
+  useEffect(() => {
+    const interval = setInterval(async () => {
+      if (form.formState.isDirty) {
+        await handleAutoSave();
+      }
+    }, 30000); // 30 seconds
+
+    return () => clearInterval(interval);
+  }, [form.formState.isDirty, handleAutoSave]);
 
   /**
    * Retry failed save operation
@@ -273,7 +273,7 @@ export function useApplicationWizard(jobId: string, totalSteps: number = 8) {
   const retrySave = useCallback(() => {
     setSaveError(null);
     handleAutoSave();
-  }, []);
+  }, [handleAutoSave]);
 
   /**
    * Navigate to the next step

@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button, Input, Textarea, Card, CardContent, CardHeader, CardTitle, Checkbox } from '@/components/ui';
 import { useToast } from '@/components/providers/toast-provider';
@@ -22,7 +22,7 @@ export function ExperienceForm({ onSuccess, onCancel }: Props) {
   const {
     register,
     handleSubmit,
-    watch,
+    control,
     setValue,
     formState: { errors, isSubmitting },
   } = useForm<ExperienceSchema>({
@@ -37,7 +37,9 @@ export function ExperienceForm({ onSuccess, onCancel }: Props) {
     },
   });
 
-  const isCurrent = watch('is_current');
+  const isCurrent = useWatch({ control, name: 'is_current', defaultValue: false });
+  const watchStartDate = useWatch({ control, name: 'start_date', defaultValue: '' });
+  const watchDescription = useWatch({ control, name: 'description', defaultValue: '' });
 
   const onSubmit = async (data: ExperienceSchema) => {
     setError(null);
@@ -123,7 +125,7 @@ export function ExperienceForm({ onSuccess, onCancel }: Props) {
                 {...register('end_date')}
                 disabled={isSubmitting || isCurrent}
                 error={errors.end_date?.message}
-                min={watch('start_date')}
+                min={watchStartDate}
               />
             </div>
           </div>
@@ -154,7 +156,7 @@ export function ExperienceForm({ onSuccess, onCancel }: Props) {
               maxLength={500}
               error={errors.description?.message}
               disabled={isSubmitting}
-              helperText={`${(watch('description') || '').length}/500 characters`}
+              helperText={`${(watchDescription || '').length}/500 characters`}
             />
           </div>
         </CardContent>

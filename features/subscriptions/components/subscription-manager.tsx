@@ -31,7 +31,7 @@ export function SubscriptionManager() {
 
       // If not Pro yet and we haven't exceeded polling attempts, keep polling
       if (!isPro && pollAttempts < 20) {
-        setIsPolling(true);
+        queueMicrotask(() => setIsPolling(true));
         const timer = setTimeout(() => {
           refetch();
           setPollAttempts(prev => prev + 1);
@@ -40,13 +40,15 @@ export function SubscriptionManager() {
         return () => clearTimeout(timer);
       } else if (isPro) {
         // Success! Stop polling
-        setIsPolling(false);
-        setPollAttempts(0);
+        queueMicrotask(() => {
+          setIsPolling(false);
+          setPollAttempts(0);
+        });
         // Remove success param from URL
         router.replace('/dashboard/subscription');
       } else if (pollAttempts >= 20) {
         // Timeout after 20 seconds
-        setIsPolling(false);
+        queueMicrotask(() => setIsPolling(false));
       }
     }
   }, [searchParams, data, subscription, profileSubscriptionStatus, pollAttempts, refetch, router]);

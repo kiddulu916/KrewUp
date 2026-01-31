@@ -46,7 +46,7 @@ export function Step3Contact({ form }: Props) {
       <div>
         <h2 className="text-xl font-semibold text-gray-900 mb-2">Contact & Availability</h2>
         <p className="text-gray-600">
-          Provide your contact information and when you're available to start work.
+          Provide your contact information and when you&apos;re available to start work.
         </p>
       </div>
 
@@ -78,7 +78,7 @@ export function Step3Contact({ form }: Props) {
           <p className="mt-1 text-sm text-red-600">{errors.phoneNumber.message}</p>
         )}
         <p className="mt-1 text-sm text-gray-500">
-          We'll use this to contact you about your application
+          We&apos;ll use this to contact you about your application
         </p>
       </div>
 
@@ -108,7 +108,7 @@ export function Step3Contact({ form }: Props) {
           <p className="mt-1 text-sm text-red-600">{errors.availableStartDate.message}</p>
         )}
         <p className="mt-1 text-sm text-gray-500">
-          What's the earliest date you could begin working?
+          What&apos;s the earliest date you could begin working?
         </p>
       </div>
 

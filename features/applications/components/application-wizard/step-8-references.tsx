@@ -567,7 +567,7 @@ export function Step8References({ form }: Props) {
           <div className="ml-3">
             <h3 className="text-sm font-medium text-green-800">Almost done!</h3>
             <p className="mt-1 text-sm text-green-700">
-              Review your information and click "Submit Application" on the next screen. Your
+              Review your information and click &quot;Submit Application&quot; on the next screen. Your
               application will be sent to the employer immediately.
             </p>
           </div>

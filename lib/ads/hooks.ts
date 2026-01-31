@@ -20,9 +20,11 @@ export function useAdConsent() {
   const [needsPrompt, setNeedsPrompt] = useState(false);
 
   useEffect(() => {
-    // Check consent on mount
-    setConsent(getConsentStatus());
-    setNeedsPrompt(needsConsent());
+    // Check consent on mount (defer to avoid synchronous setState in effect)
+    queueMicrotask(() => {
+      setConsent(getConsentStatus());
+      setNeedsPrompt(needsConsent());
+    });
 
     // Listen for storage changes (consent updates)
     const handleStorage = (e: StorageEvent) => {
@@ -51,8 +53,8 @@ export function useAdConfig() {
   const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
-    // Mark as ready after checking config
-    setIsReady(adConfig.enabled);
+    // Mark as ready after checking config (defer to avoid synchronous setState in effect)
+    queueMicrotask(() => setIsReady(adConfig.enabled));
   }, []);
 
   return {

@@ -250,7 +250,7 @@ export function Step1Documents({
       <div>
         <h2 className="text-2xl font-bold text-gray-900">Step 1: Documents</h2>
         <p className="mt-2 text-gray-600">
-          Upload your resume and cover letter (optional). We'll extract information to help
+          Upload your resume and cover letter (optional). We&apos;ll extract information to help
           auto-fill the next steps.
         </p>
       </div>
@@ -276,7 +276,7 @@ export function Step1Documents({
         </div>
 
         <p className="text-sm text-gray-500">
-          Upload PDF, DOCX, or TXT file (max 5MB). We'll extract text to auto-fill your
+          Upload PDF, DOCX, or TXT file (max 5MB). We&apos;ll extract text to auto-fill your
           information.
         </p>
 

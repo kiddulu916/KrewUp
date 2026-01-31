@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { Button, Input, Card, CardContent, CardHeader, CardTitle } from '@/components/ui';
 import { useToast } from '@/components/providers/toast-provider';
@@ -355,11 +356,15 @@ export function CertificationForm({ role = 'worker', employerType, onSuccess, on
                       </div>
                     </div>
                   ) : (
-                    <img
-                      src={photoPreview}
-                      alt="Certification preview"
-                      className="w-full max-h-64 object-contain rounded-lg border border-gray-200"
-                    />
+                    <div className="relative w-full h-64">
+                      <Image
+                        src={photoPreview}
+                        alt="Certification preview"
+                        fill
+                        className="object-contain rounded-lg border border-gray-200"
+                        unoptimized
+                      />
+                    </div>
                   )}
                 </div>
                 <Button
@@ -386,7 +391,7 @@ export function CertificationForm({ role = 'worker', employerType, onSuccess, on
       <div className="rounded-lg bg-blue-50 border border-blue-200 p-4">
         <p className="text-sm text-blue-800">
           <strong>📋 Verification Process:</strong> All certifications are reviewed by our team
-          within 24-48 hours. You'll receive an email notification once your certification is verified.
+          within 24-48 hours. You&apos;ll receive an email notification once your certification is verified.
         </p>
       </div>
 

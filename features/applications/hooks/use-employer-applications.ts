@@ -8,8 +8,7 @@ import type { Database } from '@/types/database';
 // * Extends the base JobApplication row with a loosely-typed worker relation
 // * to avoid mismatches with Supabase's inferred nested relation types.
 type JobApplication = Database['public']['Tables']['job_applications']['Row'] & {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  worker?: any;
+  worker?: Record<string, unknown>;
 };
 
 async function fetchEmployerJobApplications(

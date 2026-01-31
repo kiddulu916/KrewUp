@@ -103,7 +103,7 @@ export function CustomQuestionsBuilder({
       {value.length === 0 ? (
         <div className="text-center py-8 text-gray-500">
           <p className="mb-2">No screening questions yet</p>
-          <p className="text-sm">Click "Add Question" to create your first question</p>
+          <p className="text-sm">Click &quot;Add Question&quot; to create your first question</p>
         </div>
       ) : (
         <div className="space-y-3">

@@ -44,7 +44,7 @@ export function PublicProfileTabs({ userId }: PublicProfileTabsProps) {
   useEffect(() => {
     const currentTab = searchParams.get('tab') as TabId | null;
     if (currentTab && TABS.some(t => t.id === currentTab) && currentTab !== activeTab) {
-      setActiveTab(currentTab);
+      queueMicrotask(() => setActiveTab(currentTab));
     }
   }, [searchParams, activeTab]);
 

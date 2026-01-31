@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import Image from 'next/image';
 import { InitialsAvatar } from '@/lib/utils/initials-avatar';
 import { resizeProfileImage } from '@/lib/utils/image-compression';
 
@@ -107,10 +108,13 @@ export function ProfileAvatarUpload({
       >
         {/* Image or Initials Avatar */}
         {previewUrl ? (
-          <img
+          <Image
             src={previewUrl}
             alt={userName}
+            width={96}
+            height={96}
             className="w-24 h-24 rounded-full object-cover border-4 border-gray-200"
+            unoptimized
           />
         ) : (
           <InitialsAvatar name={userName} userId={userId} size="lg" />

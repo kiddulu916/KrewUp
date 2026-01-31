@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import { updateProfileLocation } from '@/features/profiles/actions/profile-actions';
 import { useCsrfToken } from '@/components/providers/csrf-provider';
 
@@ -9,12 +9,12 @@ import { useCsrfToken } from '@/components/providers/csrf-provider';
  * Only runs once after onboarding completion
  */
 export function InitialLocationCapture() {
-  const [hasRequested, setHasRequested] = useState(false);
+  const hasRequestedRef = useRef(false);
   const csrfToken = useCsrfToken();
 
   useEffect(() => {
     // Only run once
-    if (hasRequested) return;
+    if (hasRequestedRef.current) return;
 
     // Check if we've already captured initial location
     const locationCaptured = localStorage.getItem('initial_location_captured');
@@ -22,7 +22,7 @@ export function InitialLocationCapture() {
 
     // Request location permission
     if ('geolocation' in navigator) {
-      setHasRequested(true);
+      hasRequestedRef.current = true;
 
       navigator.geolocation.getCurrentPosition(
         async (position) => {
@@ -59,7 +59,7 @@ export function InitialLocationCapture() {
         }
       );
     }
-  }, [hasRequested]);
+  }, [csrfToken]);
 
   // This component doesn't render anything
   return null;

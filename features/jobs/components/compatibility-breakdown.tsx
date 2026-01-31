@@ -67,7 +67,7 @@ export function CompatibilityBreakdown({ score }: CompatibilityBreakdownProps) {
       {/* Missing Certifications */}
       {score.gaps.length > 0 && (
         <div className="border-t pt-4">
-          <h4 className="font-semibold mb-2 text-gray-700">What You're Missing</h4>
+          <h4 className="font-semibold mb-2 text-gray-700">What You&apos;re Missing</h4>
           <ul className="space-y-1 mb-4">
             {score.gaps.map((cert, idx) => (
               <li key={idx} className="text-sm text-gray-600 flex items-start">

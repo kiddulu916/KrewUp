@@ -107,7 +107,7 @@ export function Step6Education({ form }: Props) {
           <div className="text-center py-8 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
             <AcademicCapIcon className="mx-auto h-12 w-12 text-gray-400" />
             <p className="mt-2 text-sm text-gray-600">No education added yet</p>
-            <p className="text-xs text-gray-500 mt-1">Click "Add Education" to get started</p>
+            <p className="text-xs text-gray-500 mt-1">Click &quot;Add Education&quot; to get started</p>
           </div>
         )}
 

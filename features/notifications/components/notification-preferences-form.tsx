@@ -18,11 +18,6 @@ export function NotificationPreferencesForm() {
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
-  // Load preferences on mount
-  useEffect(() => {
-    loadPreferences();
-  }, []);
-
   const loadPreferences = async () => {
     setLoading(true);
     const result = await getNotificationPreferences();
@@ -33,6 +28,11 @@ export function NotificationPreferencesForm() {
     }
     setLoading(false);
   };
+
+  // Load preferences on mount
+  useEffect(() => {
+    queueMicrotask(() => loadPreferences());
+  }, []);
 
   const handleToggle = (field: keyof NotificationPreferences, value: boolean) => {
     if (preferences) {

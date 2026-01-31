@@ -159,7 +159,7 @@ export function ProfileEditTabs({ profile }: ProfileEditTabsProps) {
               <Briefcase className="h-12 w-12 text-gray-400" />
               <p className="mt-2 text-gray-600">Experience editing coming soon</p>
               <p className="mt-1 text-sm text-gray-500">
-                You'll be able to add and edit your work history here
+                You&apos;ll be able to add and edit your work history here
               </p>
             </div>
           </div>
@@ -178,7 +178,7 @@ export function ProfileEditTabs({ profile }: ProfileEditTabsProps) {
               <Award className="h-12 w-12 text-gray-400" />
               <p className="mt-2 text-gray-600">Certification upload coming soon</p>
               <p className="mt-1 text-sm text-gray-500">
-                You'll be able to upload and manage your certifications here
+                You&apos;ll be able to upload and manage your certifications here
               </p>
             </div>
           </div>

@@ -37,9 +37,11 @@ export function ProximityAlertSettings() {
   // Update local state when data loads
   useEffect(() => {
     if (alertData) {
-      setRadiusKm(alertData.radius_km);
-      setSelectedTrades(alertData.trades);
-      setIsActive(alertData.is_active);
+      queueMicrotask(() => {
+        setRadiusKm(alertData.radius_km);
+        setSelectedTrades(alertData.trades);
+        setIsActive(alertData.is_active);
+      });
     }
   }, [alertData]);
 
@@ -186,7 +188,7 @@ export function ProximityAlertSettings() {
         {isActive && selectedTrades.length > 0 && (
           <div className="bg-blue-50 rounded-lg p-4">
             <p className="text-sm text-blue-800">
-              <strong>You'll be notified when:</strong> New {selectedTrades.join(', ')} jobs
+              <strong>You&apos;ll be notified when:</strong> New {selectedTrades.join(', ')} jobs
               are posted within {radiusKm} km of your location. Alerts are checked every 10 minutes.
             </p>
           </div>

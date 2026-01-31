@@ -45,7 +45,7 @@ export function PushNotificationToggle() {
         <div className="flex-1">
           <p className="text-sm font-medium text-gray-700">Push notifications not supported</p>
           <p className="text-xs text-gray-500">
-            Your browser doesn't support push notifications
+            Your browser doesn&apos;t support push notifications
           </p>
         </div>
       </div>
@@ -60,7 +60,7 @@ export function PushNotificationToggle() {
         <div className="flex-1">
           <p className="text-sm font-medium text-red-700">Notifications blocked</p>
           <p className="text-xs text-red-600">
-            You've blocked notifications for this site. To enable them, update your browser settings.
+            You&apos;ve blocked notifications for this site. To enable them, update your browser settings.
           </p>
         </div>
       </div>

@@ -420,7 +420,7 @@ export function Step7Skills({ form, jobTrades }: Props) {
           <div className="ml-3">
             <h3 className="text-sm font-medium text-blue-800">Showcase your expertise</h3>
             <p className="mt-1 text-sm text-blue-700">
-              Select all skills you're proficient in. More skills increase your chances of matching
+              Select all skills you&apos;re proficient in. More skills increase your chances of matching
               with relevant jobs. Employers can view your certifications on your profile to verify
               your qualifications.
             </p>

@@ -70,7 +70,7 @@ export function ProfileViewsChart() {
           <Eye className="h-12 w-12 mx-auto text-gray-400 mb-4" />
           <h3 className="text-lg font-semibold mb-2">Profile Analytics</h3>
           <p className="text-gray-600 mb-4">
-            See who's viewing your profile and track your visibility over time.
+            See who&apos;s viewing your profile and track your visibility over time.
           </p>
           <Button onClick={() => router.push('/pricing')}>
             Upgrade to Pro

@@ -48,7 +48,7 @@ export function PricingCard({ plan, isCurrentPlan = false }: PricingCardProps) {
         </li>
         <li className="flex items-center">
           <span className="mr-2">✓</span>
-          <span>"Who Viewed Me" analytics</span>
+          <span>&quot;Who Viewed Me&quot; analytics</span>
         </li>
         <li className="flex items-center">
           <span className="mr-2">✓</span>

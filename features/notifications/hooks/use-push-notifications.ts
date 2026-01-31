@@ -19,11 +19,6 @@ export function usePushNotifications() {
   const [error, setError] = useState<string | null>(null);
   const [isSupported, setIsSupported] = useState(false);
 
-  // Check browser support and current permission on mount
-  useEffect(() => {
-    checkSupport();
-  }, []);
-
   const checkSupport = async () => {
     // Check if browser supports push notifications
     if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
@@ -49,6 +44,11 @@ export function usePushNotifications() {
       }
     }
   };
+
+  // Check browser support and current permission on mount
+  useEffect(() => {
+    queueMicrotask(() => checkSupport());
+  }, []);
 
   /**
    * Request permission and subscribe to push notifications

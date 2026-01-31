@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useForm, Controller } from 'react-hook-form';
+import { useForm, useWatch, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button, Input, Textarea, Select, Card, CardContent, CardHeader, CardTitle } from '@/components/ui';
 import { LocationAutocomplete, CollapsibleSection } from '@/components/common';
@@ -55,7 +55,7 @@ export function ProfileForm({ initialData, certifications = [], workExperience =
     handleSubmit,
     control,
     setValue,
-    watch,
+    getValues,
     formState: { errors, isSubmitting: isFormSubmitting },
   } = useForm<ProfileSchema>({
     resolver: zodResolver(profileSchema),
@@ -80,9 +80,10 @@ export function ProfileForm({ initialData, certifications = [], workExperience =
   const [showExperienceForm, setShowExperienceForm] = useState(false);
   const [showEducationForm, setShowEducationForm] = useState(false);
 
-  const watchTrade = watch('trade');
-  const watchCoords = watch('coords');
-  const watchBio = watch('bio') || '';
+  const watchTrade = useWatch({ control, name: 'trade', defaultValue: '' });
+  const watchCoords = useWatch({ control, name: 'coords' });
+  const watchBio = (useWatch({ control, name: 'bio', defaultValue: '' }) as string) || '';
+  const watchEmployerType = useWatch({ control, name: 'employer_type', defaultValue: '' });
 
   // Update coords when location is fetched
   useEffect(() => {
@@ -90,12 +91,12 @@ export function ProfileForm({ initialData, certifications = [], workExperience =
       const coords = locationState.location;
       setValue('coords', coords);
       // If location text is empty, fill with coords as fallback
-      const currentLocation = watch('location');
+      const currentLocation = getValues('location');
       if (!currentLocation) {
         setValue('location', `${coords.lat.toFixed(4)}, ${coords.lng.toFixed(4)}`);
       }
     }
-  }, [locationState.location, watchCoords, setValue, watch]);
+  }, [locationState.location, watchCoords, setValue, getValues]);
 
   const onSubmit = async (data: ProfileSchema) => {
     setError(null);
@@ -301,7 +302,7 @@ export function ProfileForm({ initialData, certifications = [], workExperience =
             </div>
 
             {/* Contractor Licenses (Contractors Only) */}
-            {watch('employer_type') === 'contractor' && (
+            {watchEmployerType === 'contractor' && (
               <div className="mt-6 pt-6 border-t border-gray-200">
                 <div className="flex items-center justify-between mb-4">
                   <div>
@@ -325,7 +326,7 @@ export function ProfileForm({ initialData, certifications = [], workExperience =
                 {showCertificationForm && (
                   <CertificationForm
                     role={initialData.role}
-                    employerType={watch('employer_type')}
+                    employerType={watchEmployerType}
                     onSuccess={() => {
                       setShowCertificationForm(false);
                       router.refresh();
@@ -422,7 +423,7 @@ export function ProfileForm({ initialData, certifications = [], workExperience =
             {showCertificationForm && (
               <CertificationForm
                 role={initialData.role}
-                employerType={watch('employer_type')}
+                employerType={watchEmployerType}
                 onSuccess={() => {
                   setShowCertificationForm(false);
                   router.refresh();

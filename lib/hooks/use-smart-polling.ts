@@ -114,7 +114,7 @@ export function useSmartPolling<TData = unknown, TError = Error>(
   const [errorCount, setErrorCount] = useState(0);
   const [lastSyncTime, setLastSyncTime] = useState<Date | null>(null);
   const [nextSyncTime, setNextSyncTime] = useState<Date | null>(null);
-  const lastActivityRef = useRef(Date.now());
+  const lastActivityRef = useRef<number>(0);
   const idleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // * Calculate current interval based on state
@@ -137,11 +137,13 @@ export function useSmartPolling<TData = unknown, TError = Error>(
 
   // * Update next sync time
   useEffect(() => {
-    if (currentInterval && typeof currentInterval === 'number') {
-      setNextSyncTime(new Date(Date.now() + currentInterval));
-    } else {
-      setNextSyncTime(null);
-    }
+    queueMicrotask(() => {
+      if (currentInterval && typeof currentInterval === 'number') {
+        setNextSyncTime(new Date(Date.now() + currentInterval));
+      } else {
+        setNextSyncTime(null);
+      }
+    });
   }, [currentInterval, lastSyncTime]);
 
   // * Mark user as active (resets idle timer)
@@ -190,7 +192,7 @@ export function useSmartPolling<TData = unknown, TError = Error>(
 
   // * Initialize idle timer
   useEffect(() => {
-    markActive(); // Start tracking activity
+    queueMicrotask(() => markActive()); // Start tracking activity
     return () => {
       if (idleTimerRef.current) {
         clearTimeout(idleTimerRef.current);

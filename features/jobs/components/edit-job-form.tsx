@@ -93,14 +93,16 @@ export function EditJobForm({ job }: EditJobFormProps) {
 
   // Auto-update pay_rate when conditional fields change
   useEffect(() => {
-    if (isHourlyJob && hourlyRate) {
-      setFormData((prev) => ({ ...prev, pay_rate: `$${hourlyRate}/hr (${payPeriod})` }));
-    } else if (isContractJob && contractAmount) {
-      const suffix = contractType === 'Per Contract' ? '/contract' : '/job';
-      setFormData((prev) => ({ ...prev, pay_rate: `$${contractAmount}${suffix}` }));
-    } else if (!formData.job_type) {
-      setFormData((prev) => ({ ...prev, pay_rate: '' }));
-    }
+    queueMicrotask(() => {
+      if (isHourlyJob && hourlyRate) {
+        setFormData((prev) => ({ ...prev, pay_rate: `$${hourlyRate}/hr (${payPeriod})` }));
+      } else if (isContractJob && contractAmount) {
+        const suffix = contractType === 'Per Contract' ? '/contract' : '/job';
+        setFormData((prev) => ({ ...prev, pay_rate: `$${contractAmount}${suffix}` }));
+      } else if (!formData.job_type) {
+        setFormData((prev) => ({ ...prev, pay_rate: '' }));
+      }
+    });
   }, [hourlyRate, payPeriod, contractAmount, contractType, formData.job_type, isHourlyJob, isContractJob]);
 
   function updateFormData(updates: Partial<JobData>) {

@@ -70,10 +70,10 @@ export function Step4WorkAuth({ form }: Props) {
               />
               <div className="ml-3">
                 <span className="text-sm font-medium text-gray-900">
-                  I have a valid driver's license
+                  I have a valid driver&apos;s license
                 </span>
                 <p className="text-sm text-gray-500 mt-1">
-                  Check this box if you possess a current, valid driver's license
+                  Check this box if you possess a current, valid driver&apos;s license
                 </p>
               </div>
             </label>
@@ -109,7 +109,7 @@ export function Step4WorkAuth({ form }: Props) {
               )}
             />
             <p className="mt-1 text-sm text-gray-500">
-              Select if you have a commercial driver's license (CDL)
+              Select if you have a commercial driver&apos;s license (CDL)
             </p>
           </div>
         )}

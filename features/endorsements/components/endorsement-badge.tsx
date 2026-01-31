@@ -60,7 +60,7 @@ export function EndorsementBadge({ experienceId, showDetails = false }: Endorsem
                   </p>
                   {endorsement.recommendation_text && (
                     <p className="mt-1 text-sm text-gray-700 italic">
-                      "{endorsement.recommendation_text}"
+                      &quot;{endorsement.recommendation_text}&quot;
                     </p>
                   )}
                   <p className="mt-1 text-xs text-gray-500">

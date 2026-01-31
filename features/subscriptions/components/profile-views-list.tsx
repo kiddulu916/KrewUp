@@ -106,7 +106,7 @@ export function ProfileViewsList() {
         </div>
         <h3 className="text-lg font-semibold mb-2">No views yet</h3>
         <p className="text-gray-600">
-          When employers view your profile, they'll appear here.
+          When employers view your profile, they&apos;ll appear here.
         </p>
       </Card>
     );
