@@ -12,7 +12,7 @@ CREATE TABLE "public"."users" (
     "role" "text" NOT NULL CHECK (role IN ('worker', 'employer')),
     "employer_type" "text" CHECK (employer_type IN ('contractor', 'developer', 'homeowner', 'recruiter')),
     "location" "text" NOT NULL DEFAULT 'Update your location',
-    "geo_coords" "public"."geography"(Point, 4326),
+    "geo_coords" geography(Point, 4326),
     "bio" "text",
     "profile_image_url" "text",
     "subscription_status" "text" DEFAULT 'free' NOT NULL CHECK (subscription_status IN ('free', 'pro')),

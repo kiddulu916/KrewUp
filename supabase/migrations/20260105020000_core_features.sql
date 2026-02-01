@@ -6,7 +6,7 @@ CREATE TABLE "public"."jobs" (
     "title" "text" NOT NULL,
     "description" "text" NOT NULL,
     "location" "text" NOT NULL,
-    "coords" "public"."geography"(Point, 4326),
+    "coords" geography(Point, 4326),
     "job_type" "text" NOT NULL,
     "pay_rate" "text",
     "pay_min" numeric,
