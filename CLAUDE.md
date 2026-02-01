@@ -94,7 +94,7 @@ krewup/
 ├── stores/                 # Zustand stores
 ├── providers/              # App-level providers
 ├── supabase/               # Database migrations
-│   └── migrations/         # SQL migrations (001-044)
+│   └── migrations/         # SQL migrations (17 files)
 ├── e2e/                    # Playwright E2E tests
 └── __tests__/              # Vitest component tests
 ```
@@ -278,10 +278,24 @@ if (!isPro) {
 
 ### Location Data (PostGIS)
 
-- Jobs and profiles store coordinates as PostGIS geometry
-- RPC functions: `update_user_coords`, `create_job_with_coords`, proximity queries
-- Always use RPC functions for coordinate updates (handles PostGIS conversion)
+- Jobs and profiles store coordinates as PostGIS geometry (SRID 4326 - WGS84)
+- RPC functions for coordinate management:
+  - `update_user_coords(p_user_id, p_lat, p_lng, p_location)` - Updates user location with PostGIS geometry
+  - `update_job_coords(p_job_id, p_lat, p_lng)` - Updates job location coordinates
+  - `create_job_with_coords` - Creates jobs with location data
+  - Proximity queries for location-based search
+- Always use RPC functions for coordinate updates (handles ST_SetSRID and ST_MakePoint conversion)
 - Google Maps API for location autocomplete
+- Used by: profile actions, onboarding flow, job creation/updates
+
+### Admin Analytics
+
+- Time-series RPC functions for admin dashboard trends:
+  - `get_pending_certifications_trend(p_days)` - Daily count of pending certifications
+  - `get_pending_reports_trend(p_days)` - Daily count of pending content reports
+- Returns TABLE with (day: date, pending_count: bigint)
+- Used by: features/admin/actions/analytics-actions.ts
+- Default 7-day lookback, configurable via p_days parameter
 
 ### Push Notifications
 
@@ -335,7 +349,7 @@ See `.env.example` for required variables:
 
 ### Database Migrations
 
-Migrations in `supabase/migrations/` (001-044). Always test locally first.
+Migrations in `supabase/migrations/` (17 files). Always test locally first.
 
 ### Deployment
 
