@@ -48,7 +48,7 @@ describe('Badge Component', () => {
     const badge = container.firstChild as HTMLElement;
     expect(badge).toHaveClass('from-krewup-blue');
     expect(badge).toHaveClass('to-krewup-orange');
-    expect(badge).toHaveClass('animate-pulse');
+    expect(badge).toHaveClass('motion-safe:animate-pulse');
   });
 
   it('should accept custom className', () => {

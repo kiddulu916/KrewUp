@@ -51,9 +51,11 @@ components/
 └── ui/                 # Base UI primitives
     ├── accordion.tsx
     ├── avatar.tsx
+    ├── badge.tsx         # Status badges with variants (success, warning, danger, pro)
     ├── confirm-dialog.tsx
     ├── error-boundary.tsx
     ├── form-error.tsx
+    ├── loading-spinner.tsx # Spinner components (LoadingSpinner, PageLoadingSpinner, InlineSpinner)
     ├── polling-status.tsx
     ├── pull-to-refresh.tsx
     ├── skip-link.tsx
@@ -95,6 +97,45 @@ components/
 - Tailwind CSS classes directly in JSX
 - Use `cn()` utility for conditional classes
 - Mobile-first responsive design
+- Gradient backgrounds for emphasis (badges, pro features)
+- Motion-safe animations (prefer-reduced-motion support)
+
+### Testing
+
+**Component Tests**: Located in `__tests__/components/`
+
+**UI Component Testing Pattern**:
+
+```typescript
+import { describe, it, expect } from 'vitest';
+import { render, screen } from '@testing-library/react';
+
+describe('UI Component', () => {
+  it('should render with correct variant styles', () => {
+    const { container } = render(<Component variant="success">Text</Component>);
+    const element = container.firstChild as HTMLElement;
+    expect(element).toHaveClass('from-green-400');
+  });
+
+  it('should have accessibility attributes', () => {
+    const { container } = render(<Component />);
+    const element = container.querySelector('[role="status"]');
+    expect(element).toHaveAttribute('aria-label', 'Loading');
+  });
+
+  it('should accept custom className', () => {
+    const { container } = render(<Component className="custom" />);
+    expect(container.firstChild).toHaveClass('custom');
+  });
+});
+```
+
+**Test Coverage**:
+
+- Badge: All variants (default, success, warning, danger, info, pro), styling, animations
+- LoadingSpinner: Sizes (sm, md, lg, xl), accessibility, custom labels
+- PageLoadingSpinner: Full-page layout
+- InlineSpinner: Button/inline contexts
 
 <!-- END AUTO-MANAGED -->
 

@@ -2,6 +2,12 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { SignupForm } from './signup-form';
+import { ToastProvider } from '@/components/providers/toast-provider';
+
+// Helper to render with ToastProvider
+const renderWithToast = (component: React.ReactElement) => {
+  return render(<ToastProvider>{component}</ToastProvider>);
+};
 
 // Mock next/navigation
 const mockPush = vi.fn();
@@ -27,41 +33,41 @@ describe('SignupForm', () => {
   });
 
   it('should render all required fields', () => {
-    render(<SignupForm />);
+    renderWithToast(<SignupForm />);
 
     expect(screen.getByLabelText(/full name/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/^password$/i)).toBeInTheDocument();
+    expect(screen.getByPlaceholderText(/at least 8 characters/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/confirm password/i)).toBeInTheDocument();
   });
 
   it('should render create account button', () => {
-    render(<SignupForm />);
+    renderWithToast(<SignupForm />);
 
     expect(screen.getByRole('button', { name: /create account/i })).toBeInTheDocument();
   });
 
   it('should render Google sign up button', () => {
-    render(<SignupForm />);
+    renderWithToast(<SignupForm />);
 
     expect(screen.getByRole('button', { name: /continue with google/i })).toBeInTheDocument();
   });
 
   it('should render terms checkbox', () => {
-    render(<SignupForm />);
+    renderWithToast(<SignupForm />);
 
     expect(screen.getByRole('checkbox')).toBeInTheDocument();
   });
 
   it('should render login link', () => {
-    render(<SignupForm />);
+    renderWithToast(<SignupForm />);
 
     expect(screen.getByRole('link', { name: /sign in/i })).toBeInTheDocument();
   });
 
   it('should update name field on input', async () => {
     const user = userEvent.setup();
-    render(<SignupForm />);
+    renderWithToast(<SignupForm />);
 
     const nameInput = screen.getByLabelText(/full name/i);
     await user.type(nameInput, 'John Doe');
@@ -71,11 +77,11 @@ describe('SignupForm', () => {
 
   it('should show error when passwords do not match', async () => {
     const user = userEvent.setup();
-    render(<SignupForm />);
+    renderWithToast(<SignupForm />);
 
     const nameInput = screen.getByLabelText(/full name/i);
     const emailInput = screen.getByLabelText(/email/i);
-    const passwordInput = screen.getByLabelText(/^password$/i);
+    const passwordInput = screen.getByPlaceholderText(/at least 8 characters/i);
     const confirmInput = screen.getByLabelText(/confirm password/i);
     const termsCheckbox = screen.getByRole('checkbox');
     const submitButton = screen.getByRole('button', { name: /create account/i });
@@ -96,11 +102,11 @@ describe('SignupForm', () => {
 
   it('should show error when password is too short', async () => {
     const user = userEvent.setup();
-    render(<SignupForm />);
+    renderWithToast(<SignupForm />);
 
     const nameInput = screen.getByLabelText(/full name/i);
     const emailInput = screen.getByLabelText(/email/i);
-    const passwordInput = screen.getByLabelText(/^password$/i);
+    const passwordInput = screen.getByPlaceholderText(/at least 8 characters/i);
     const confirmInput = screen.getByLabelText(/confirm password/i);
     const termsCheckbox = screen.getByRole('checkbox');
     const submitButton = screen.getByRole('button', { name: /create account/i });
@@ -123,11 +129,11 @@ describe('SignupForm', () => {
     const user = userEvent.setup();
     vi.mocked(signUp).mockResolvedValue({ success: true });
 
-    render(<SignupForm />);
+    renderWithToast(<SignupForm />);
 
     const nameInput = screen.getByLabelText(/full name/i);
     const emailInput = screen.getByLabelText(/email/i);
-    const passwordInput = screen.getByLabelText(/^password$/i);
+    const passwordInput = screen.getByPlaceholderText(/at least 8 characters/i);
     const confirmInput = screen.getByLabelText(/confirm password/i);
     const termsCheckbox = screen.getByRole('checkbox');
     const submitButton = screen.getByRole('button', { name: /create account/i });
@@ -148,11 +154,11 @@ describe('SignupForm', () => {
     const user = userEvent.setup();
     vi.mocked(signUp).mockResolvedValue({ success: true });
 
-    render(<SignupForm />);
+    renderWithToast(<SignupForm />);
 
     const nameInput = screen.getByLabelText(/full name/i);
     const emailInput = screen.getByLabelText(/email/i);
-    const passwordInput = screen.getByLabelText(/^password$/i);
+    const passwordInput = screen.getByPlaceholderText(/at least 8 characters/i);
     const confirmInput = screen.getByLabelText(/confirm password/i);
     const termsCheckbox = screen.getByRole('checkbox');
     const submitButton = screen.getByRole('button', { name: /create account/i });
@@ -173,11 +179,11 @@ describe('SignupForm', () => {
     const user = userEvent.setup();
     vi.mocked(signUp).mockResolvedValue({ success: false, error: 'Email already in use' });
 
-    render(<SignupForm />);
+    renderWithToast(<SignupForm />);
 
     const nameInput = screen.getByLabelText(/full name/i);
     const emailInput = screen.getByLabelText(/email/i);
-    const passwordInput = screen.getByLabelText(/^password$/i);
+    const passwordInput = screen.getByPlaceholderText(/at least 8 characters/i);
     const confirmInput = screen.getByLabelText(/confirm password/i);
     const termsCheckbox = screen.getByRole('checkbox');
     const submitButton = screen.getByRole('button', { name: /create account/i });
@@ -198,11 +204,11 @@ describe('SignupForm', () => {
     const user = userEvent.setup();
     vi.mocked(signUp).mockResolvedValue({ success: false });
 
-    render(<SignupForm />);
+    renderWithToast(<SignupForm />);
 
     const nameInput = screen.getByLabelText(/full name/i);
     const emailInput = screen.getByLabelText(/email/i);
-    const passwordInput = screen.getByLabelText(/^password$/i);
+    const passwordInput = screen.getByPlaceholderText(/at least 8 characters/i);
     const confirmInput = screen.getByLabelText(/confirm password/i);
     const termsCheckbox = screen.getByRole('checkbox');
     const submitButton = screen.getByRole('button', { name: /create account/i });
@@ -223,7 +229,7 @@ describe('SignupForm', () => {
     const user = userEvent.setup();
     vi.mocked(signInWithGoogle).mockResolvedValue(undefined as any);
 
-    render(<SignupForm />);
+    renderWithToast(<SignupForm />);
 
     const googleButton = screen.getByRole('button', { name: /continue with google/i });
     await user.click(googleButton);
@@ -237,11 +243,11 @@ describe('SignupForm', () => {
     const user = userEvent.setup();
     vi.mocked(signUp).mockResolvedValue({ success: true });
 
-    render(<SignupForm />);
+    renderWithToast(<SignupForm />);
 
     const nameInput = screen.getByLabelText(/full name/i);
     const emailInput = screen.getByLabelText(/email/i);
-    const passwordInput = screen.getByLabelText(/^password$/i);
+    const passwordInput = screen.getByPlaceholderText(/at least 8 characters/i);
     const confirmInput = screen.getByLabelText(/confirm password/i);
     const termsCheckbox = screen.getByRole('checkbox');
     const submitButton = screen.getByRole('button', { name: /create account/i });
@@ -262,11 +268,11 @@ describe('SignupForm', () => {
     const user = userEvent.setup();
     vi.mocked(signUp).mockResolvedValue({ success: true });
 
-    render(<SignupForm />);
+    renderWithToast(<SignupForm />);
 
     const nameInput = screen.getByLabelText(/full name/i);
     const emailInput = screen.getByLabelText(/email/i);
-    const passwordInput = screen.getByLabelText(/^password$/i);
+    const passwordInput = screen.getByPlaceholderText(/at least 8 characters/i);
     const confirmInput = screen.getByLabelText(/confirm password/i);
     const termsCheckbox = screen.getByRole('checkbox');
     const submitButton = screen.getByRole('button', { name: /create account/i });

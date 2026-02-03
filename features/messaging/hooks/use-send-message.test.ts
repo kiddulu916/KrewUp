@@ -8,6 +8,11 @@ vi.mock('../actions/message-actions', () => ({
   sendMessage: vi.fn(),
 }));
 
+// Mock CSRF provider
+vi.mock('@/components/providers/csrf-provider', () => ({
+  useCsrfToken: vi.fn(() => 'mock-csrf-token'),
+}));
+
 import { sendMessage } from '../actions/message-actions';
 
 const mockSendMessage = sendMessage as ReturnType<typeof vi.fn>;
@@ -44,7 +49,7 @@ describe('useSendMessage', () => {
       expect(result.current.isSuccess).toBe(true);
     });
 
-    expect(mockSendMessage).toHaveBeenCalledWith('conv-456', 'Hello there!');
+    expect(mockSendMessage).toHaveBeenCalledWith('conv-456', 'Hello there!', 'mock-csrf-token');
   });
 
   it('should handle send message errors', async () => {
@@ -147,7 +152,7 @@ describe('useSendMessage', () => {
       expect(result.current.isSuccess).toBe(true);
     });
 
-    expect(mockSendMessage).toHaveBeenCalledWith('conv-123', longContent);
+    expect(mockSendMessage).toHaveBeenCalledWith('conv-123', longContent, 'mock-csrf-token');
   });
 
   it('should handle special characters in content', async () => {
@@ -162,6 +167,6 @@ describe('useSendMessage', () => {
       expect(result.current.isSuccess).toBe(true);
     });
 
-    expect(mockSendMessage).toHaveBeenCalledWith('conv-123', specialContent);
+    expect(mockSendMessage).toHaveBeenCalledWith('conv-123', specialContent, 'mock-csrf-token');
   });
 });

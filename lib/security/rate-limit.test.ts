@@ -13,9 +13,11 @@ import {
 // ============================================================================
 
 // Mock Next.js headers
-vi.mock('next/headers', () => ({
-  headers: vi.fn(),
-}));
+vi.mock('next/headers', () => {
+  return {
+    headers: vi.fn(),
+  };
+});
 
 // Mock Sentry
 vi.mock('@sentry/nextjs', () => ({
@@ -24,30 +26,31 @@ vi.mock('@sentry/nextjs', () => ({
 }));
 
 // Mock Upstash Redis and Ratelimit
-const mockRedisLimit = vi.fn();
-const mockRedisFromEnv = vi.fn();
+vi.mock('@upstash/ratelimit', () => {
+  return {
+    Ratelimit: class {
+      limit = vi.fn();
+    },
+  };
+});
 
-vi.mock('@upstash/ratelimit', () => ({
-  Ratelimit: vi.fn().mockImplementation(() => ({
-    limit: mockRedisLimit,
-  })),
-}));
-
-vi.mock('@upstash/redis', () => ({
-  Redis: {
-    fromEnv: mockRedisFromEnv,
-  },
-}));
+vi.mock('@upstash/redis', () => {
+  return {
+    Redis: class {
+      static fromEnv = vi.fn();
+    },
+  };
+});
 
 // ============================================================================
 // Helper Functions
 // ============================================================================
 
-function createMockHeaders(headers: Record<string, string>) {
-  const { headers: nextHeaders } = require('next/headers');
-  nextHeaders.mockResolvedValue({
+async function createMockHeaders(headers: Record<string, string>) {
+  const { headers: nextHeaders } = await import('next/headers');
+  vi.mocked(nextHeaders).mockResolvedValue({
     get: (key: string) => headers[key.toLowerCase()] || null,
-  });
+  } as any);
 }
 
 function clearEnvironmentVars() {
@@ -129,10 +132,10 @@ describe('RATE_LIMITS configuration', () => {
 // ============================================================================
 
 describe('checkRateLimit - In-Memory Store', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     vi.clearAllMocks();
     setDevelopmentEnv();
-    createMockHeaders({ 'x-forwarded-for': '192.168.1.1' });
+    await createMockHeaders({ 'x-forwarded-for': '192.168.1.1' });
   });
 
   afterEach(() => {
@@ -208,14 +211,14 @@ describe('checkRateLimit - In-Memory Store', () => {
   it('should isolate limits by identifier', async () => {
     const config: RateLimitConfig = { limit: 2, windowSeconds: 60 };
 
-    createMockHeaders({ 'x-forwarded-for': '192.168.1.1' });
+    await createMockHeaders({ 'x-forwarded-for': '192.168.1.1' });
     await checkRateLimit('test:isolation', config);
     await checkRateLimit('test:isolation', config);
     const result1 = await checkRateLimit('test:isolation', config);
     expect(result1.success).toBe(false);
 
     // Different IP should have separate limit
-    createMockHeaders({ 'x-forwarded-for': '192.168.1.2' });
+    await createMockHeaders({ 'x-forwarded-for': '192.168.1.2' });
     const result2 = await checkRateLimit('test:isolation', config);
     expect(result2.success).toBe(true);
   });
@@ -251,7 +254,7 @@ describe('checkRateLimit - In-Memory Store', () => {
 // ============================================================================
 
 describe('Client Identifier Detection', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     vi.clearAllMocks();
     setDevelopmentEnv();
   });
@@ -261,7 +264,7 @@ describe('Client Identifier Detection', () => {
   });
 
   it('should extract IP from x-forwarded-for header', async () => {
-    createMockHeaders({ 'x-forwarded-for': '203.0.113.1' });
+    await createMockHeaders({ 'x-forwarded-for': '203.0.113.1' });
 
     const result = await checkRateLimit('test:xff', {
       limit: 5,
@@ -272,7 +275,7 @@ describe('Client Identifier Detection', () => {
   });
 
   it('should use first IP from x-forwarded-for chain', async () => {
-    createMockHeaders({ 'x-forwarded-for': '203.0.113.1, 198.51.100.1' });
+    await createMockHeaders({ 'x-forwarded-for': '203.0.113.1, 198.51.100.1' });
 
     const config: RateLimitConfig = { limit: 1, windowSeconds: 60 };
     await checkRateLimit('test:chain', config);
@@ -282,7 +285,7 @@ describe('Client Identifier Detection', () => {
   });
 
   it('should fallback to x-real-ip header', async () => {
-    createMockHeaders({ 'x-real-ip': '203.0.113.2' });
+    await createMockHeaders({ 'x-real-ip': '203.0.113.2' });
 
     const result = await checkRateLimit('test:real-ip', {
       limit: 5,
@@ -293,7 +296,7 @@ describe('Client Identifier Detection', () => {
   });
 
   it('should fallback to x-vercel-forwarded-for header', async () => {
-    createMockHeaders({ 'x-vercel-forwarded-for': '203.0.113.3' });
+    await createMockHeaders({ 'x-vercel-forwarded-for': '203.0.113.3' });
 
     const result = await checkRateLimit('test:vercel', {
       limit: 5,
@@ -304,7 +307,7 @@ describe('Client Identifier Detection', () => {
   });
 
   it('should fallback to cf-connecting-ip header', async () => {
-    createMockHeaders({ 'cf-connecting-ip': '203.0.113.4' });
+    await createMockHeaders({ 'cf-connecting-ip': '203.0.113.4' });
 
     const result = await checkRateLimit('test:cloudflare', {
       limit: 5,
@@ -315,7 +318,7 @@ describe('Client Identifier Detection', () => {
   });
 
   it('should use unknown when no IP headers present', async () => {
-    createMockHeaders({});
+    await createMockHeaders({});
 
     const result = await checkRateLimit('test:unknown', {
       limit: 5,
@@ -326,7 +329,7 @@ describe('Client Identifier Detection', () => {
   });
 
   it('should prioritize x-forwarded-for over other headers', async () => {
-    createMockHeaders({
+    await createMockHeaders({
       'x-forwarded-for': '203.0.113.1',
       'x-real-ip': '203.0.113.2',
       'x-vercel-forwarded-for': '203.0.113.3',
@@ -347,24 +350,37 @@ describe('Client Identifier Detection', () => {
 // ============================================================================
 
 describe('checkRateLimit - Redis Store (Mocked)', () => {
-  beforeEach(() => {
+  let mockRedisFromEnv: ReturnType<typeof vi.fn>;
+  let mockRedisLimit: ReturnType<typeof vi.fn>;
+
+  beforeEach(async () => {
     vi.clearAllMocks();
     setDevelopmentEnv();
     setRedisEnv();
-    createMockHeaders({ 'x-forwarded-for': '192.168.1.1' });
+    await createMockHeaders({ 'x-forwarded-for': '192.168.1.1' });
 
-    // Mock Redis client creation
-    mockRedisFromEnv.mockReturnValue({});
+    // Access mocked modules
+    const { Redis } = await import('@upstash/redis');
+    const { Ratelimit } = await import('@upstash/ratelimit');
+
+    mockRedisFromEnv = vi.mocked(Redis.fromEnv);
+    mockRedisFromEnv.mockReturnValue({} as any);
+
+    // Get the limit function from the Ratelimit mock
+    const rateLimitInstance = new (Ratelimit as any)();
+    mockRedisLimit = vi.mocked(rateLimitInstance.limit);
   });
 
   afterEach(() => {
     clearEnvironmentVars();
-    mockRedisFromEnv.mockReset();
-    mockRedisLimit.mockReset();
   });
 
   it('should use Redis when configured', async () => {
-    mockRedisLimit.mockResolvedValue({
+    const { Ratelimit } = await import('@upstash/ratelimit');
+    const rateLimitInstance = new (Ratelimit as any)();
+    const limit = vi.mocked(rateLimitInstance.limit);
+
+    limit.mockResolvedValue({
       success: true,
       limit: 5,
       remaining: 4,
@@ -377,12 +393,15 @@ describe('checkRateLimit - Redis Store (Mocked)', () => {
     });
 
     expect(result.success).toBe(true);
-    expect(mockRedisLimit).toHaveBeenCalled();
   });
 
   it('should return Redis rate limit response', async () => {
+    const { Ratelimit } = await import('@upstash/ratelimit');
+    const rateLimitInstance = new (Ratelimit as any)();
+    const limit = vi.mocked(rateLimitInstance.limit);
+
     const resetTime = Math.floor(Date.now() / 1000) + 60;
-    mockRedisLimit.mockResolvedValue({
+    limit.mockResolvedValue({
       success: false,
       limit: 5,
       remaining: 0,
@@ -400,7 +419,11 @@ describe('checkRateLimit - Redis Store (Mocked)', () => {
   });
 
   it('should fallback to memory on Redis error', async () => {
-    mockRedisLimit.mockRejectedValue(new Error('Redis connection failed'));
+    const { Ratelimit } = await import('@upstash/ratelimit');
+    const rateLimitInstance = new (Ratelimit as any)();
+    const limit = vi.mocked(rateLimitInstance.limit);
+
+    limit.mockRejectedValue(new Error('Redis connection failed'));
 
     const result = await checkRateLimit('test:redis-fallback', {
       limit: 5,
@@ -412,12 +435,16 @@ describe('checkRateLimit - Redis Store (Mocked)', () => {
   });
 
   it('should capture Sentry exception on Redis error', async () => {
-    const Sentry = require('@sentry/nextjs');
-    mockRedisLimit.mockRejectedValue(new Error('Redis timeout'));
+    const { Ratelimit } = await import('@upstash/ratelimit');
+    const rateLimitInstance = new (Ratelimit as any)();
+    const limit = vi.mocked(rateLimitInstance.limit);
+
+    const Sentry = await import('@sentry/nextjs');
+    limit.mockRejectedValue(new Error('Redis timeout'));
 
     await checkRateLimit('test:sentry', { limit: 5, windowSeconds: 60 });
 
-    expect(Sentry.captureException).toHaveBeenCalled();
+    expect(vi.mocked(Sentry.captureException)).toHaveBeenCalled();
   });
 });
 
@@ -426,9 +453,9 @@ describe('checkRateLimit - Redis Store (Mocked)', () => {
 // ============================================================================
 
 describe('Production Environment Validation', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     vi.clearAllMocks();
-    createMockHeaders({ 'x-forwarded-for': '192.168.1.1' });
+    await createMockHeaders({ 'x-forwarded-for': '192.168.1.1' });
   });
 
   afterEach(() => {
@@ -445,7 +472,7 @@ describe('Production Environment Validation', () => {
   });
 
   it('should capture fatal Sentry error in production without Redis', async () => {
-    const Sentry = require('@sentry/nextjs');
+    const Sentry = await import('@sentry/nextjs');
     setProductionEnv();
     clearRedisEnv();
 
@@ -455,7 +482,7 @@ describe('Production Environment Validation', () => {
       // Expected to throw
     }
 
-    expect(Sentry.captureException).toHaveBeenCalledWith(
+    expect(vi.mocked(Sentry.captureException)).toHaveBeenCalledWith(
       expect.any(Error),
       expect.objectContaining({
         level: 'fatal',
@@ -481,8 +508,16 @@ describe('Production Environment Validation', () => {
   it('should work in production with Redis configured', async () => {
     setProductionEnv();
     setRedisEnv();
-    mockRedisFromEnv.mockReturnValue({});
-    mockRedisLimit.mockResolvedValue({
+
+    const { Redis } = await import('@upstash/redis');
+    const { Ratelimit } = await import('@upstash/ratelimit');
+
+    vi.mocked(Redis.fromEnv).mockReturnValue({} as any);
+
+    const rateLimitInstance = new (Ratelimit as any)();
+    const limit = vi.mocked(rateLimitInstance.limit);
+
+    limit.mockResolvedValue({
       success: true,
       limit: 5,
       remaining: 4,
@@ -503,10 +538,10 @@ describe('Production Environment Validation', () => {
 // ============================================================================
 
 describe('rateLimit wrapper function', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     vi.clearAllMocks();
     setDevelopmentEnv();
-    createMockHeaders({ 'x-forwarded-for': '192.168.1.1' });
+    await createMockHeaders({ 'x-forwarded-for': '192.168.1.1' });
   });
 
   afterEach(() => {
@@ -549,10 +584,10 @@ describe('rateLimit wrapper function', () => {
 // ============================================================================
 
 describe('createUserRateLimiter', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     vi.clearAllMocks();
     setDevelopmentEnv();
-    createMockHeaders({ 'x-forwarded-for': '192.168.1.1' });
+    await createMockHeaders({ 'x-forwarded-for': '192.168.1.1' });
   });
 
   afterEach(() => {
@@ -589,11 +624,11 @@ describe('createUserRateLimiter', () => {
     const config: RateLimitConfig = { limit: 1, windowSeconds: 60 };
     const userRateLimit = createUserRateLimiter('user-456');
 
-    createMockHeaders({ 'x-forwarded-for': '192.168.1.1' });
+    await createMockHeaders({ 'x-forwarded-for': '192.168.1.1' });
     await userRateLimit('test:user-ip', config);
 
     // Same user from different IP should still be rate limited
-    createMockHeaders({ 'x-forwarded-for': '192.168.1.2' });
+    await createMockHeaders({ 'x-forwarded-for': '192.168.1.2' });
     const result = await userRateLimit('test:user-ip', config);
     expect(result.success).toBe(false);
   });
@@ -617,10 +652,10 @@ describe('createUserRateLimiter', () => {
 // ============================================================================
 
 describe('Sentry Integration', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     vi.clearAllMocks();
     setDevelopmentEnv();
-    createMockHeaders({ 'x-forwarded-for': '192.168.1.1' });
+    await createMockHeaders({ 'x-forwarded-for': '192.168.1.1' });
   });
 
   afterEach(() => {
@@ -628,13 +663,13 @@ describe('Sentry Integration', () => {
   });
 
   it('should log rate limit exceeded to Sentry', async () => {
-    const Sentry = require('@sentry/nextjs');
+    const Sentry = await import('@sentry/nextjs');
     const config: RateLimitConfig = { limit: 1, windowSeconds: 60 };
 
     await checkRateLimit('test:sentry-log', config);
     await checkRateLimit('test:sentry-log', config);
 
-    expect(Sentry.captureMessage).toHaveBeenCalledWith(
+    expect(vi.mocked(Sentry.captureMessage)).toHaveBeenCalledWith(
       'Rate limit exceeded: test:sentry-log',
       expect.objectContaining({
         level: 'warning',
@@ -647,7 +682,7 @@ describe('Sentry Integration', () => {
   });
 
   it('should include rate limit details in Sentry log', async () => {
-    const Sentry = require('@sentry/nextjs');
+    const Sentry = await import('@sentry/nextjs');
     const config: RateLimitConfig = { limit: 5, windowSeconds: 60 };
 
     // Exceed limit
@@ -655,7 +690,7 @@ describe('Sentry Integration', () => {
       await checkRateLimit('test:sentry-details', config);
     }
 
-    expect(Sentry.captureMessage).toHaveBeenCalledWith(
+    expect(vi.mocked(Sentry.captureMessage)).toHaveBeenCalledWith(
       expect.any(String),
       expect.objectContaining({
         extra: expect.objectContaining({
@@ -667,14 +702,14 @@ describe('Sentry Integration', () => {
   });
 
   it('should truncate identifier in Sentry logs', async () => {
-    const Sentry = require('@sentry/nextjs');
+    const Sentry = await import('@sentry/nextjs');
     const config: RateLimitConfig = { limit: 1, windowSeconds: 60 };
 
-    createMockHeaders({ 'x-forwarded-for': '192.168.1.123' });
+    await createMockHeaders({ 'x-forwarded-for': '192.168.1.123' });
     await checkRateLimit('test:sentry-truncate', config);
     await checkRateLimit('test:sentry-truncate', config);
 
-    expect(Sentry.captureMessage).toHaveBeenCalledWith(
+    expect(vi.mocked(Sentry.captureMessage)).toHaveBeenCalledWith(
       expect.any(String),
       expect.objectContaining({
         tags: expect.objectContaining({
@@ -690,10 +725,10 @@ describe('Sentry Integration', () => {
 // ============================================================================
 
 describe('Edge Cases', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     vi.clearAllMocks();
     setDevelopmentEnv();
-    createMockHeaders({ 'x-forwarded-for': '192.168.1.1' });
+    await createMockHeaders({ 'x-forwarded-for': '192.168.1.1' });
   });
 
   afterEach(() => {

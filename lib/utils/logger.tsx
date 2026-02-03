@@ -140,7 +140,7 @@ export const logger = {
    */
   trace: (message: string, metadata?: Record<string, unknown>) => {
     const sanitized = metadata ? sanitizeMetadata(metadata) : undefined;
-    Sentry.logger.trace(message, sanitized);
+    console.debug(message, sanitized); Sentry.addBreadcrumb({ message, level: 'debug', data: sanitized });
   },
 
   /**
@@ -148,7 +148,7 @@ export const logger = {
    */
   debug: (message: string, metadata?: Record<string, unknown>) => {
     const sanitized = metadata ? sanitizeMetadata(metadata) : undefined;
-    Sentry.logger.debug(message, sanitized);
+    console.debug(message, sanitized); Sentry.addBreadcrumb({ message, level: 'debug', data: sanitized });
   },
 
   /**
@@ -162,7 +162,7 @@ export const logger = {
    */
   info: (message: string, metadata?: Record<string, unknown>) => {
     const sanitized = metadata ? sanitizeMetadata(metadata) : undefined;
-    Sentry.logger.info(message, sanitized);
+    console.info(message, sanitized); Sentry.addBreadcrumb({ message, level: 'info', data: sanitized });
   },
 
   /**
@@ -175,7 +175,7 @@ export const logger = {
    */
   warn: (message: string, metadata?: Record<string, unknown>) => {
     const sanitized = metadata ? sanitizeMetadata(metadata) : undefined;
-    Sentry.logger.warn(message, sanitized);
+    console.warn(message, sanitized); Sentry.addBreadcrumb({ message, level: 'warning', data: sanitized });
   },
 
   /**
@@ -191,7 +191,7 @@ export const logger = {
    */
   error: (message: string, metadata?: Record<string, unknown>) => {
     const sanitized = metadata ? sanitizeMetadata(metadata) : undefined;
-    Sentry.logger.error(message, sanitized);
+    console.error(message, sanitized); Sentry.captureMessage(message, { level: 'error', extra: sanitized });
   },
 
   /**
@@ -204,7 +204,7 @@ export const logger = {
    */
   fatal: (message: string, metadata?: Record<string, unknown>) => {
     const sanitized = metadata ? sanitizeMetadata(metadata) : undefined;
-    Sentry.logger.fatal(message, sanitized);
+    console.error(message, sanitized); Sentry.captureMessage(message, { level: 'fatal', extra: sanitized });
   },
 
   /**

@@ -72,7 +72,7 @@ RETURNS TABLE(
     last_name text, 
     trade text, 
     location text, 
-    geo_coords geography, 
+    geo_coords extensions.geography, 
     years_exp integer
 ) LANGUAGE "plpgsql" STABLE AS $$
 BEGIN

@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { LoginForm } from './login-form';
+import { ToastProvider } from '@/components/providers/toast-provider';
 
 // Mock next/navigation
 const mockPush = vi.fn();
@@ -21,45 +22,50 @@ vi.mock('../actions/auth-actions', () => ({
 
 import { signIn, signInWithGoogle } from '../actions/auth-actions';
 
+// Helper to render with ToastProvider
+const renderWithToast = (component: React.ReactElement) => {
+  return render(<ToastProvider>{component}</ToastProvider>);
+};
+
 describe('LoginForm', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
   it('should render email and password fields', () => {
-    render(<LoginForm />);
+    renderWithToast(<LoginForm />);
 
     expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/password/i)).toBeInTheDocument();
   });
 
   it('should render sign in button', () => {
-    render(<LoginForm />);
+    renderWithToast(<LoginForm />);
 
     expect(screen.getByRole('button', { name: /sign in/i })).toBeInTheDocument();
   });
 
   it('should render Google sign in button', () => {
-    render(<LoginForm />);
+    renderWithToast(<LoginForm />);
 
     expect(screen.getByRole('button', { name: /continue with google/i })).toBeInTheDocument();
   });
 
   it('should render forgot password link', () => {
-    render(<LoginForm />);
+    renderWithToast(<LoginForm />);
 
     expect(screen.getByRole('link', { name: /forgot password/i })).toBeInTheDocument();
   });
 
   it('should render signup link', () => {
-    render(<LoginForm />);
+    renderWithToast(<LoginForm />);
 
     expect(screen.getByRole('link', { name: /sign up/i })).toBeInTheDocument();
   });
 
   it('should update email field on input', async () => {
     const user = userEvent.setup();
-    render(<LoginForm />);
+    renderWithToast(<LoginForm />);
 
     const emailInput = screen.getByLabelText(/email/i);
     await user.type(emailInput, 'test@example.com');
@@ -69,7 +75,7 @@ describe('LoginForm', () => {
 
   it('should update password field on input', async () => {
     const user = userEvent.setup();
-    render(<LoginForm />);
+    renderWithToast(<LoginForm />);
 
     const passwordInput = screen.getByLabelText(/password/i);
     await user.type(passwordInput, 'password123');
@@ -81,7 +87,7 @@ describe('LoginForm', () => {
     const user = userEvent.setup();
     vi.mocked(signIn).mockResolvedValue({ success: true });
 
-    render(<LoginForm />);
+    renderWithToast(<LoginForm />);
 
     const emailInput = screen.getByLabelText(/email/i);
     const passwordInput = screen.getByLabelText(/password/i);
@@ -100,7 +106,7 @@ describe('LoginForm', () => {
     const user = userEvent.setup();
     vi.mocked(signIn).mockResolvedValue({ success: false, error: 'Invalid credentials' });
 
-    render(<LoginForm />);
+    renderWithToast(<LoginForm />);
 
     const emailInput = screen.getByLabelText(/email/i);
     const passwordInput = screen.getByLabelText(/password/i);
@@ -119,7 +125,7 @@ describe('LoginForm', () => {
     const user = userEvent.setup();
     vi.mocked(signIn).mockResolvedValue({ success: false });
 
-    render(<LoginForm />);
+    renderWithToast(<LoginForm />);
 
     const emailInput = screen.getByLabelText(/email/i);
     const passwordInput = screen.getByLabelText(/password/i);
@@ -138,7 +144,7 @@ describe('LoginForm', () => {
     const user = userEvent.setup();
     vi.mocked(signInWithGoogle).mockResolvedValue(undefined as any);
 
-    render(<LoginForm />);
+    renderWithToast(<LoginForm />);
 
     const googleButton = screen.getByRole('button', { name: /continue with google/i });
     await user.click(googleButton);
@@ -156,7 +162,7 @@ describe('LoginForm', () => {
       () => new Promise((resolve) => { resolveSignIn = resolve; })
     );
 
-    render(<LoginForm />);
+    renderWithToast(<LoginForm />);
 
     const emailInput = screen.getByLabelText(/email/i);
     const passwordInput = screen.getByLabelText(/password/i);
@@ -177,7 +183,7 @@ describe('LoginForm', () => {
   });
 
   it('should show remember me checkbox', () => {
-    render(<LoginForm />);
+    renderWithToast(<LoginForm />);
 
     expect(screen.getByLabelText(/remember me/i)).toBeInTheDocument();
   });
@@ -186,7 +192,7 @@ describe('LoginForm', () => {
     const user = userEvent.setup();
     vi.mocked(signInWithGoogle).mockRejectedValue(new Error('Google auth failed'));
 
-    render(<LoginForm />);
+    renderWithToast(<LoginForm />);
 
     const googleButton = screen.getByRole('button', { name: /continue with google/i });
     await user.click(googleButton);

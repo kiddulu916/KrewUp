@@ -66,7 +66,7 @@ describe('LoadingSpinner Component', () => {
   it('should animate', () => {
     const { container } = render(<LoadingSpinner />);
     const spinner = container.querySelector('[role="status"]');
-    expect(spinner).toHaveClass('animate-spin');
+    expect(spinner).toHaveClass('motion-safe:animate-spin');
   });
 
   it('should have rounded full styling', () => {

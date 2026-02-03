@@ -19,7 +19,7 @@ CREATE OR REPLACE FUNCTION "public"."get_nearby_jobs"(
     title text,
     description text,
     location text,
-    coords geography,
+    coords extensions.geography,
     job_type text,
     pay_rate text,
     pay_min numeric,

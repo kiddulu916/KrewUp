@@ -33,7 +33,7 @@ describe('validateProfileInput', () => {
   it('should return valid for complete input', () => {
     const input: ProfileInput = {
       name: 'John Doe',
-      phone: '(555) 123-4567',
+      phone: '(555)123-4567',
       email: 'john@example.com',
       location: 'Austin, TX',
       bio: 'Experienced electrician',
@@ -92,7 +92,7 @@ describe('validateName', () => {
 
 describe('validatePhone', () => {
   it('should return valid for properly formatted phone', () => {
-    expect(validatePhone('(555) 123-4567').valid).toBe(true);
+    expect(validatePhone('(555)123-4567').valid).toBe(true);
   });
 
   it('should return valid for empty phone (optional)', () => {
@@ -102,12 +102,12 @@ describe('validatePhone', () => {
   it('should reject improperly formatted phone', () => {
     expect(validatePhone('555-123-4567').valid).toBe(false);
     expect(validatePhone('5551234567').valid).toBe(false);
-    expect(validatePhone('(555)123-4567').valid).toBe(false);
+    expect(validatePhone('(555) 123-4567').valid).toBe(false); // Has space - invalid format
   });
 
   it('should show format hint in error', () => {
     const result = validatePhone('invalid');
-    expect(result.error).toContain('(XXX) XXX-XXXX');
+    expect(result.error).toContain('(XXX)XXX-XXXX');
   });
 });
 
@@ -333,13 +333,13 @@ describe('parseNameParts', () => {
 
 describe('formatPhoneNumber', () => {
   it('should format 10 digit number', () => {
-    expect(formatPhoneNumber('5551234567')).toBe('(555) 123-4567');
+    expect(formatPhoneNumber('5551234567')).toBe('(555)123-4567');
   });
 
   it('should strip non-digits and format', () => {
-    expect(formatPhoneNumber('555-123-4567')).toBe('(555) 123-4567');
-    expect(formatPhoneNumber('(555) 123-4567')).toBe('(555) 123-4567');
-    expect(formatPhoneNumber('555.123.4567')).toBe('(555) 123-4567');
+    expect(formatPhoneNumber('555-123-4567')).toBe('(555)123-4567');
+    expect(formatPhoneNumber('(555)123-4567')).toBe('(555)123-4567');
+    expect(formatPhoneNumber('555.123.4567')).toBe('(555)123-4567');
   });
 
   it('should return empty for invalid length', () => {
@@ -425,7 +425,7 @@ describe('calculateWorkerProfileCompleteness', () => {
     const profile = {
       first_name: 'John',
       last_name: 'Doe',
-      phone: '(555) 123-4567',
+      phone: '(555)123-4567',
       location: 'Austin, TX',
       bio: 'Experienced worker',
       trade: 'Electricians',
@@ -447,7 +447,7 @@ describe('calculateWorkerProfileCompleteness', () => {
   it('should identify missing fields', () => {
     const profile = {
       first_name: 'John',
-      phone: '(555) 123-4567',
+      phone: '(555)123-4567',
     };
     const result = calculateWorkerProfileCompleteness(profile);
     expect(result.missingFields).toContain('Location');

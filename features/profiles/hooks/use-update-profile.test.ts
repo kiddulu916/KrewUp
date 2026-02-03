@@ -18,6 +18,11 @@ vi.mock('next/navigation', () => ({
   }),
 }));
 
+// Mock CSRF provider
+vi.mock('@/components/providers/csrf-provider', () => ({
+  useCsrfToken: vi.fn(() => 'mock-csrf-token'),
+}));
+
 import { useUpdateProfile } from './use-update-profile';
 
 // Create wrapper with QueryClientProvider
@@ -62,7 +67,7 @@ describe('useUpdateProfile', () => {
     });
 
     await waitFor(() => {
-      expect(mockUpdateProfile).toHaveBeenCalledWith(profileData);
+      expect(mockUpdateProfile).toHaveBeenCalledWith({ ...profileData, csrfToken: 'mock-csrf-token' });
     });
   });
 
@@ -185,7 +190,7 @@ describe('useUpdateProfile', () => {
     });
 
     await waitFor(() => {
-      expect(mockUpdateProfile).toHaveBeenCalledWith(complexData);
+      expect(mockUpdateProfile).toHaveBeenCalledWith({ ...complexData, csrfToken: 'mock-csrf-token' });
     });
   });
 });

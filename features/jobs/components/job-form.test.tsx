@@ -38,6 +38,22 @@ vi.mock('@/components/ui', () => ({
       {helperText && <span>{helperText}</span>}
     </div>
   ),
+  Textarea: ({ label, value, onChange, placeholder, required, disabled, ...props }: any) => (
+    <div>
+      <label>
+        {label}
+        {required && <span>*</span>}
+      </label>
+      <textarea
+        value={value}
+        onChange={onChange}
+        placeholder={placeholder}
+        disabled={disabled}
+        aria-label={label}
+        {...props}
+      />
+    </div>
+  ),
   Select: ({ label, value, onChange, options, required, disabled }: any) => (
     <div>
       <label>
@@ -116,7 +132,42 @@ vi.mock('../actions/job-actions', () => ({
   createJob: (...args: any[]) => mockCreateJob(...args),
 }));
 
+// Mock custom hooks
+vi.mock('../hooks/use-trade-selections', () => ({
+  useTradeSelections: vi.fn(() => ({
+    tradeSelections: [{ trade: 'Electricians', subTrades: ['Inside Wireman (Commercial)'] }],
+    allSubTrades: [{ trade: 'Electricians', subTrade: 'Inside Wireman (Commercial)' }],
+    showPerSubTradeRates: false,
+    selectedTrades: ['Electricians'],
+    relevantCertCategories: [['Safety', ['OSHA 10', 'OSHA 30']]],
+    addTradeSelection: vi.fn(),
+    removeTradeSelection: vi.fn(),
+    updateTrade: vi.fn(),
+    addSubTrade: vi.fn(),
+    updateSubTrade: vi.fn(),
+    removeSubTrade: vi.fn(),
+    getValidTradeSelections: vi.fn(() => [{ trade: 'Electricians', subTrades: ['Inside Wireman (Commercial)'] }]),
+  })),
+}));
+
+vi.mock('../hooks/use-certification-selection', () => ({
+  useCertificationSelection: vi.fn(() => ({
+    selectedCerts: [],
+    expandedCategories: new Set(['Safety']),
+    relevantCertCategories: [['Safety', ['OSHA 10', 'OSHA 30']]],
+    toggleCert: vi.fn(),
+    toggleCategory: vi.fn(),
+    filterInvalidCerts: vi.fn(),
+  })),
+}));
+
 import { JobForm } from './job-form';
+import { ToastProvider } from '@/components/providers/toast-provider';
+
+// Helper to render with ToastProvider
+const renderWithToast = (component: React.ReactElement) => {
+  return render(<ToastProvider>{component}</ToastProvider>);
+};
 
 describe('JobForm Component', () => {
   beforeEach(() => {
@@ -126,7 +177,7 @@ describe('JobForm Component', () => {
 
   describe('Initial Render', () => {
     it('should render the form with empty fields', () => {
-      render(<JobForm />);
+      renderWithToast(<JobForm />);
 
       expect(screen.getByLabelText(/Job Title/i)).toHaveValue('');
       expect(screen.getByLabelText(/Job Type/i)).toBeInTheDocument();
@@ -134,44 +185,44 @@ describe('JobForm Component', () => {
     });
 
     it('should render the Post Job button', () => {
-      render(<JobForm />);
+      renderWithToast(<JobForm />);
       expect(screen.getByRole('button', { name: /Post Job/i })).toBeInTheDocument();
     });
 
     it('should render the Cancel button', () => {
-      render(<JobForm />);
+      renderWithToast(<JobForm />);
       expect(screen.getByRole('button', { name: /Cancel/i })).toBeInTheDocument();
     });
 
     it('should render trades needed section', () => {
-      render(<JobForm />);
+      renderWithToast(<JobForm />);
       expect(screen.getByText(/Trades Needed/i)).toBeInTheDocument();
     });
 
     it('should render job description textarea', () => {
-      render(<JobForm />);
+      renderWithToast(<JobForm />);
       expect(screen.getByPlaceholderText(/Describe the job responsibilities/i)).toBeInTheDocument();
     });
 
     it('should render required certifications section', () => {
-      render(<JobForm />);
+      renderWithToast(<JobForm />);
       expect(screen.getByText(/Required Certifications/i)).toBeInTheDocument();
     });
 
     it('should render screening questions section', () => {
-      render(<JobForm />);
+      renderWithToast(<JobForm />);
       expect(screen.getByText(/Screening Questions/i)).toBeInTheDocument();
     });
 
     it('should show prompt to select job type for pay rate options', () => {
-      render(<JobForm />);
+      renderWithToast(<JobForm />);
       expect(screen.getByText(/Select a job type above to configure pay rate options/i)).toBeInTheDocument();
     });
   });
 
   describe('Title Field', () => {
     it('should update title field on input', () => {
-      render(<JobForm />);
+      renderWithToast(<JobForm />);
       const titleInput = screen.getByLabelText(/Job Title/i);
 
       fireEvent.change(titleInput, { target: { value: 'Senior Electrician Needed' } });
@@ -182,12 +233,12 @@ describe('JobForm Component', () => {
 
   describe('Trade Selection', () => {
     it('should render initial trade dropdown', () => {
-      render(<JobForm />);
+      renderWithToast(<JobForm />);
       expect(screen.getByLabelText(/Trade 1/i)).toBeInTheDocument();
     });
 
     it('should update trade dropdown when trade is selected', () => {
-      render(<JobForm />);
+      renderWithToast(<JobForm />);
       const tradeSelect = screen.getByLabelText(/Trade 1/i);
 
       fireEvent.change(tradeSelect, { target: { value: 'Electricians' } });
@@ -196,7 +247,7 @@ describe('JobForm Component', () => {
     });
 
     it('should show subtrade options after selecting a trade', () => {
-      render(<JobForm />);
+      renderWithToast(<JobForm />);
       const tradeSelect = screen.getByLabelText(/Trade 1/i);
 
       fireEvent.change(tradeSelect, { target: { value: 'Electricians' } });
@@ -206,7 +257,7 @@ describe('JobForm Component', () => {
     });
 
     it('should add new trade selection when + Trade is clicked', () => {
-      render(<JobForm />);
+      renderWithToast(<JobForm />);
 
       const addTradeButton = screen.getByRole('button', { name: /\+ Trade/i });
       fireEvent.click(addTradeButton);
@@ -216,7 +267,7 @@ describe('JobForm Component', () => {
     });
 
     it('should remove trade selection when × is clicked', () => {
-      render(<JobForm />);
+      renderWithToast(<JobForm />);
 
       // Add second trade
       const addTradeButton = screen.getByRole('button', { name: /\+ Trade/i });
@@ -233,7 +284,7 @@ describe('JobForm Component', () => {
 
   describe('Job Type Selection', () => {
     it('should show hourly rate fields for Full-Time jobs', () => {
-      render(<JobForm />);
+      renderWithToast(<JobForm />);
       const jobTypeSelect = screen.getByLabelText(/Job Type/i);
 
       fireEvent.change(jobTypeSelect, { target: { value: 'Full-Time' } });
@@ -243,7 +294,7 @@ describe('JobForm Component', () => {
     });
 
     it('should show hourly rate fields for Part-Time jobs', () => {
-      render(<JobForm />);
+      renderWithToast(<JobForm />);
       const jobTypeSelect = screen.getByLabelText(/Job Type/i);
 
       fireEvent.change(jobTypeSelect, { target: { value: 'Part-Time' } });
@@ -252,7 +303,7 @@ describe('JobForm Component', () => {
     });
 
     it('should show hourly rate fields for Temporary jobs', () => {
-      render(<JobForm />);
+      renderWithToast(<JobForm />);
       const jobTypeSelect = screen.getByLabelText(/Job Type/i);
 
       fireEvent.change(jobTypeSelect, { target: { value: 'Temporary' } });
@@ -261,7 +312,7 @@ describe('JobForm Component', () => {
     });
 
     it('should show contract amount fields for Contract jobs', () => {
-      render(<JobForm />);
+      renderWithToast(<JobForm />);
       const jobTypeSelect = screen.getByLabelText(/Job Type/i);
 
       fireEvent.change(jobTypeSelect, { target: { value: 'Contract' } });
@@ -271,7 +322,7 @@ describe('JobForm Component', () => {
     });
 
     it('should show contract amount fields for 1099 jobs', () => {
-      render(<JobForm />);
+      renderWithToast(<JobForm />);
       const jobTypeSelect = screen.getByLabelText(/Job Type/i);
 
       fireEvent.change(jobTypeSelect, { target: { value: '1099' } });
@@ -280,7 +331,7 @@ describe('JobForm Component', () => {
     });
 
     it('should show contract duration for Temporary jobs', () => {
-      render(<JobForm />);
+      renderWithToast(<JobForm />);
       const jobTypeSelect = screen.getByLabelText(/Job Type/i);
 
       fireEvent.change(jobTypeSelect, { target: { value: 'Temporary' } });
@@ -289,7 +340,7 @@ describe('JobForm Component', () => {
     });
 
     it('should show contract duration for Contract jobs', () => {
-      render(<JobForm />);
+      renderWithToast(<JobForm />);
       const jobTypeSelect = screen.getByLabelText(/Job Type/i);
 
       fireEvent.change(jobTypeSelect, { target: { value: 'Contract' } });
@@ -300,7 +351,7 @@ describe('JobForm Component', () => {
 
   describe('Pay Rate Configuration', () => {
     it('should update hourly rate when input changes', () => {
-      render(<JobForm />);
+      renderWithToast(<JobForm />);
       const jobTypeSelect = screen.getByLabelText(/Job Type/i);
       fireEvent.change(jobTypeSelect, { target: { value: 'Full-Time' } });
 
@@ -311,7 +362,7 @@ describe('JobForm Component', () => {
     });
 
     it('should update pay period when selection changes', () => {
-      render(<JobForm />);
+      renderWithToast(<JobForm />);
       const jobTypeSelect = screen.getByLabelText(/Job Type/i);
       fireEvent.change(jobTypeSelect, { target: { value: 'Full-Time' } });
 
@@ -322,7 +373,7 @@ describe('JobForm Component', () => {
     });
 
     it('should update contract amount when input changes', () => {
-      render(<JobForm />);
+      renderWithToast(<JobForm />);
       const jobTypeSelect = screen.getByLabelText(/Job Type/i);
       fireEvent.change(jobTypeSelect, { target: { value: 'Contract' } });
 
@@ -333,7 +384,7 @@ describe('JobForm Component', () => {
     });
 
     it('should update payment type when selection changes', () => {
-      render(<JobForm />);
+      renderWithToast(<JobForm />);
       const jobTypeSelect = screen.getByLabelText(/Job Type/i);
       fireEvent.change(jobTypeSelect, { target: { value: 'Contract' } });
 
@@ -344,7 +395,7 @@ describe('JobForm Component', () => {
     });
 
     it('should display formatted pay rate for hourly jobs', async () => {
-      render(<JobForm />);
+      renderWithToast(<JobForm />);
       const jobTypeSelect = screen.getByLabelText(/Job Type/i);
       fireEvent.change(jobTypeSelect, { target: { value: 'Full-Time' } });
 
@@ -359,12 +410,12 @@ describe('JobForm Component', () => {
 
   describe('Location Autocomplete', () => {
     it('should render location autocomplete component', () => {
-      render(<JobForm />);
+      renderWithToast(<JobForm />);
       expect(screen.getByTestId('location-autocomplete')).toBeInTheDocument();
     });
 
     it('should update location when input changes', () => {
-      render(<JobForm />);
+      renderWithToast(<JobForm />);
       const locationInput = screen.getByLabelText(/Location/i);
 
       fireEvent.change(locationInput, { target: { value: 'Austin, TX' } });
@@ -375,7 +426,7 @@ describe('JobForm Component', () => {
 
   describe('Job Description', () => {
     it('should update description when textarea changes', () => {
-      render(<JobForm />);
+      renderWithToast(<JobForm />);
       const descriptionInput = screen.getByPlaceholderText(/Describe the job responsibilities/i);
 
       fireEvent.change(descriptionInput, { target: { value: 'Looking for an experienced electrician' } });
@@ -386,12 +437,12 @@ describe('JobForm Component', () => {
 
   describe('Certification Selection', () => {
     it('should show Safety category by default', () => {
-      render(<JobForm />);
+      renderWithToast(<JobForm />);
       expect(screen.getByText('Safety')).toBeInTheDocument();
     });
 
     it('should show certification checkboxes when category is expanded', () => {
-      render(<JobForm />);
+      renderWithToast(<JobForm />);
 
       // Safety is expanded by default
       expect(screen.getByText('OSHA 10')).toBeInTheDocument();
@@ -399,7 +450,7 @@ describe('JobForm Component', () => {
     });
 
     it('should toggle certification selection', () => {
-      render(<JobForm />);
+      renderWithToast(<JobForm />);
 
       const oshaCheckbox = screen.getByRole('checkbox', { name: /OSHA 10/i });
       fireEvent.click(oshaCheckbox);
@@ -408,7 +459,7 @@ describe('JobForm Component', () => {
     });
 
     it('should show selected certifications count', () => {
-      render(<JobForm />);
+      renderWithToast(<JobForm />);
 
       const oshaCheckbox = screen.getByRole('checkbox', { name: /OSHA 10/i });
       fireEvent.click(oshaCheckbox);
@@ -419,7 +470,7 @@ describe('JobForm Component', () => {
     });
 
     it('should toggle category expansion', () => {
-      render(<JobForm />);
+      renderWithToast(<JobForm />);
 
       // Click on Safety to collapse
       const safetyButton = screen.getByRole('button', { name: /Safety/i });
@@ -432,17 +483,17 @@ describe('JobForm Component', () => {
 
   describe('Custom Questions', () => {
     it('should render custom questions builder', () => {
-      render(<JobForm />);
+      renderWithToast(<JobForm />);
       expect(screen.getByTestId('custom-questions-builder')).toBeInTheDocument();
     });
 
     it('should show questions count', () => {
-      render(<JobForm />);
+      renderWithToast(<JobForm />);
       expect(screen.getByText('Questions: 0')).toBeInTheDocument();
     });
 
     it('should add question when button clicked', () => {
-      render(<JobForm />);
+      renderWithToast(<JobForm />);
 
       const addButton = screen.getByRole('button', { name: /Add Question/i });
       fireEvent.click(addButton);
@@ -453,7 +504,7 @@ describe('JobForm Component', () => {
 
   describe('Form Submission', () => {
     it('should show error when no trade is selected', async () => {
-      render(<JobForm />);
+      renderWithToast(<JobForm />);
 
       // Fill all required fields except trade
       fireEvent.change(screen.getByLabelText(/Job Title/i), {
@@ -482,7 +533,7 @@ describe('JobForm Component', () => {
     });
 
     it('should call createJob with correct data when form is valid', async () => {
-      render(<JobForm />);
+      renderWithToast(<JobForm />);
 
       // Fill required fields
       fireEvent.change(screen.getByLabelText(/Job Title/i), {
@@ -522,7 +573,7 @@ describe('JobForm Component', () => {
     it('should show loading state during submission', async () => {
       mockCreateJob.mockImplementation(() => new Promise(() => {})); // Never resolves
 
-      render(<JobForm />);
+      renderWithToast(<JobForm />);
 
       // Fill required fields
       fireEvent.change(screen.getByLabelText(/Job Title/i), {
@@ -558,7 +609,7 @@ describe('JobForm Component', () => {
         error: 'Failed to create job',
       });
 
-      render(<JobForm />);
+      renderWithToast(<JobForm />);
 
       // Fill required fields
       fireEvent.change(screen.getByLabelText(/Job Title/i), {
@@ -591,7 +642,7 @@ describe('JobForm Component', () => {
     it('should show loading state during submission', async () => {
       mockCreateJob.mockImplementation(() => new Promise(() => {})); // Never resolves
 
-      render(<JobForm />);
+      renderWithToast(<JobForm />);
 
       // Fill all required fields
       fireEvent.change(screen.getByLabelText(/Job Title/i), {
@@ -629,7 +680,7 @@ describe('JobForm Component', () => {
       const mockBack = vi.fn();
       vi.spyOn(window.history, 'back').mockImplementation(mockBack);
 
-      render(<JobForm />);
+      renderWithToast(<JobForm />);
 
       const cancelButton = screen.getByRole('button', { name: /Cancel/i });
       fireEvent.click(cancelButton);

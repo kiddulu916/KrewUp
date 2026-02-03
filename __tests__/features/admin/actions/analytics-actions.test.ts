@@ -39,6 +39,7 @@ const createMockChain = () => {
 
 const mockSupabaseClient = {
   from: vi.fn(() => createMockChain()),
+  rpc: vi.fn(() => Promise.resolve({ data: [], error: null })),
   auth: {
     getUser: vi.fn(() => Promise.resolve({
       data: { user: { id: 'test-user-id' } },
@@ -492,6 +493,7 @@ describe('Analytics Actions', () => {
         error: null,
       });
       mockSupabaseClient.from.mockReturnValue(createMockChain());
+      mockSupabaseClient.rpc.mockResolvedValue({ data: [], error: null });
     });
 
     it('returns operational load metrics with correct structure', async () => {
