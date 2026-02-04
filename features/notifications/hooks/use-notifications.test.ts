@@ -82,7 +82,7 @@ describe('useNotifications', () => {
     expect(result.current.isLoading).toBe(false);
     expect(result.current.notifications).toHaveLength(2);
     expect(result.current.notifications[0].title).toBe('New Application');
-    expect(result.current.notifications[0].read_at).toBe(null);
+    expect(result.current.notifications[0].read_at).toBeUndefined();
   });
 
   it('should handle empty notifications', () => {

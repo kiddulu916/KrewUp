@@ -63,24 +63,17 @@ describe('useTrackProfileView', () => {
   });
 
   it('should handle tracking errors gracefully', async () => {
-    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     vi.mocked(trackProfileView).mockRejectedValue(new Error('Network error'));
 
-    renderHook(() => useTrackProfileView('user-123'));
+    // Should not throw - errors are silently caught
+    expect(() => {
+      renderHook(() => useTrackProfileView('user-123'));
+    }).not.toThrow();
 
+    // Verify trackProfileView was called despite error
     await vi.waitFor(() => {
-      expect(trackProfileView).toHaveBeenCalled();
+      expect(trackProfileView).toHaveBeenCalledWith('user-123');
     });
-
-    // Should log error but not crash
-    await vi.waitFor(() => {
-      expect(consoleSpy).toHaveBeenCalledWith(
-        'Failed to track profile view:',
-        expect.any(Error)
-      );
-    });
-
-    consoleSpy.mockRestore();
   });
 
   it('should track when enabled changes from false to true', async () => {

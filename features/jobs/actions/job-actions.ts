@@ -167,6 +167,11 @@ export async function createJob(
     redirect(`/dashboard/jobs/${job.id}`);
   }
   } catch (error) {
+    // Re-throw Next.js redirect errors (they should not be caught)
+    if (error instanceof Error && error.message.includes('NEXT_REDIRECT')) {
+      throw error;
+    }
+
     Sentry.captureException(error, {
       tags: {
         feature: 'job-posting',

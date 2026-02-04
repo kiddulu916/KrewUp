@@ -53,6 +53,11 @@ export function ModerationActionsCard({
       } else {
         toast.error(result.error || 'Failed to suspend user');
       }
+    } catch (error) {
+      logger.error('Error suspending user', {
+        error: error instanceof Error ? error.message : String(error),
+      });
+      toast.error('Failed to suspend user');
     } finally {
       setActionLoading(false);
     }
@@ -75,6 +80,11 @@ export function ModerationActionsCard({
       } else {
         toast.error(result.error || 'Failed to ban user');
       }
+    } catch (error) {
+      logger.error('Error banning user', {
+        error: error instanceof Error ? error.message : String(error),
+      });
+      toast.error('Failed to ban user');
     } finally {
       setActionLoading(false);
     }

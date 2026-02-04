@@ -18,13 +18,13 @@ Reusable UI components shared across features. Contains base UI primitives, layo
 components/
 ├── admin/              # Admin dashboard components
 │   ├── user-management/  # User CRUD components
-│   │   ├── ban-user-dialog.tsx
-│   │   ├── suspend-user-dialog.tsx
-│   │   ├── moderation-actions-card.tsx
-│   │   ├── moderation-history-card.tsx
-│   │   ├── pro-subscription-card.tsx
-│   │   ├── user-info-card.tsx
-│   │   └── user-list.tsx
+│   │   ├── ban-user-dialog.tsx         # Ban user dialog with reason input
+│   │   ├── suspend-user-dialog.tsx     # Suspend user dialog with duration picker
+│   │   ├── moderation-actions-card.tsx # Action buttons (suspend, ban, unban) with state management
+│   │   ├── moderation-history-card.tsx # Moderation action history display
+│   │   ├── pro-subscription-card.tsx   # Pro subscription management
+│   │   ├── user-info-card.tsx          # User profile information display
+│   │   └── user-list.tsx               # Paginated user list with filters
 │   ├── admin-sidebar.tsx # Admin navigation
 │   ├── date-range-picker.tsx
 │   ├── funnel-chart.tsx
@@ -85,6 +85,7 @@ components/
 - Props interface defined above component
 - Use `clsx` or `tailwind-merge` for class composition
 - Wrap event handlers in `useCallback` when passed to `useEffect` dependencies
+- Admin moderation components: Use structured logging with error handling, conditional rendering based on moderation status, separate dialog components for actions
 
 ### Naming
 

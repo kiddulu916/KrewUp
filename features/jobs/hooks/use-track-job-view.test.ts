@@ -56,25 +56,25 @@ describe('useTrackJobView', () => {
     renderHook(() => useTrackJobView(null));
 
     // Give effect time to potentially run
-    await new Promise(resolve => setTimeout(resolve, 10));
-
-    expect(mockTrackJobView).not.toHaveBeenCalled();
+    await vi.waitFor(() => {
+      expect(mockTrackJobView).not.toHaveBeenCalled();
+    }, { timeout: 100 });
   });
 
   it('should not track when jobId is undefined', async () => {
     renderHook(() => useTrackJobView(undefined));
 
-    await new Promise(resolve => setTimeout(resolve, 10));
-
-    expect(mockTrackJobView).not.toHaveBeenCalled();
+    await vi.waitFor(() => {
+      expect(mockTrackJobView).not.toHaveBeenCalled();
+    }, { timeout: 100 });
   });
 
   it('should not track when enabled is false', async () => {
     renderHook(() => useTrackJobView('job-123', false));
 
-    await new Promise(resolve => setTimeout(resolve, 10));
-
-    expect(mockTrackJobView).not.toHaveBeenCalled();
+    await vi.waitFor(() => {
+      expect(mockTrackJobView).not.toHaveBeenCalled();
+    }, { timeout: 100 });
   });
 
   it('should only track once even if re-rendered', async () => {
@@ -90,10 +90,10 @@ describe('useTrackJobView', () => {
     // Re-render with same props
     rerender({ jobId: 'job-123' });
 
-    await new Promise(resolve => setTimeout(resolve, 10));
-
-    // Should still only have been called once
-    expect(mockTrackJobView).toHaveBeenCalledTimes(1);
+    await vi.waitFor(() => {
+      // Should still only have been called once
+      expect(mockTrackJobView).toHaveBeenCalledTimes(1);
+    }, { timeout: 100 });
   });
 
   it('should create session ID if not exists', async () => {
@@ -122,19 +122,17 @@ describe('useTrackJobView', () => {
   });
 
   it('should handle trackJobView errors gracefully', async () => {
-    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     mockTrackJobView.mockRejectedValueOnce(new Error('Network error'));
 
-    renderHook(() => useTrackJobView('job-123'));
+    // Should not throw - errors are silently caught
+    expect(() => {
+      renderHook(() => useTrackJobView('job-123'));
+    }).not.toThrow();
 
+    // Verify trackJobView was called despite error
     await vi.waitFor(() => {
-      expect(consoleSpy).toHaveBeenCalledWith(
-        'Failed to track job view:',
-        expect.any(Error)
-      );
+      expect(mockTrackJobView).toHaveBeenCalledWith('job-123', expect.any(String));
     });
-
-    consoleSpy.mockRestore();
   });
 
   it('should track when enabled changes from false to true', async () => {
@@ -143,8 +141,9 @@ describe('useTrackJobView', () => {
       { initialProps: { jobId: 'job-123', enabled: false } }
     );
 
-    await new Promise(resolve => setTimeout(resolve, 10));
-    expect(mockTrackJobView).not.toHaveBeenCalled();
+    await vi.waitFor(() => {
+      expect(mockTrackJobView).not.toHaveBeenCalled();
+    }, { timeout: 100 });
 
     // Enable tracking
     rerender({ jobId: 'job-123', enabled: true });

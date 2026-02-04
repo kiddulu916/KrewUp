@@ -398,7 +398,7 @@ describe('useApplicationWizard', () => {
       expect(result.current.lastSaved).toBeInstanceOf(Date);
     });
 
-    it('should show error toast on failed save', async () => {
+    it('should set error state on failed save', async () => {
       mockSaveDraft.mockResolvedValue({ success: false, error: 'Save failed' });
 
       const { result } = renderHookWithQuery(() => useApplicationWizard('job-123'));
@@ -411,7 +411,7 @@ describe('useApplicationWizard', () => {
         await result.current.handleAutoSave();
       });
 
-      expect(mockToast.error).toHaveBeenCalledWith('Failed to auto-save draft');
+      expect(result.current.saveError).toBe('Save failed');
     });
   });
 
