@@ -11,7 +11,7 @@
     "start": "./node_modules/.bin/dotenvx run -- next start",
     "lint": "eslint . --ext .ts,.tsx,.js,.jsx --max-warnings=0",
     "type-check": "tsc --noEmit",
-    "test": "vitest run",
+    "test": "NODE_OPTIONS='--max-old-space-size=6144' vitest run",
     "test:watch": "vitest",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest run --coverage",
