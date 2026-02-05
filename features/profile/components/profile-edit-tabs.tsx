@@ -5,6 +5,9 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { ProfileWithWorkerData } from '@/lib/types/profile.types';
 import { LazyPortfolioManager } from '@/features/portfolio/components/lazy-portfolio';
 import { ToolsSelector } from '@/features/profile/components/tools-selector';
+import { ProfileEditForm } from './profile-edit-form';
+import { ExperienceList } from '@/features/profiles/components/experience-list';
+import { canHaveExperiences, getExperienceLabels } from '@/features/profiles/constants/experience-labels';
 import { updateToolsOwned } from '@/features/profiles/actions/profile-actions';
 import { useToast } from '@/components/providers/toast-provider';
 import { Briefcase, Image as ImageIcon, Award, User } from 'lucide-react';
@@ -12,6 +15,14 @@ import { useCsrfToken } from '@/components/providers/csrf-provider';
 
 export interface ProfileEditTabsProps {
   profile: ProfileWithWorkerData;
+  experiences?: Array<{
+    id: string;
+    job_title: string;
+    company: string;
+    start_date: string;
+    end_date?: string | null;
+    description?: string | null;
+  }>;
 }
 
 type TabId = 'basic' | 'portfolio' | 'experience' | 'certifications';
@@ -22,14 +33,19 @@ interface Tab {
   icon: React.ComponentType<{ className?: string }>;
 }
 
-const tabs: Tab[] = [
-  { id: 'basic', label: 'Basic Info', icon: User },
-  { id: 'portfolio', label: 'Portfolio', icon: ImageIcon },
-  { id: 'experience', label: 'Experience', icon: Briefcase },
-  { id: 'certifications', label: 'Certifications', icon: Award },
-];
+export function ProfileEditTabs({ profile, experiences = [] }: ProfileEditTabsProps) {
+  // User type detection
+  const isWorker = profile.role === 'worker';
+  const showExperienceTab = canHaveExperiences(profile.role, profile.employer_type);
+  const experienceLabels = getExperienceLabels(profile.role, profile.employer_type);
 
-export function ProfileEditTabs({ profile }: ProfileEditTabsProps) {
+  // Build tabs array conditionally
+  const tabs: Tab[] = [
+    { id: 'basic', label: 'Basic Info', icon: User },
+    { id: 'portfolio', label: 'Portfolio', icon: ImageIcon },
+    ...(showExperienceTab ? [{ id: 'experience' as TabId, label: experienceLabels?.tabTitle || 'Experience', icon: Briefcase }] : []),
+    { id: 'certifications', label: 'Certifications', icon: Award },
+  ];
   const searchParams = useSearchParams();
   const router = useRouter();
   const toast = useToast();
@@ -106,30 +122,30 @@ export function ProfileEditTabs({ profile }: ProfileEditTabsProps) {
             <div>
               <h2 className="text-2xl font-bold text-gray-900">Basic Information</h2>
               <p className="mt-1 text-sm text-gray-600">
-                Update your profile information and select the tools you own.
+                Update your profile information{isWorker ? ' and select the tools you own' : ''}.
               </p>
             </div>
 
-            {/* Tools Selector */}
+            {/* Profile Edit Form */}
             <div className="rounded-lg border border-gray-200 bg-white p-6">
-              <h3 className="mb-4 text-lg font-semibold text-gray-900">Tools Owned</h3>
-              <ToolsSelector
-                hasTools={profile.has_tools || false}
-                toolsOwned={profile.tools_owned || []}
-                primaryTrade={profile.trade || undefined}
-                onChange={handleToolsChange}
-              />
-              {isSavingTools && (
-                <p className="mt-4 text-sm text-gray-500">Saving tools...</p>
-              )}
+              <ProfileEditForm profile={profile} />
             </div>
 
-            {/* Other basic info fields can be added here in future iterations */}
-            <div className="rounded-lg border border-gray-200 bg-gray-50 p-6">
-              <p className="text-sm text-gray-600">
-                Additional profile fields (name, phone, bio, etc.) will be added here in a future update.
-              </p>
-            </div>
+            {/* Tools Selector - Workers only */}
+            {isWorker && (
+              <div className="rounded-lg border border-gray-200 bg-white p-6">
+                <h3 className="mb-4 text-lg font-semibold text-gray-900">Tools Owned</h3>
+                <ToolsSelector
+                  hasTools={profile.has_tools || false}
+                  toolsOwned={profile.tools_owned || []}
+                  primaryTrade={profile.trade || undefined}
+                  onChange={handleToolsChange}
+                />
+                {isSavingTools && (
+                  <p className="mt-4 text-sm text-gray-500">Saving tools...</p>
+                )}
+              </div>
+            )}
           </div>
         )}
 
@@ -146,22 +162,22 @@ export function ProfileEditTabs({ profile }: ProfileEditTabsProps) {
           </div>
         )}
 
-        {activeTab === 'experience' && (
+        {activeTab === 'experience' && showExperienceTab && experienceLabels && (
           <div className="space-y-6">
             <div>
-              <h2 className="text-2xl font-bold text-gray-900">Work Experience</h2>
+              <h2 className="text-2xl font-bold text-gray-900">{experienceLabels.tabTitle}</h2>
               <p className="mt-1 text-sm text-gray-600">
-                Add and manage your work history.
+                Add and manage your {isWorker ? 'work history' : 'projects and experience'}.
               </p>
             </div>
 
-            <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 py-12">
-              <Briefcase className="h-12 w-12 text-gray-400" />
-              <p className="mt-2 text-gray-600">Experience editing coming soon</p>
-              <p className="mt-1 text-sm text-gray-500">
-                You&apos;ll be able to add and edit your work history here
-              </p>
-            </div>
+            <ExperienceList
+              experiences={experiences}
+              labels={experienceLabels}
+              isEditMode={true}
+              userRole={profile.role}
+              employerType={profile.employer_type}
+            />
           </div>
         )}
 
