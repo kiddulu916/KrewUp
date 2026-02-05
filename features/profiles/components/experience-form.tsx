@@ -6,18 +6,32 @@ import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button, Input, Textarea, Card, CardContent, CardHeader, CardTitle, Checkbox } from '@/components/ui';
 import { useToast } from '@/components/providers/toast-provider';
-import { addExperience } from '../actions/experience-actions';
+import { addExperience, updateExperience } from '../actions/experience-actions';
 import { experienceSchema, type ExperienceSchema } from '../utils/validation';
+import { EXPERIENCE_FIELD_LABELS, type ExperienceLabels } from '../constants/experience-labels';
 
 type Props = {
+  labels?: ExperienceLabels;
+  existingExperience?: {
+    id: string;
+    job_title: string;
+    company: string;
+    start_date: string;
+    end_date?: string | null;
+    is_current?: boolean;
+    description?: string | null;
+  };
   onSuccess?: () => void;
   onCancel?: () => void;
 };
 
-export function ExperienceForm({ onSuccess, onCancel }: Props) {
+export function ExperienceForm({ labels, existingExperience, onSuccess, onCancel }: Props) {
   const router = useRouter();
   const toast = useToast();
   const [error, setError] = useState<string | null>(null);
+
+  const fieldLabels = labels || EXPERIENCE_FIELD_LABELS.worker;
+  const isEditing = !!existingExperience;
 
   const {
     register,
@@ -28,12 +42,12 @@ export function ExperienceForm({ onSuccess, onCancel }: Props) {
   } = useForm<ExperienceSchema>({
     resolver: zodResolver(experienceSchema),
     defaultValues: {
-      job_title: '',
-      company_name: '',
-      start_date: '',
-      end_date: '',
-      is_current: false,
-      description: '',
+      job_title: existingExperience?.job_title || '',
+      company_name: existingExperience?.company || '',
+      start_date: existingExperience?.start_date || '',
+      end_date: existingExperience?.end_date || '',
+      is_current: existingExperience?.is_current || false,
+      description: existingExperience?.description || '',
     },
   });
 
@@ -45,31 +59,35 @@ export function ExperienceForm({ onSuccess, onCancel }: Props) {
     setError(null);
 
     try {
-      const result = await addExperience({
+      const payload = {
         job_title: data.job_title,
         company: data.company_name,
         start_date: data.start_date,
         end_date: data.is_current ? null : data.end_date,
         is_current: data.is_current,
         description: data.description || undefined,
-      });
+      };
+
+      const result = isEditing
+        ? await updateExperience(existingExperience.id, payload)
+        : await addExperience(payload);
 
       if (!result.success) {
-        const errorMsg = result.error || 'Failed to add work experience';
+        const errorMsg = result.error || `Failed to ${isEditing ? 'update' : 'add'} work experience`;
         setError(errorMsg);
         toast.error(errorMsg);
         return;
       }
 
-      toast.success('Work experience added successfully!');
+      toast.success(`${fieldLabels.tabTitle} ${isEditing ? 'updated' : 'added'} successfully!`);
       if (onSuccess) {
         onSuccess();
       } else {
-        router.push('/dashboard/profile');
+        router.push('/dashboard/profile?tab=experience');
         router.refresh();
       }
     } catch (err: unknown) {
-      const errorMsg = err instanceof Error ? err.message : 'Failed to add work experience';
+      const errorMsg = err instanceof Error ? err.message : `Failed to ${isEditing ? 'update' : 'add'} work experience`;
       setError(errorMsg);
       toast.error(errorMsg);
     }
@@ -79,12 +97,12 @@ export function ExperienceForm({ onSuccess, onCancel }: Props) {
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Work Experience Details</CardTitle>
+          <CardTitle>{isEditing ? 'Edit' : 'Add'} {fieldLabels.tabTitle}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div>
             <Input
-              label="Job Title"
+              label={fieldLabels.jobTitle}
               {...register('job_title')}
               placeholder="e.g., Senior Carpenter"
               required
@@ -96,7 +114,7 @@ export function ExperienceForm({ onSuccess, onCancel }: Props) {
 
           <div>
             <Input
-              label="Company Name"
+              label={fieldLabels.company}
               {...register('company_name')}
               placeholder="e.g., ABC Construction"
               required
@@ -143,13 +161,13 @@ export function ExperienceForm({ onSuccess, onCancel }: Props) {
               disabled={isSubmitting}
             />
             <label htmlFor="is_current" className="text-sm font-medium text-gray-700">
-              I currently work here
+              {fieldLabels.isCurrent}
             </label>
           </div>
 
           <div>
             <Textarea
-              label="Description"
+              label={fieldLabels.description}
               {...register('description')}
               placeholder="Describe your responsibilities and achievements..."
               rows={4}
@@ -184,7 +202,9 @@ export function ExperienceForm({ onSuccess, onCancel }: Props) {
           isLoading={isSubmitting}
           className="w-full"
         >
-          {isSubmitting ? 'Adding...' : 'Add Experience'}
+          {isSubmitting
+            ? (isEditing ? 'Updating...' : 'Adding...')
+            : (isEditing ? 'Update' : 'Add') + ' ' + fieldLabels.tabTitle}
         </Button>
       </div>
     </form>
