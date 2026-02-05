@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server';
 import { ProfileEditTabs } from '@/features/profile/components/profile-edit-tabs';
 import { redirect } from 'next/navigation';
 import { cookies } from 'next/headers';
+import { canHaveExperiences } from '@/features/profiles/constants/experience-labels';
 
 export const metadata = {
   title: 'Edit Profile - KrewUp',
@@ -29,6 +30,28 @@ export default async function ProfileEditPage() {
     redirect('/onboarding');
   }
 
+  // Fetch experiences only if user can have experiences (all roles except homeowner)
+  let experiences: Array<{
+    id: string;
+    job_title: string;
+    company: string;
+    start_date: string;
+    end_date?: string | null;
+    description?: string | null;
+  }> = [];
+
+  if (canHaveExperiences(profile.role, profile.employer_type)) {
+    const { data: experienceData } = await supabase
+      .from('experiences')
+      .select('id, job_title, company, start_date, end_date, description')
+      .eq('user_id', user.id)
+      .order('start_date', { ascending: false });
+
+    if (experienceData) {
+      experiences = experienceData;
+    }
+  }
+
   return (
     <div className="space-y-6">
       <div>
@@ -40,7 +63,7 @@ export default async function ProfileEditPage() {
         </p>
       </div>
 
-      <ProfileEditTabs profile={profile} />
+      <ProfileEditTabs profile={profile} experiences={experiences} />
     </div>
   );
 }
