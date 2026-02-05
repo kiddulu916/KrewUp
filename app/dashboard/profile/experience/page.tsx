@@ -25,15 +25,14 @@ export default async function AddExperiencePage() {
     redirect('/login');
   }
 
-  const { data: profile } = await supabase
+  const { data: profile, error } = await supabase
     .from('users')
     .select('role, employer_type')
     .eq('id', user.id)
     .single();
 
   // Only workers and certain employer types can add experiences
-  const canHaveExp = profile ? canHaveExperiences(profile.role, profile.employer_type) : false;
-  if (!profile || !canHaveExp) {
+  if (error || !profile || !canHaveExperiences(profile.role, profile.employer_type)) {
     redirect('/dashboard/profile');
   }
 
@@ -62,7 +61,7 @@ export default async function AddExperiencePage() {
         </p>
       </div>
 
-      <ExperienceForm labels={labels || undefined} />
+      <ExperienceForm labels={labels ?? undefined} />
     </div>
   );
 }
