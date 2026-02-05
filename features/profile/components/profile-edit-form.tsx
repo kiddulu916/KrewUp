@@ -12,9 +12,10 @@ import { ProfileAvatarUpload } from '@/features/profiles/components/profile-avat
 import { uploadProfilePicture } from '@/features/profiles/actions/profile-picture-actions';
 import { profileSchema, type ProfileSchema } from '@/features/profiles/utils/validation';
 import { useCsrfToken } from '@/components/providers/csrf-provider';
+import type { ProfileWithWorkerData } from '@/lib/types/profile.types';
 
 type Props = {
-  profile: any;
+  profile: ProfileWithWorkerData;
 };
 
 export function ProfileEditForm({ profile }: Props) {
@@ -22,6 +23,12 @@ export function ProfileEditForm({ profile }: Props) {
   const [error, setError] = useState('');
   const [selectedProfilePicture, setSelectedProfilePicture] = useState<File | null>(null);
   const csrfToken = useCsrfToken();
+
+  // User type detection
+  const isWorker = profile.role === 'worker';
+  const isEmployer = profile.role === 'employer';
+  const isHomeowner = isEmployer && profile.employer_type === 'homeowner';
+  const showCompanyFields = isEmployer && !isHomeowner;
 
   const {
     register,
@@ -40,6 +47,7 @@ export function ProfileEditForm({ profile }: Props) {
       phone: profile.phone || '',
       bio: profile.bio || '',
       employer_type: profile.employer_type || '',
+      company_name: profile.company_name || '',
     },
   });
 
@@ -88,33 +96,64 @@ export function ProfileEditForm({ profile }: Props) {
         </div>
       )}
 
-      <ProfileAvatarUpload
-        currentImageUrl={profile.profile_image_url}
-        userName={profile.name}
-        userId={profile.id}
-        onImageSelected={(file) => setSelectedProfilePicture(file)}
-        disabled={isSubmitting}
-      />
-
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-        <Input
-          label="Full Name"
-          type="text"
-          {...register('name')}
-          required
+      {/* Top section: Avatar (left) + stacked fields (right) */}
+      <div className="flex flex-col sm:flex-row gap-6">
+        <ProfileAvatarUpload
+          currentImageUrl={profile.profile_image_url}
+          userName={profile.name}
+          userId={profile.id}
+          onImageSelected={(file) => setSelectedProfilePicture(file)}
           disabled={isSubmitting}
-          error={errors.name?.message}
         />
 
-        <Input
-          label="Phone Number"
-          type="tel"
-          placeholder="(555)123-4567"
-          {...register('phone')}
-          disabled={isSubmitting}
-          error={errors.phone?.message}
-        />
+        <div className="flex-1 space-y-4">
+          <Input
+            label="Full Name"
+            type="text"
+            {...register('name')}
+            required
+            disabled={isSubmitting}
+            error={errors.name?.message}
+          />
 
+          <Input
+            label="Phone Number"
+            type="tel"
+            placeholder="(555)123-4567"
+            {...register('phone')}
+            disabled={isSubmitting}
+            error={errors.phone?.message}
+          />
+        </div>
+      </div>
+
+      {/* Company fields - only for contractors/developers/recruiters */}
+      {showCompanyFields && (
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+          <Input
+            label="Company Name"
+            type="text"
+            {...register('company_name')}
+            disabled={isSubmitting}
+            error={errors.company_name?.message}
+          />
+
+          <Select
+            label="Employer Type"
+            options={EMPLOYER_TYPES.filter((type) => type !== 'homeowner').map((type) => ({
+              value: type,
+              label: type.charAt(0).toUpperCase() + type.slice(1)
+            }))}
+            {...register('employer_type')}
+            required
+            disabled={isSubmitting}
+            error={errors.employer_type?.message}
+          />
+        </div>
+      )}
+
+      {/* Trade/Sub-Trade/Location - 3-column grid */}
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
         <Controller
           control={control}
           name="trade"
@@ -134,54 +173,40 @@ export function ProfileEditForm({ profile }: Props) {
           )}
         />
 
-        {watchTrade && TRADE_SUBCATEGORIES[watchTrade] && (
-          <Select
-            label="Specialty (Optional)"
-            options={TRADE_SUBCATEGORIES[watchTrade].map((subTrade) => ({
-              value: subTrade,
-              label: subTrade,
-            }))}
-            {...register('sub_trade')}
-            disabled={isSubmitting}
-            error={errors.sub_trade?.message}
-          />
-        )}
+        <Select
+          label="Specialty (Optional)"
+          options={
+            watchTrade && TRADE_SUBCATEGORIES[watchTrade]
+              ? TRADE_SUBCATEGORIES[watchTrade].map((subTrade) => ({
+                  value: subTrade,
+                  label: subTrade,
+                }))
+              : []
+          }
+          {...register('sub_trade')}
+          disabled={isSubmitting || !watchTrade || !TRADE_SUBCATEGORIES[watchTrade]}
+          error={errors.sub_trade?.message}
+        />
 
-        {profile.role === 'employer' && (
-          <Select
-            label="Employer Type"
-            options={EMPLOYER_TYPES.map((type) => ({
-              value: type,
-              label: type.charAt(0).toUpperCase() + type.slice(1)
-            }))}
-            {...register('employer_type')}
-            required
-            disabled={isSubmitting}
-            error={errors.employer_type?.message}
-          />
-        )}
-
-        <div className="sm:col-span-2">
-          <Controller
-            control={control}
-            name="location"
-            render={({ field }) => (
-              <LocationAutocomplete
-                label="Location"
-                placeholder="City, State"
-                value={field.value}
-                onChange={(data) => {
-                  field.onChange(data.address);
-                  setValue('coords', data.coords);
-                }}
-                helperText="Your location helps match you with nearby opportunities"
-                required
-                disabled={isSubmitting}
-                error={errors.location?.message}
-              />
-            )}
-          />
-        </div>
+        <Controller
+          control={control}
+          name="location"
+          render={({ field }) => (
+            <LocationAutocomplete
+              label="Location"
+              placeholder="City, State"
+              value={field.value}
+              onChange={(data) => {
+                field.onChange(data.address);
+                setValue('coords', data.coords);
+              }}
+              helperText="Your location helps match you with nearby opportunities"
+              required
+              disabled={isSubmitting}
+              error={errors.location?.message}
+            />
+          )}
+        />
       </div>
 
       <div>
