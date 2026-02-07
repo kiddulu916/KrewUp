@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { ProfileWithWorkerData } from '@/lib/types/profile.types';
 import { LazyPortfolioManager } from '@/features/portfolio/components/lazy-portfolio';
@@ -39,13 +39,13 @@ export function ProfileEditTabs({ profile, experiences = [] }: ProfileEditTabsPr
   const showExperienceTab = canHaveExperiences(profile.role, profile.employer_type);
   const experienceLabels = getExperienceLabels(profile.role, profile.employer_type);
 
-  // Build tabs array conditionally
-  const tabs: Tab[] = [
+  // Build tabs array conditionally (memoized for useEffect dependency)
+  const tabs: Tab[] = useMemo(() => [
     { id: 'basic', label: 'Basic Info', icon: User },
     { id: 'portfolio', label: 'Portfolio', icon: ImageIcon },
     ...(showExperienceTab ? [{ id: 'experience' as TabId, label: experienceLabels?.tabTitle || 'Experience', icon: Briefcase }] : []),
     { id: 'certifications', label: 'Certifications', icon: Award },
-  ];
+  ], [showExperienceTab, experienceLabels?.tabTitle]);
   const searchParams = useSearchParams();
   const router = useRouter();
   const toast = useToast();
