@@ -7,6 +7,7 @@ import { RequestEndorsementButton } from '@/features/endorsements/components/req
 import { EndorsementBadge } from '@/features/endorsements/components/endorsement-badge';
 import { useToast } from '@/components/providers/toast-provider';
 import { useRouter } from 'next/navigation';
+import type { ExperienceLabels } from '../constants/experience-labels';
 
 type ExperienceItemProps = {
   exp: {
@@ -18,9 +19,13 @@ type ExperienceItemProps = {
     description?: string | null;
   };
   isOwnProfile?: boolean;
+  labels?: ExperienceLabels;
 };
 
-export function ExperienceItem({ exp, isOwnProfile = true }: ExperienceItemProps) {
+export function ExperienceItem({ exp, isOwnProfile = true, labels }: ExperienceItemProps) {
+  // Default labels for backwards compatibility
+  const jobTitleLabel = labels?.jobTitle || 'Job Title';
+  const companyLabel = labels?.company || 'Company';
   const [showConfirm, setShowConfirm] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const toast = useToast();
@@ -33,11 +38,11 @@ export function ExperienceItem({ exp, isOwnProfile = true }: ExperienceItemProps
       const result = await deleteExperience(exp.id);
 
       if (result.success) {
-        toast.success('Work experience deleted successfully');
+        toast.success(`${labels?.tabTitle || 'Experience'} deleted successfully`);
         setShowConfirm(false);
         router.refresh();
       } else {
-        toast.error(result.error || 'Failed to delete work experience');
+        toast.error(result.error || `Failed to delete ${labels?.tabTitle?.toLowerCase() || 'experience'}`);
         setIsDeleting(false);
       }
     } catch (error) {
@@ -96,7 +101,7 @@ export function ExperienceItem({ exp, isOwnProfile = true }: ExperienceItemProps
         isOpen={showConfirm}
         onClose={() => setShowConfirm(false)}
         onConfirm={handleDelete}
-        title="Delete Work Experience"
+        title={`Delete ${labels?.tabTitle || 'Experience'}`}
         message={`Are you sure you want to delete "${exp.job_title}" at ${exp.company}? This action cannot be undone.`}
         confirmText="Delete"
         cancelText="Cancel"

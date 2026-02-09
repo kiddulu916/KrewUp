@@ -5,6 +5,7 @@ import { ExperienceItem } from '@/features/profiles/components/experience-item';
 import { EducationItem } from '@/features/profiles/components/education-item';
 import { ProfileViewsList } from '@/features/subscriptions/components/profile-views-list';
 import { CollapsibleSection, LicensePreviewCard } from '@/components/common';
+import { canHaveExperiences, getExperienceLabels } from '@/features/profiles/constants/experience-labels';
 import Link from 'next/link';
 import { cookies } from 'next/headers';
 import type { Certification, Experience, Education } from '@/types/database';
@@ -66,8 +67,11 @@ export default async function ProfilePage() {
     rejection_reason: cert.rejection_reason,
   }));
 
-  // Get work experience if worker
-  const { data: workExperience } = profileWithMeta?.role === 'worker'
+  // Get work experience for all users who can have experiences (not homeowners)
+  const showExperience = canHaveExperiences(profile?.role, profile?.employer_type);
+  const experienceLabels = getExperienceLabels(profile?.role, profile?.employer_type);
+
+  const { data: workExperience } = showExperience
     ? await supabase
         .from('experiences')
         .select('*')
@@ -228,15 +232,15 @@ export default async function ProfilePage() {
         </CollapsibleSection>
       )}
 
-      {/* Work Experience - Workers Only */}
-      {profile?.role === 'worker' && (
+      {/* Experience - All users except homeowners */}
+      {showExperience && experienceLabels && (
         <CollapsibleSection
-          title="Work Experience"
+          title={experienceLabels.tabTitle}
           defaultOpen={true}
           actions={
             <Link href="/dashboard/profile/experience">
               <Button variant="outline" size="sm">
-                Add Experience
+                Add {experienceLabels.tabTitle}
               </Button>
             </Link>
           }
@@ -244,14 +248,14 @@ export default async function ProfilePage() {
           {workExperience && workExperience.length > 0 ? (
             <div className="space-y-4">
               {workExperience.map((exp) => (
-                <ExperienceItem key={exp.id} exp={exp} />
+                <ExperienceItem key={exp.id} exp={exp} labels={experienceLabels} />
               ))}
             </div>
           ) : (
             <div className="text-center py-8 text-gray-500">
-              <p>No work experience added yet</p>
+              <p>No {experienceLabels.tabTitle.toLowerCase()} added yet</p>
               <p className="text-sm mt-1">
-                Add your experience to showcase your skills
+                Add your {experienceLabels.tabTitle.toLowerCase()} to showcase your background
               </p>
             </div>
           )}
