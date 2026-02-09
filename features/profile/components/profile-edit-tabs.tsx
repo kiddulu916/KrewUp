@@ -59,7 +59,7 @@ export function ProfileEditTabs({ profile, experiences = [] }: ProfileEditTabsPr
     if (tabParam && tabs.some((t) => t.id === tabParam)) {
       setActiveTab(tabParam);
     }
-  }, [searchParams]);
+  }, [searchParams, tabs]);
 
   const handleTabChange = (tabId: TabId) => {
     setActiveTab(tabId);
