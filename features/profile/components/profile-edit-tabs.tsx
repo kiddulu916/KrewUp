@@ -36,16 +36,20 @@ interface Tab {
 export function ProfileEditTabs({ profile, experiences = [] }: ProfileEditTabsProps) {
   // User type detection
   const isWorker = profile.role === 'worker';
+  const isEmployer = profile.role === 'employer';
   const showExperienceTab = canHaveExperiences(profile.role, profile.employer_type);
   const experienceLabels = getExperienceLabels(profile.role, profile.employer_type);
+
+  // Portfolio tab is only shown for workers (employers use project photos instead)
+  const showPortfolioTab = !isEmployer;
 
   // Build tabs array conditionally (memoized for useEffect dependency)
   const tabs: Tab[] = useMemo(() => [
     { id: 'basic', label: 'Basic Info', icon: User },
-    { id: 'portfolio', label: 'Portfolio', icon: ImageIcon },
+    ...(showPortfolioTab ? [{ id: 'portfolio' as TabId, label: 'Portfolio', icon: ImageIcon }] : []),
     ...(showExperienceTab ? [{ id: 'experience' as TabId, label: experienceLabels?.tabTitle || 'Experience', icon: Briefcase }] : []),
     { id: 'certifications', label: 'Certifications', icon: Award },
-  ], [showExperienceTab, experienceLabels?.tabTitle]);
+  ], [showPortfolioTab, showExperienceTab, experienceLabels?.tabTitle]);
   const searchParams = useSearchParams();
   const router = useRouter();
   const toast = useToast();

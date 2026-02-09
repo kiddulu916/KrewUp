@@ -28,10 +28,10 @@ export default async function EditExperiencePage({ params }: Props) {
     redirect('/login');
   }
 
-  // Fetch user profile to check role and employer type
+  // Fetch user profile to check role, employer type, and subscription status
   const { data: profile, error: profileError } = await supabase
     .from('users')
-    .select('role, employer_type')
+    .select('id, first_name, last_name, email, role, employer_type, subscription_status, is_lifetime_pro, is_admin, location, created_at, updated_at')
     .eq('id', user.id)
     .single();
 
@@ -55,6 +55,10 @@ export default async function EditExperiencePage({ params }: Props) {
 
   const labels = getExperienceLabels(profile.role, profile.employer_type);
 
+  // Show photo upload for employers (contractors, developers, recruiters - not homeowners)
+  const isEmployer = profile.role === 'employer';
+  const showPhotoUpload = isEmployer;
+
   return (
     <div className="space-y-6">
       <div>
@@ -69,6 +73,8 @@ export default async function EditExperiencePage({ params }: Props) {
       <ExperienceForm
         labels={labels ?? undefined}
         existingExperience={experience}
+        profile={profile}
+        showPhotoUpload={showPhotoUpload}
       />
     </div>
   );

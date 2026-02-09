@@ -8,6 +8,8 @@ import { EndorsementBadge } from '@/features/endorsements/components/endorsement
 import { useToast } from '@/components/providers/toast-provider';
 import { useRouter } from 'next/navigation';
 import type { ExperienceLabels } from '../constants/experience-labels';
+import type { ExperiencePhoto } from '../types';
+import { ExperiencePhotoGallery } from './experience-photo-gallery';
 
 type ExperienceItemProps = {
   exp: {
@@ -20,9 +22,10 @@ type ExperienceItemProps = {
   };
   isOwnProfile?: boolean;
   labels?: ExperienceLabels;
+  photos?: ExperiencePhoto[];
 };
 
-export function ExperienceItem({ exp, isOwnProfile = true, labels }: ExperienceItemProps) {
+export function ExperienceItem({ exp, isOwnProfile = true, labels, photos }: ExperienceItemProps) {
   // Default labels for backwards compatibility
   const jobTitleLabel = labels?.jobTitle || 'Job Title';
   const companyLabel = labels?.company || 'Company';
@@ -64,6 +67,11 @@ export function ExperienceItem({ exp, isOwnProfile = true, labels }: ExperienceI
             </p>
             {exp.description && (
               <p className="mt-2 text-sm text-gray-700">{exp.description}</p>
+            )}
+
+            {/* Project Photos Gallery */}
+            {photos && photos.length > 0 && (
+              <ExperiencePhotoGallery photos={photos} />
             )}
 
             {/* Endorsement Badge */}

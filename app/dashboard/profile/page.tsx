@@ -1,16 +1,11 @@
 import { createClient } from '@/lib/supabase/server';
-import { Card, CardContent, CardHeader, CardTitle, Badge, Button, Avatar } from '@/components/ui';
-import { CertificationItem } from '@/features/profiles/components/certification-item';
-import { ExperienceItem } from '@/features/profiles/components/experience-item';
-import { EducationItem } from '@/features/profiles/components/education-item';
-import { ProfileViewsList } from '@/features/subscriptions/components/profile-views-list';
-import { CollapsibleSection, LicensePreviewCard } from '@/components/common';
-import { canHaveExperiences, getExperienceLabels } from '@/features/profiles/constants/experience-labels';
+import { Button } from '@/components/ui';
+import { ProfileViewTabs } from '@/features/profile/components/profile-view-tabs';
+import { canHaveExperiences } from '@/features/profiles/constants/experience-labels';
 import Link from 'next/link';
 import { cookies } from 'next/headers';
-import type { Certification, Experience, Education } from '@/types/database';
-
-      
+import type { Certification } from '@/types/database';
+import type { ExperiencePhoto } from '@/features/profiles/types';
 
 export const metadata = {
   title: 'Profile - KrewUp',
@@ -45,8 +40,10 @@ export default async function ProfilePage() {
     company_name: profile.contractors?.[0]?.company_name,
   } : null;
 
+  if (!profileWithMeta) return null;
+
   // Get certifications if worker
-  const { data: certificationsRaw } = profileWithMeta?.role === 'worker'
+  const { data: certificationsRaw } = profileWithMeta.role === 'worker'
     ? await supabase
         .from('certifications')
         .select('*')
@@ -69,7 +66,6 @@ export default async function ProfilePage() {
 
   // Get work experience for all users who can have experiences (not homeowners)
   const showExperience = canHaveExperiences(profile?.role, profile?.employer_type);
-  const experienceLabels = getExperienceLabels(profile?.role, profile?.employer_type);
 
   const { data: workExperience } = showExperience
     ? await supabase
@@ -79,8 +75,30 @@ export default async function ProfilePage() {
         .order('start_date', { ascending: false })
     : { data: null };
 
+  // Fetch experience photos for employers
+  const experienceIds = workExperience?.map((exp) => exp.id) || [];
+  const { data: experiencePhotosRaw } = experienceIds.length > 0
+    ? await supabase
+        .from('experience_photos')
+        .select('*')
+        .in('experience_id', experienceIds)
+        .order('display_order', { ascending: true })
+    : { data: null };
+
+  // Group photos by experience_id
+  const experiencePhotosMap = (experiencePhotosRaw as ExperiencePhoto[] || []).reduce<Record<string, ExperiencePhoto[]>>(
+    (acc, photo) => {
+      if (!acc[photo.experience_id]) {
+        acc[photo.experience_id] = [];
+      }
+      acc[photo.experience_id].push(photo);
+      return acc;
+    },
+    {}
+  );
+
   // Get education if worker
-  const { data: education } = profileWithMeta?.role === 'worker'
+  const { data: education } = profileWithMeta.role === 'worker'
     ? await supabase
         .from('education')
         .select('*')
@@ -89,8 +107,8 @@ export default async function ProfilePage() {
     : { data: null };
 
   // Get contractor license if contractor
-  const { data: contractorLicense } = profileWithMeta?.role === 'employer' &&
-    profileWithMeta?.employer_type === 'contractor'
+  const { data: contractorLicense } = profileWithMeta.role === 'employer' &&
+    profileWithMeta.employer_type === 'contractor'
     ? await supabase
         .from('licenses')
         .select('*')
@@ -105,7 +123,7 @@ export default async function ProfilePage() {
         <div>
           <h1 className="text-2xl md:text-3xl font-bold text-gray-900">My Profile</h1>
           <p className="mt-2 text-gray-600">
-            Manage your profile information and settings
+            View and manage your profile information
           </p>
         </div>
         <Link href="/dashboard/profile/edit">
@@ -113,184 +131,15 @@ export default async function ProfilePage() {
         </Link>
       </div>
 
-      {/* Basic Info Card */}
-      <CollapsibleSection
-        title="Basic Information"
-        defaultOpen={true}
-        badge={profileWithMeta?.subscription_status === 'pro' ? <Badge variant="pro">Pro Member</Badge> : undefined}
-      >
-        <div className="flex items-start gap-6">
-          {/* Profile Picture */}
-          <Avatar
-            src={profileWithMeta?.profile_image_url}
-            name={profileWithMeta?.name || ''}
-            userId={profileWithMeta?.id || ''}
-            size="xl"
-            className="border-4 border-gray-200"
-          />
-
-          {/* Info Grid */}
-          <div className="flex-1 grid grid-cols-2 gap-4">
-            <div>
-              <p className="text-sm font-medium text-gray-500">Name</p>
-              <p className="mt-1 text-base text-gray-900">{profileWithMeta?.name}</p>
-            </div>
-            {profileWithMeta?.role === 'employer' && profileWithMeta?.company_name && (
-              <div>
-                <p className="text-sm font-medium text-gray-500">Company Name</p>
-                <p className="mt-1 text-base text-gray-900">{profileWithMeta.company_name}</p>
-              </div>
-            )}
-            <div>
-              <p className="text-sm font-medium text-gray-500">Email</p>
-              <p className="mt-1 text-base text-gray-900">{profileWithMeta?.email}</p>
-            </div>
-            <div>
-              <p className="text-sm font-medium text-gray-500">Role</p>
-              <p className="mt-1 text-base text-gray-900 capitalize">{profileWithMeta?.role}</p>
-            </div>
-            {profileWithMeta?.employer_type && (
-              <div>
-                <p className="text-sm font-medium text-gray-500">Employer Type</p>
-                <p className="mt-1 text-base text-gray-900 capitalize">
-                  {profileWithMeta.employer_type}
-                </p>
-              </div>
-            )}
-            <div>
-              <p className="text-sm font-medium text-gray-500">Trade</p>
-              <p className="mt-1 text-base text-gray-900">{profileWithMeta?.trade}</p>
-            </div>
-            {profileWithMeta?.sub_trade && (
-              <div>
-                <p className="text-sm font-medium text-gray-500">Specialty</p>
-                <p className="mt-1 text-base text-gray-900">{profileWithMeta.sub_trade}</p>
-              </div>
-            )}
-            <div>
-              <p className="text-sm font-medium text-gray-500">Location</p>
-              <p className="mt-1 text-base text-gray-900">{profileWithMeta?.location}</p>
-            </div>
-            {profileWithMeta?.phone && (
-              <div>
-                <p className="text-sm font-medium text-gray-500">Phone</p>
-                <p className="mt-1 text-base text-gray-900">{profileWithMeta.phone}</p>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {profileWithMeta?.bio && (
-          <div className="mt-6">
-            <p className="text-sm font-medium text-gray-500">Bio</p>
-            <p className="mt-2 text-base text-gray-700">{profileWithMeta.bio}</p>
-          </div>
-        )}
-      </CollapsibleSection>
-
-      {/* Contractor License - Contractors Only */}
-      {profileWithMeta?.role === 'employer' && profileWithMeta?.employer_type === 'contractor' && (
-        <CollapsibleSection title="Contractor License" defaultOpen={true}>
-          <LicensePreviewCard license={contractorLicense} />
-        </CollapsibleSection>
-      )}
-
-      {/* Who Viewed My Profile - Workers Only */}
-      {profileWithMeta?.role === 'worker' && (
-        <CollapsibleSection title="Who Viewed My Profile" defaultOpen={true}>
-          <ProfileViewsList />
-        </CollapsibleSection>
-      )}
-
-      {/* Certifications - Workers Only */}
-      {profileWithMeta?.role === 'worker' && (
-        <CollapsibleSection
-          title="Certifications"
-          defaultOpen={true}
-          actions={
-            <Link href="/dashboard/profile/certifications">
-              <Button variant="outline" size="sm">
-                Add Certification
-              </Button>
-            </Link>
-          }
-        >
-          {certifications.length > 0 ? (
-            <div className="space-y-3">
-              {certifications.map((cert) => (
-                <CertificationItem key={cert.id} cert={cert} />
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-8 text-gray-500">
-              <p>No certifications added yet</p>
-              <p className="text-sm mt-1">
-                Add certifications to stand out to employers
-              </p>
-            </div>
-          )}
-        </CollapsibleSection>
-      )}
-
-      {/* Experience - All users except homeowners */}
-      {showExperience && experienceLabels && (
-        <CollapsibleSection
-          title={experienceLabels.tabTitle}
-          defaultOpen={true}
-          actions={
-            <Link href="/dashboard/profile/experience">
-              <Button variant="outline" size="sm">
-                Add {experienceLabels.tabTitle}
-              </Button>
-            </Link>
-          }
-        >
-          {workExperience && workExperience.length > 0 ? (
-            <div className="space-y-4">
-              {workExperience.map((exp) => (
-                <ExperienceItem key={exp.id} exp={exp} labels={experienceLabels} />
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-8 text-gray-500">
-              <p>No {experienceLabels.tabTitle.toLowerCase()} added yet</p>
-              <p className="text-sm mt-1">
-                Add your {experienceLabels.tabTitle.toLowerCase()} to showcase your background
-              </p>
-            </div>
-          )}
-        </CollapsibleSection>
-      )}
-
-      {/* Education - Workers Only */}
-      {profile?.role === 'worker' && (
-        <CollapsibleSection
-          title="Education"
-          defaultOpen={true}
-          actions={
-            <Link href="/dashboard/profile/education">
-              <Button variant="outline" size="sm">
-                Add Education
-              </Button>
-            </Link>
-          }
-        >
-          {education && education.length > 0 ? (
-            <div className="space-y-3">
-              {education.map((edu) => (
-                <EducationItem key={edu.id} education={edu} />
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-8 text-gray-500">
-              <p>No education added yet</p>
-              <p className="text-sm mt-1">
-                Add your education to enhance your profile
-              </p>
-            </div>
-          )}
-        </CollapsibleSection>
-      )}
+      {/* Profile Tabs */}
+      <ProfileViewTabs
+        profile={profileWithMeta}
+        certifications={certifications}
+        workExperience={workExperience || []}
+        experiencePhotosMap={experiencePhotosMap}
+        education={education || []}
+        contractorLicense={contractorLicense}
+      />
     </div>
   );
 }

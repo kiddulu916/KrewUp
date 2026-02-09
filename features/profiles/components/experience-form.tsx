@@ -9,6 +9,8 @@ import { useToast } from '@/components/providers/toast-provider';
 import { addExperience, updateExperience } from '../actions/experience-actions';
 import { experienceSchema, type ExperienceSchema } from '../utils/validation';
 import { EXPERIENCE_FIELD_LABELS, type ExperienceLabels } from '../constants/experience-labels';
+import { ExperiencePhotoManager } from './experience-photo-manager';
+import type { Profile } from '@/lib/types/profile.types';
 
 type Props = {
   labels?: ExperienceLabels;
@@ -23,9 +25,11 @@ type Props = {
   };
   onSuccess?: () => void;
   onCancel?: () => void;
+  profile?: Profile;
+  showPhotoUpload?: boolean;
 };
 
-export function ExperienceForm({ labels, existingExperience, onSuccess, onCancel }: Props) {
+export function ExperienceForm({ labels, existingExperience, onSuccess, onCancel, profile, showPhotoUpload }: Props) {
   const router = useRouter();
   const toast = useToast();
   const [error, setError] = useState<string | null>(null);
@@ -179,6 +183,21 @@ export function ExperienceForm({ labels, existingExperience, onSuccess, onCancel
           </div>
         </CardContent>
       </Card>
+
+      {/* Project Photos - Only shown for employers when editing existing experience */}
+      {showPhotoUpload && existingExperience && profile && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Project Photos</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ExperiencePhotoManager
+              experienceId={existingExperience.id}
+              profile={profile}
+            />
+          </CardContent>
+        </Card>
+      )}
 
       {error && (
         <div className="rounded-lg bg-red-50 border border-red-200 p-4">
