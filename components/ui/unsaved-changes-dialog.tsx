@@ -23,7 +23,7 @@ export function UnsavedChangesDialog({
   onLeave,
 }: UnsavedChangesDialogProps) {
   return (
-    <AlertDialog open={open}>
+    <AlertDialog open={open} onOpenChange={(isOpen) => { if (!isOpen) onStay(); }}>
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>Unsaved Changes</AlertDialogTitle>

@@ -61,7 +61,7 @@ export function ProfileEditTabs({ profile, experiences = [] }: ProfileEditTabsPr
 
   // Unsaved changes guard
   const formRef = useRef<HTMLFormElement>(null);
-  const { isDirty, checkDirty, resetDirty } = useUnsavedChanges(formRef);
+  const { checkDirty, resetDirty } = useUnsavedChanges(formRef);
   const [pendingTab, setPendingTab] = useState<TabId | null>(null);
   const [showUnsavedDialog, setShowUnsavedDialog] = useState(false);
 
