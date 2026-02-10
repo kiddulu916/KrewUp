@@ -105,3 +105,58 @@ export type ExperiencePhoto = {
   display_order: number;
   created_at: string;
 };
+
+// Profile view types
+export type ProfileViewName =
+  | "worker_profiles"
+  | "contractor_profiles"
+  | "developer_profiles"
+  | "recruiter_profiles"
+  | "homeowner_profiles";
+
+export type WorkerProfile = User & {
+  trade: string | null;
+  sub_trade: string | null;
+  years_of_experience: number | null;
+  hourly_rate: number | null;
+  union_status: string | null;
+  trade_skills: string[] | null;
+  has_tools: boolean;
+  tools_owned: string[] | null;
+  has_certifications: boolean;
+  has_portfolio: boolean;
+  has_dl: boolean;
+  dl_class: string | null;
+  reliable_transportation: boolean;
+  authorized_to_work: boolean;
+  emergency_contact_name: string | null;
+  emergency_contact_phone: string | null;
+  emergency_contact_relationship: string | null;
+};
+
+export type ContractorProfile = User & {
+  company_name: string | null;
+  website: string | null;
+  has_cl: boolean;
+};
+
+export type DeveloperProfile = User & {
+  company_name: string | null;
+  website: string | null;
+};
+
+export type RecruiterProfile = User & {
+  company_name: string | null;
+  agency_website: string | null;
+};
+
+export type HomeownerProfile = User & {
+  project_description: string | null;
+};
+
+export type FullProfile =
+  | WorkerProfile
+  | ContractorProfile
+  | DeveloperProfile
+  | RecruiterProfile
+  | HomeownerProfile;
