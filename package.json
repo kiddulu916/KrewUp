@@ -50,6 +50,7 @@
     "@mdx-js/loader": "^3.1.1",
     "@mdx-js/react": "^3.1.1",
     "@next/mdx": "^16.1.1",
+    "@radix-ui/react-alert-dialog": "^1.1.15",
     "@sentry/nextjs": "^10.32.1",
     "@sentry/profiling-node": "^10.32.1",
     "@supabase/ssr": "^0.8.0",
