@@ -112,6 +112,10 @@ export function ProfileViewTabs({
   const showExperienceTab = canHaveExperiences(profile.role, profile.employer_type);
   const experienceLabels = getExperienceLabels(profile.role, profile.employer_type);
 
+  // Determine if this is a projects tab (contractors/developers show photos)
+  const isProjectsTab = isEmployer &&
+    (profile.employer_type === 'contractor' || profile.employer_type === 'developer');
+
   // Portfolio tab is only shown for workers
   const showPortfolioTab = isWorker;
   // Education tab is only for workers
@@ -320,6 +324,7 @@ export function ProfileViewTabs({
                       exp={exp}
                       labels={experienceLabels}
                       photos={experiencePhotosMap[exp.id]}
+                      showPhotos={isProjectsTab}
                     />
                   ))}
                 </div>
