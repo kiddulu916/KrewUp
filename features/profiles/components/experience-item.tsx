@@ -23,9 +23,10 @@ type ExperienceItemProps = {
   isOwnProfile?: boolean;
   labels?: ExperienceLabels;
   photos?: ExperiencePhoto[];
+  showPhotos?: boolean; // defaults to false
 };
 
-export function ExperienceItem({ exp, isOwnProfile = true, labels, photos }: ExperienceItemProps) {
+export function ExperienceItem({ exp, isOwnProfile = true, labels, photos, showPhotos = false }: ExperienceItemProps) {
   // Default labels for backwards compatibility
   const jobTitleLabel = labels?.jobTitle || 'Job Title';
   const companyLabel = labels?.company || 'Company';
@@ -70,7 +71,7 @@ export function ExperienceItem({ exp, isOwnProfile = true, labels, photos }: Exp
             )}
 
             {/* Project Photos Gallery */}
-            {photos && photos.length > 0 && (
+            {showPhotos && photos && photos.length > 0 && (
               <ExperiencePhotoGallery photos={photos} />
             )}
 
