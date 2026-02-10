@@ -55,9 +55,11 @@ export default async function EditExperiencePage({ params }: Props) {
 
   const labels = getExperienceLabels(profile.role, profile.employer_type);
 
-  // Show photo upload for employers (contractors, developers, recruiters - not homeowners)
-  const isEmployer = profile.role === 'employer';
-  const showPhotoUpload = isEmployer;
+  // Show photo upload only for contractors and developers (not workers, recruiters, or homeowners)
+  const isContractorOrDeveloper =
+    profile.role === 'employer' &&
+    (profile.employer_type === 'contractor' || profile.employer_type === 'developer');
+  const showPhotoUpload = isContractorOrDeveloper;
 
   return (
     <div className="space-y-6">
