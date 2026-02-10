@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { ProfileWithWorkerData } from '@/lib/types/profile.types';
 import { LazyPortfolioManager } from '@/features/portfolio/components/lazy-portfolio';
@@ -12,6 +12,8 @@ import { updateToolsOwned } from '@/features/profiles/actions/profile-actions';
 import { useToast } from '@/components/providers/toast-provider';
 import { Briefcase, Image as ImageIcon, Award, User } from 'lucide-react';
 import { useCsrfToken } from '@/components/providers/csrf-provider';
+import { useUnsavedChanges } from '@/hooks/use-unsaved-changes';
+import { UnsavedChangesDialog } from '@/components/ui/unsaved-changes-dialog';
 
 export interface ProfileEditTabsProps {
   profile: ProfileWithWorkerData;
@@ -57,6 +59,12 @@ export function ProfileEditTabs({ profile, experiences = [] }: ProfileEditTabsPr
   const [isSavingTools, setIsSavingTools] = useState(false);
   const csrfToken = useCsrfToken();
 
+  // Unsaved changes guard
+  const formRef = useRef<HTMLFormElement>(null);
+  const { isDirty, checkDirty, resetDirty } = useUnsavedChanges(formRef);
+  const [pendingTab, setPendingTab] = useState<TabId | null>(null);
+  const [showUnsavedDialog, setShowUnsavedDialog] = useState(false);
+
   // Sync activeTab with URL on mount and URL changes
   useEffect(() => {
     const tabParam = searchParams.get('tab') as TabId;
@@ -66,10 +74,36 @@ export function ProfileEditTabs({ profile, experiences = [] }: ProfileEditTabsPr
   }, [searchParams, tabs]);
 
   const handleTabChange = (tabId: TabId) => {
+    // Check for unsaved changes before switching tabs
+    const hasDirtyChanges = checkDirty();
+    if (hasDirtyChanges) {
+      setPendingTab(tabId);
+      setShowUnsavedDialog(true);
+      return;
+    }
+
+    // No unsaved changes, proceed with tab switch
     setActiveTab(tabId);
     const params = new URLSearchParams(searchParams.toString());
     params.set('tab', tabId);
     router.push(`?${params.toString()}`, { scroll: false });
+  };
+
+  const handleStay = () => {
+    setShowUnsavedDialog(false);
+    setPendingTab(null);
+  };
+
+  const handleLeave = () => {
+    setShowUnsavedDialog(false);
+    resetDirty();
+    if (pendingTab) {
+      setActiveTab(pendingTab);
+      const params = new URLSearchParams(searchParams.toString());
+      params.set('tab', pendingTab);
+      router.push(`?${params.toString()}`, { scroll: false });
+    }
+    setPendingTab(null);
   };
 
   const handleToolsChange = async (hasTools: boolean, toolsOwned: string[]) => {
@@ -132,7 +166,7 @@ export function ProfileEditTabs({ profile, experiences = [] }: ProfileEditTabsPr
 
             {/* Profile Edit Form */}
             <div className="rounded-lg border border-gray-200 bg-white p-6">
-              <ProfileEditForm profile={profile} />
+              <ProfileEditForm profile={profile} formRef={formRef} />
             </div>
 
             {/* Tools Selector - Workers only */}
@@ -204,6 +238,13 @@ export function ProfileEditTabs({ profile, experiences = [] }: ProfileEditTabsPr
           </div>
         )}
       </div>
+
+      {/* Unsaved Changes Dialog */}
+      <UnsavedChangesDialog
+        open={showUnsavedDialog}
+        onStay={handleStay}
+        onLeave={handleLeave}
+      />
     </div>
   );
 }

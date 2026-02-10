@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, type RefObject } from 'react';
 import { useRouter } from 'next/navigation';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -18,9 +18,10 @@ import type { ProfileWithWorkerData } from '@/lib/types/profile.types';
 
 type Props = {
   profile: ProfileWithWorkerData;
+  formRef?: RefObject<HTMLFormElement | null>;
 };
 
-export function ProfileEditForm({ profile }: Props) {
+export function ProfileEditForm({ profile, formRef }: Props) {
   const router = useRouter();
   const [error, setError] = useState('');
   const [selectedProfilePicture, setSelectedProfilePicture] = useState<File | null>(null);
@@ -111,7 +112,7 @@ export function ProfileEditForm({ profile }: Props) {
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+    <form ref={formRef} onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       {error && (
         <div className="rounded-lg bg-red-50 border border-red-200 p-3">
           <p className="text-sm text-red-800">{error}</p>
