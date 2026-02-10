@@ -8,6 +8,8 @@ import { Button, Input, Select, Textarea } from '@/components/ui';
 import { LocationAutocomplete } from '@/components/common';
 import { TRADES, TRADE_SUBCATEGORIES, EMPLOYER_TYPES } from '@/lib/constants';
 import { updateProfile } from '@/features/profiles/actions/profile-actions';
+import { createClient } from '@/lib/supabase/client';
+import { useToast } from '@/components/providers/toast-provider';
 import { ProfileAvatarUpload } from '@/features/profiles/components/profile-avatar-upload';
 import { uploadProfilePicture } from '@/features/profiles/actions/profile-picture-actions';
 import { profileSchema, type ProfileSchema } from '@/features/profiles/utils/validation';
@@ -23,6 +25,7 @@ export function ProfileEditForm({ profile }: Props) {
   const [error, setError] = useState('');
   const [selectedProfilePicture, setSelectedProfilePicture] = useState<File | null>(null);
   const csrfToken = useCsrfToken();
+  const toast = useToast();
 
   // User type detection
   const isWorker = profile.role === 'worker';
@@ -41,6 +44,7 @@ export function ProfileEditForm({ profile }: Props) {
     resolver: zodResolver(profileSchema),
     defaultValues: {
       name: profile.name || '',
+      email: profile.email || '',
       trade: profile.trade || '',
       sub_trade: profile.sub_trade || '',
       location: profile.location || '',
@@ -60,6 +64,23 @@ export function ProfileEditForm({ profile }: Props) {
     setError('');
 
     try {
+      // Check if email has changed
+      const emailChanged = data.email !== profile.email;
+
+      if (emailChanged) {
+        const supabase = createClient();
+        const { error: emailError } = await supabase.auth.updateUser({
+          email: data.email,
+        });
+
+        if (emailError) {
+          toast.error('Failed to update email: ' + emailError.message);
+          return;
+        }
+
+        toast.info('Verification email sent to ' + data.email);
+      }
+
       // Upload profile picture first if selected
       let profileImageUrl = profile.profile_image_url;
       if (selectedProfilePicture) {
@@ -71,11 +92,12 @@ export function ProfileEditForm({ profile }: Props) {
         profileImageUrl = uploadResult.url;
       }
 
-      // Update profile with new image URL
+      // Update other profile fields (email stays unchanged until verified)
+      const { email: _email, ...profileData } = data;
       const result = await updateProfile({
-        ...data,
+        ...profileData,
         profile_image_url: profileImageUrl,
-        employer_type: data.employer_type as 'contractor' | 'recruiter' | undefined,
+        employer_type: profileData.employer_type as 'contractor' | 'recruiter' | undefined,
         csrfToken: csrfToken || '',
       });
 
@@ -123,6 +145,15 @@ export function ProfileEditForm({ profile }: Props) {
             {...register('phone')}
             disabled={isSubmitting}
             error={errors.phone?.message}
+          />
+
+          <Input
+            label="Email"
+            type="email"
+            {...register('email')}
+            disabled={isSubmitting}
+            error={errors.email?.message}
+            helperText="Changing your email requires verification via the new address"
           />
         </div>
       </div>
