@@ -360,7 +360,7 @@ export function ProfileViewTabs({
                   Your licenses and certifications
                 </p>
               </div>
-              <Link href="/dashboard/profile/certifications">
+              <Link href="/dashboard/profile/edit?tab=certifications">
                 <Button variant="outline" size="sm">
                   Add Certification
                 </Button>
@@ -402,7 +402,7 @@ export function ProfileViewTabs({
                   Your contractor licenses
                 </p>
               </div>
-              <Link href="/dashboard/profile/licenses">
+              <Link href="/dashboard/profile/edit?tab=licenses">
                 <Button variant="outline" size="sm">
                   Add License
                 </Button>
