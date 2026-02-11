@@ -1,5 +1,5 @@
--- Experience Photos table for employers to upload project images
--- Follows the same pattern as portfolio_images table
+---- Experience Photos table for employers to upload project images
+ Follows the same pattern as portfolio_images table
 
 CREATE TABLE "public"."experience_photos" (
     "id" "uuid" DEFAULT uuid_generate_v4() NOT NULL PRIMARY KEY,
