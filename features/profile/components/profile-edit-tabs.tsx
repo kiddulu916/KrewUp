@@ -10,7 +10,11 @@ import { ExperienceList } from '@/features/profiles/components/experience-list';
 import { canHaveExperiences, getExperienceLabels } from '@/features/profiles/constants/experience-labels';
 import { updateToolsOwned } from '@/features/profiles/actions/profile-actions';
 import { useToast } from '@/components/providers/toast-provider';
-import { Briefcase, Image as ImageIcon, Award, User } from 'lucide-react';
+import { Briefcase, Image as ImageIcon, Award, User, Shield } from 'lucide-react';
+import { CertificationFormNew } from '@/features/profiles/components/certification-form-new';
+import { LicenseForm } from '@/features/profiles/components/license-form';
+import { CertificationsTabNew } from '@/features/profiles/components/tabs/certifications-tab-new';
+import { LicensesTab } from '@/features/profiles/components/tabs/licenses-tab';
 import { useCsrfToken } from '@/components/providers/csrf-provider';
 import { useUnsavedChanges } from '@/hooks/use-unsaved-changes';
 import { UnsavedChangesDialog } from '@/components/ui/unsaved-changes-dialog';
@@ -27,7 +31,7 @@ export interface ProfileEditTabsProps {
   }>;
 }
 
-type TabId = 'basic' | 'portfolio' | 'experience' | 'certifications';
+type TabId = 'basic' | 'portfolio' | 'experience' | 'certifications' | 'licenses';
 
 interface Tab {
   id: TabId;
@@ -39,19 +43,25 @@ export function ProfileEditTabs({ profile, experiences = [] }: ProfileEditTabsPr
   // User type detection
   const isWorker = profile.role === 'worker';
   const isEmployer = profile.role === 'employer';
+  const isContractor = isEmployer && profile.employer_type === 'contractor';
   const showExperienceTab = canHaveExperiences(profile.role, profile.employer_type);
   const experienceLabels = getExperienceLabels(profile.role, profile.employer_type);
 
   // Portfolio tab is only shown for workers (employers use project photos instead)
   const showPortfolioTab = !isEmployer;
+  // Only workers see certifications tab
+  const showCertificationsTab = isWorker;
+  // Only contractors see licenses tab
+  const showLicensesTab = isContractor;
 
   // Build tabs array conditionally (memoized for useEffect dependency)
   const tabs: Tab[] = useMemo(() => [
     { id: 'basic', label: 'Basic Info', icon: User },
     ...(showPortfolioTab ? [{ id: 'portfolio' as TabId, label: 'Portfolio', icon: ImageIcon }] : []),
     ...(showExperienceTab ? [{ id: 'experience' as TabId, label: experienceLabels?.tabTitle || 'Experience', icon: Briefcase }] : []),
-    { id: 'certifications', label: 'Certifications', icon: Award },
-  ], [showPortfolioTab, showExperienceTab, experienceLabels?.tabTitle]);
+    ...(showCertificationsTab ? [{ id: 'certifications' as TabId, label: 'Certifications', icon: Award }] : []),
+    ...(showLicensesTab ? [{ id: 'licenses' as TabId, label: 'Licenses', icon: Shield }] : []),
+  ], [showPortfolioTab, showExperienceTab, showCertificationsTab, showLicensesTab, experienceLabels?.tabTitle]);
   const searchParams = useSearchParams();
   const router = useRouter();
   const toast = useToast();
@@ -219,21 +229,42 @@ export function ProfileEditTabs({ profile, experiences = [] }: ProfileEditTabsPr
           </div>
         )}
 
-        {activeTab === 'certifications' && (
+        {activeTab === 'certifications' && showCertificationsTab && (
           <div className="space-y-6">
             <div>
               <h2 className="text-2xl font-bold text-gray-900">Certifications</h2>
               <p className="mt-1 text-sm text-gray-600">
-                Upload your licenses and certifications for verification.
+                Upload your certifications for verification.
               </p>
             </div>
 
-            <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 py-12">
-              <Award className="h-12 w-12 text-gray-400" />
-              <p className="mt-2 text-gray-600">Certification upload coming soon</p>
-              <p className="mt-1 text-sm text-gray-500">
-                You&apos;ll be able to upload and manage your certifications here
+            {/* Existing certifications */}
+            <CertificationsTabNew userId={profile.id} isOwner={true} />
+
+            {/* Add new certification */}
+            <div className="border-t pt-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Add New Certification</h3>
+              <CertificationFormNew />
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'licenses' && showLicensesTab && (
+          <div className="space-y-6">
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900">Licenses</h2>
+              <p className="mt-1 text-sm text-gray-600">
+                Upload your contractor licenses for verification.
               </p>
+            </div>
+
+            {/* Existing licenses */}
+            <LicensesTab userId={profile.id} isOwner={true} />
+
+            {/* Add new license */}
+            <div className="border-t pt-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Add New License</h3>
+              <LicenseForm />
             </div>
           </div>
         )}
