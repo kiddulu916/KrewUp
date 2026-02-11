@@ -85,6 +85,56 @@ export type Certification = {
   credential_category?: 'license' | 'certification'; // UI categorization
 };
 
+// Unified Credential type (replaces separate Certification/License)
+export type Credential = {
+  id: string;
+  user_id: string;
+  credential_type: 'certification' | 'license';
+
+  // Required field
+  image_url: string;
+
+  // Common optional fields
+  holder_name?: string | null;
+  issue_date?: string | null;
+  expiration_date?: string | null;
+
+  // Certification-specific
+  certification_name?: string | null;
+  issuing_organization?: string | null;
+  credential_id?: string | null;
+
+  // License-specific
+  license_number?: string | null;
+  classification?: string | null;
+  issuing_state?: string | null;
+  licensee_name?: string | null;
+
+  // Verification
+  verification_status: 'pending' | 'verified' | 'rejected';
+  rejection_reason?: string | null;
+
+  created_at: string;
+  updated_at: string;
+};
+
+export type CredentialFormData = {
+  credential_type: 'certification' | 'license';
+  image_url: string;
+  holder_name?: string;
+  issue_date?: string;
+  expiration_date?: string;
+  // Certification fields
+  certification_name?: string;
+  issuing_organization?: string;
+  credential_id?: string;
+  // License fields
+  license_number?: string;
+  classification?: string;
+  issuing_state?: string;
+  licensee_name?: string;
+};
+
 export type Reference = {
   id: string;
   user_id: string;
