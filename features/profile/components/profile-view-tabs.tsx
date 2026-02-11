@@ -11,10 +11,11 @@ import { ProfileViewsList } from '@/features/subscriptions/components/profile-vi
 import { LicensePreviewCard } from '@/components/common';
 import { PortfolioGallery } from '@/features/portfolio/components/portfolio-gallery';
 import { canHaveExperiences, getExperienceLabels } from '@/features/profiles/constants/experience-labels';
-import { Briefcase, Image as ImageIcon, Award, User, GraduationCap, Eye } from 'lucide-react';
+import { LicensesTab } from '@/features/profiles/components/tabs/licenses-tab';
+import { Briefcase, Image as ImageIcon, Award, User, GraduationCap, Eye, Shield } from 'lucide-react';
 import type { ExperiencePhoto } from '@/features/profiles/types';
 
-type TabId = 'basic' | 'portfolio' | 'experience' | 'certifications' | 'education';
+type TabId = 'basic' | 'portfolio' | 'experience' | 'certifications' | 'licenses' | 'education';
 
 interface Tab {
   id: TabId;
@@ -122,6 +123,8 @@ export function ProfileViewTabs({
   const showEducationTab = isWorker;
   // Certifications tab is only for workers
   const showCertificationsTab = isWorker;
+  // Licenses tab is only for contractors
+  const showLicensesTab = isContractor;
 
   // Build tabs array conditionally
   const tabs: Tab[] = useMemo(() => [
@@ -129,8 +132,9 @@ export function ProfileViewTabs({
     ...(showPortfolioTab ? [{ id: 'portfolio' as TabId, label: 'Portfolio', icon: ImageIcon }] : []),
     ...(showExperienceTab ? [{ id: 'experience' as TabId, label: experienceLabels?.tabTitle || 'Experience', icon: Briefcase }] : []),
     ...(showCertificationsTab ? [{ id: 'certifications' as TabId, label: 'Certifications', icon: Award }] : []),
+    ...(showLicensesTab ? [{ id: 'licenses' as TabId, label: 'Licenses', icon: Shield }] : []),
     ...(showEducationTab ? [{ id: 'education' as TabId, label: 'Education', icon: GraduationCap }] : []),
-  ], [showPortfolioTab, showExperienceTab, showCertificationsTab, showEducationTab, experienceLabels?.tabTitle]);
+  ], [showPortfolioTab, showExperienceTab, showCertificationsTab, showLicensesTab, showEducationTab, experienceLabels?.tabTitle]);
 
   // Get active tab from URL, defaulting to 'basic'
   const tabParam = searchParams.get('tab') as TabId | null;
@@ -384,6 +388,29 @@ export function ProfileViewTabs({
                   </Link>
                 </div>
               )}
+            </div>
+          </div>
+        )}
+
+        {/* Licenses Tab - Contractors Only */}
+        {activeTab === 'licenses' && showLicensesTab && (
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-xl font-bold text-gray-900">Licenses</h2>
+                <p className="mt-1 text-sm text-gray-600">
+                  Your contractor licenses
+                </p>
+              </div>
+              <Link href="/dashboard/profile/licenses">
+                <Button variant="outline" size="sm">
+                  Add License
+                </Button>
+              </Link>
+            </div>
+
+            <div className="rounded-lg border border-gray-200 bg-white p-6">
+              <LicensesTab userId={profile.id} isOwner={false} />
             </div>
           </div>
         )}
