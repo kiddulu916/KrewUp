@@ -8,40 +8,32 @@ import { TestUser } from './test-db';
  * Handles rate limiting by waiting and retrying
  */
 export async function loginAsUser(page: Page, user: TestUser, maxRetries = 5) {
+  // Set consent in localStorage before any page loads to prevent the consent
+  // banner from appearing and blocking button clicks
+  await page.addInitScript(() => {
+    localStorage.setItem('krewup_ad_consent', JSON.stringify({
+      personalized: false,
+      analytics: false,
+      timestamp: new Date().toISOString(),
+      region: 'other',
+    }));
+  });
+
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     await page.goto('/login');
 
-    // Wait for page to load
-    await page.waitForLoadState('networkidle');
-
-    // Set consent in localStorage to prevent banner from blocking interactions
-    await page.evaluate(() => {
-      localStorage.setItem('krewup_ad_consent', JSON.stringify({
-        personalized: false,
-        analytics: false,
-        timestamp: new Date().toISOString(),
-        region: 'other',
-      }));
-    });
-
-    // If consent banner is showing, dismiss it by clicking Necessary Only
-    const consentButton = page.locator('button:has-text("Necessary Only")');
-    if (await consentButton.isVisible({ timeout: 1000 }).catch(() => false)) {
-      await consentButton.click();
-      await page.waitForTimeout(300); // Brief wait for banner to close
-    }
+    // Wait for the login form to actually be visible (more reliable than networkidle)
+    await page.waitForSelector('input[type="email"]', { state: 'visible', timeout: 15000 });
 
     // Check for rate limit message BEFORE attempting login
-    const rateLimitMessage = page.locator('text=/too many attempts.*?(\d+)\s*seconds?/i, text=/please try again in.*?(\d+)/i');
     const rateLimitText = await page.locator('text=/too many/i').textContent({ timeout: 500 }).catch(() => '');
-    
+
     if (rateLimitText) {
-      // Extract wait time from message
       const waitMatch = rateLimitText.match(/(\d+)\s*seconds?/i);
       const waitTime = waitMatch ? parseInt(waitMatch[1]) * 1000 + 2000 : 20000;
       console.log(`Rate limited, waiting ${waitTime/1000} seconds before retry`);
       await page.waitForTimeout(waitTime);
-      continue; // Retry after waiting
+      continue;
     }
 
     await page.fill('input[type="email"]', user.email);

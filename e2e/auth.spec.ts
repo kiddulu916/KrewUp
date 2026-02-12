@@ -4,6 +4,7 @@ import {
   deleteTestUser,
   cleanupTestData,
   TestUser,
+  testDb,
 } from './utils/test-db';
 import {
   loginAsUser,
@@ -12,10 +13,19 @@ import {
 } from './utils/test-helpers';
 
 test.describe('Authentication Flows', () => {
+  // Auth tests may trigger rate limiting when run sequentially
+  test.describe.configure({ timeout: 60000 });
   let testUser: TestUser;
 
-  test.beforeEach(async () => {
+  test.beforeEach(async ({ page }) => {
     await cleanupTestData();
+    // Dismiss consent banner on all pages to prevent it from blocking interactions
+    await page.addInitScript(() => {
+      localStorage.setItem('krewup_ad_consent', JSON.stringify({
+        personalized: false, analytics: false,
+        timestamp: new Date().toISOString(), region: 'other',
+      }));
+    });
   });
 
   test.afterEach(async () => {
@@ -42,11 +52,22 @@ test.describe('Authentication Flows', () => {
     // Submit signup form
     await page.click('button[type="submit"]:has-text("Create account")');
 
-    // Wait for page to stabilize
-    await page.waitForLoadState('networkidle', { timeout: 15000 });
+    // Wait for signup to complete - watch for any expected outcome
+    await Promise.race([
+      page.locator('h2:has-text("Welcome to KrewUp!")').waitFor({ state: 'visible', timeout: 30000 }),
+      page.locator('h2:has-text("Check your email")').waitFor({ state: 'visible', timeout: 30000 }),
+      page.locator('text=/rate limit/i').waitFor({ state: 'visible', timeout: 30000 }),
+    ]).catch(() => {});
+
+    // Skip if Supabase rate limit reached
+    const rateLimited = await page.locator('text=/rate limit/i').isVisible().catch(() => false);
+    if (rateLimited) {
+      test.skip(true, 'Supabase email rate limit exceeded - try again later');
+      return;
+    }
 
     // Check which flow we're in by looking for unique UI elements
-    const isOnboarding = await page.locator('h2:has-text("Welcome to KrewUp!")').isVisible({ timeout: 5000 }).catch(() => false);
+    const isOnboarding = await page.locator('h2:has-text("Welcome to KrewUp!")').isVisible({ timeout: 3000 }).catch(() => false);
 
     if (isOnboarding) {
       // Email confirmation disabled - user logged in immediately and redirected to onboarding
@@ -120,7 +141,35 @@ test.describe('Authentication Flows', () => {
     await page.check('input[type="checkbox"][required]');
     await page.click('button[type="submit"]:has-text("Create account")');
 
-    // Should redirect to onboarding
+    // Skip if Supabase rate limit reached
+    await page.waitForTimeout(2000);
+    const rateLimited = await page.locator('text=/rate limit/i').isVisible({ timeout: 2000 }).catch(() => false);
+    if (rateLimited) {
+      test.skip(true, 'Supabase email rate limit exceeded - try again later');
+      return;
+    }
+
+    // Wait for either onboarding or email confirmation page
+    const isOnboarding = await page.locator('h2:has-text("Welcome to KrewUp!")').isVisible({ timeout: 10000 }).catch(() => false);
+    if (!isOnboarding) {
+      // Email confirmation enabled - confirm via admin API, reset profile, and login
+      await page.waitForSelector('h2:has-text("Check your email")', { timeout: 10000 });
+      const { data: { users } } = await testDb.auth.admin.listUsers();
+      const authUser = users.find((u: any) => u.email === email);
+      if (authUser) {
+        await testDb.auth.admin.updateUserById(authUser.id, { email_confirm: true });
+        // Delete trigger-created records so onboarding is required
+        await testDb.from('workers').delete().eq('user_id', authUser.id);
+        await testDb.from('users').delete().eq('id', authUser.id);
+      }
+      await page.goto('/login');
+      await page.fill('input[type="email"]', email);
+      await page.fill('input[type="password"]', password);
+      await page.click('button[type="submit"]');
+      await page.waitForURL(/\/(onboarding|dashboard)/, { timeout: 15000 });
+    }
+
+    // Should be on onboarding
     await expect(page).toHaveURL('/onboarding', { timeout: 10000 });
 
     // STEP 1: Personal Information
@@ -133,7 +182,7 @@ test.describe('Authentication Flows', () => {
     ]);
 
     // Fill phone number
-    await page.fill('input[type="tel"][placeholder="(555) 123-4567"]', '5551234567');
+    await page.fill('input[type="tel"]', '5551234567');
     await page.click('button:has-text("Continue")');
 
     // STEP 2: Role Selection
@@ -336,6 +385,34 @@ test.describe('Authentication Flows', () => {
     await page.check('input[type="checkbox"][required]');
     await page.click('button[type="submit"]:has-text("Create account")');
 
+    // Skip if Supabase rate limit reached
+    await page.waitForTimeout(2000);
+    const rateLimited = await page.locator('text=/rate limit/i').isVisible({ timeout: 2000 }).catch(() => false);
+    if (rateLimited) {
+      test.skip(true, 'Supabase email rate limit exceeded - try again later');
+      return;
+    }
+
+    // Wait for either onboarding or email confirmation page
+    const onboardingVisible = await page.locator('h2:has-text("Welcome to KrewUp!")').isVisible({ timeout: 10000 }).catch(() => false);
+    if (!onboardingVisible) {
+      // Email confirmation enabled - confirm via admin API, reset profile, and login
+      await page.waitForSelector('h2:has-text("Check your email")', { timeout: 10000 });
+      const { data: { users } } = await testDb.auth.admin.listUsers();
+      const authUser = users.find((u: any) => u.email === email);
+      if (authUser) {
+        await testDb.auth.admin.updateUserById(authUser.id, { email_confirm: true });
+        // Delete trigger-created records so onboarding is required
+        await testDb.from('workers').delete().eq('user_id', authUser.id);
+        await testDb.from('users').delete().eq('id', authUser.id);
+      }
+      await page.goto('/login');
+      await page.fill('input[type="email"]', email);
+      await page.fill('input[type="password"]', password);
+      await page.click('button[type="submit"]');
+      await page.waitForURL(/\/(onboarding|dashboard)/, { timeout: 15000 });
+    }
+
     // Should be on onboarding
     await expect(page).toHaveURL('/onboarding', { timeout: 10000 });
 
@@ -344,7 +421,7 @@ test.describe('Authentication Flows', () => {
       page.waitForSelector('div:has-text("Location captured")', { timeout: 35000 }),
       page.waitForSelector('button:has-text("Retry")', { timeout: 35000 })
     ]);
-    await page.fill('input[type="tel"][placeholder="(555) 123-4567"]', '5551234567');
+    await page.fill('input[type="tel"]', '5551234567');
     await page.click('button:has-text("Continue")');
 
     // STEP 2: Should be on role selection
@@ -358,6 +435,6 @@ test.describe('Authentication Flows', () => {
 
     // Name and email should still be filled
     await expect(page.locator('input[type="text"][placeholder="John Doe"]')).toHaveValue('Test User');
-    await expect(page.locator('input[type="email"][placeholder="john@example.com"]')).toHaveValue(email);
+    await expect(page.locator('input[type="email"]').first()).toHaveValue(email);
   });
 });

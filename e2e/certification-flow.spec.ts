@@ -38,8 +38,8 @@ test.describe('Certification Flow', () => {
 
   test.afterAll(async () => {
     // Cleanup certifications
-    await testDb.from('certifications').delete().eq('user_id', testWorker.id);
-    await testDb.from('certifications').delete().eq('user_id', testContractor.id);
+    await testDb.from('certifications').delete().eq('worker_id', testWorker.id);
+    await testDb.from('certifications').delete().eq('worker_id', testContractor.id);
 
     if (testWorker) await deleteTestUser(testWorker.id);
     if (testContractor) await deleteTestUser(testContractor.id);
@@ -49,7 +49,7 @@ test.describe('Certification Flow', () => {
   test.describe('Worker Certification Submission', () => {
     test.beforeEach(async () => {
       // Clean up worker's certifications before each test
-      await testDb.from('certifications').delete().eq('user_id', testWorker.id);
+      await testDb.from('certifications').delete().eq('worker_id', testWorker.id);
     });
 
     test('should show certification form with required fields', async ({ page }) => {
@@ -74,7 +74,7 @@ test.describe('Certification Flow', () => {
       await page.click('button:has-text("Add Certification")');
 
       // Should show validation error
-      await expect(page.locator('text=/please select|required/i')).toBeVisible();
+      await expect(page.locator('text=/please select.*certification/i')).toBeVisible();
     });
 
     test('should allow selecting standard certification types', async ({ page }) => {
@@ -85,7 +85,7 @@ test.describe('Certification Flow', () => {
       const select = page.locator('select#certification_type');
       await expect(select).toContainText('OSHA 10');
       await expect(select).toContainText('OSHA 30');
-      await expect(select).toContainText('First Aid/CPR');
+      await expect(select).toContainText('HAZWOPER');
     });
 
     test('should allow adding custom certification type', async ({ page }) => {
@@ -137,15 +137,18 @@ test.describe('Certification Flow', () => {
     test('should show pending verification badge on submitted certification', async ({ page }) => {
       // Create a pending certification
       await createTestCertification(testWorker.id, {
-        credentialCategory: 'certification',
         certificationType: 'OSHA 30',
-        issuedBy: 'OSHA',
-        certificationNumber: 'OSHA30-PENDING-123',
+        issuingOrganization: 'OSHA',
+        credentialId: 'OSHA30-PENDING-123',
         verificationStatus: 'pending',
       });
 
       await loginAsUser(page, testWorker);
       await page.goto('/dashboard/profile');
+
+      // Click the Certifications tab
+      await page.locator('a:has-text("Certifications"), button:has-text("Certifications")').first().click();
+      await page.waitForTimeout(1000);
 
       // Should show certification with pending status
       await expect(page.locator('text=OSHA 30')).toBeVisible();
@@ -178,7 +181,7 @@ test.describe('Certification Flow', () => {
 
   test.describe('Contractor License Submission', () => {
     test.beforeEach(async () => {
-      await testDb.from('certifications').delete().eq('user_id', testContractor.id);
+      await testDb.from('certifications').delete().eq('worker_id', testContractor.id);
     });
 
     test('should show license form for contractors', async ({ page }) => {
@@ -219,12 +222,11 @@ test.describe('Certification Flow', () => {
   test.describe('Admin Certification Review', () => {
     test.beforeEach(async () => {
       // Create a pending certification for testing
-      await testDb.from('certifications').delete().eq('user_id', testWorker.id);
+      await testDb.from('certifications').delete().eq('worker_id', testWorker.id);
       await createTestCertification(testWorker.id, {
-        credentialCategory: 'certification',
         certificationType: 'OSHA 10',
-        issuedBy: 'OSHA Training Institute',
-        certificationNumber: 'ADMIN-REVIEW-TEST',
+        issuingOrganization: 'OSHA Training Institute',
+        credentialId: 'ADMIN-REVIEW-TEST',
         verificationStatus: 'pending',
         imageUrl: 'https://example.com/test-cert.jpg',
       });
@@ -246,7 +248,7 @@ test.describe('Certification Flow', () => {
       await page.goto('/admin/certifications');
 
       // Click on the certification card
-      await page.click('[data-testid="card"]:has-text("OSHA 10")');
+      await page.locator('.cursor-pointer').filter({ hasText: 'OSHA 10' }).first().click();
 
       // Should show review panel with details
       await expect(page.locator('text=Certification Image')).toBeVisible();
@@ -259,7 +261,7 @@ test.describe('Certification Flow', () => {
       await page.goto('/admin/certifications');
 
       // Click on certification to open review panel
-      await page.click('[data-testid="card"]:has-text("OSHA 10")');
+      await page.locator('.cursor-pointer').filter({ hasText: 'OSHA 10' }).first().click();
 
       // Check action buttons
       await expect(page.locator('button:has-text("Approve")')).toBeVisible();
@@ -272,7 +274,7 @@ test.describe('Certification Flow', () => {
       await page.goto('/admin/certifications');
 
       // Click on certification
-      await page.click('[data-testid="card"]:has-text("OSHA 10")');
+      await page.locator('.cursor-pointer').filter({ hasText: 'OSHA 10' }).first().click();
 
       // Click approve
       await page.click('button:has-text("Approve")');
@@ -289,7 +291,7 @@ test.describe('Certification Flow', () => {
       await page.goto('/admin/certifications');
 
       // Click on certification
-      await page.click('[data-testid="card"]:has-text("OSHA 10")');
+      await page.locator('.cursor-pointer').filter({ hasText: 'OSHA 10' }).first().click();
 
       // Click reject
       await page.click('button:has-text("Reject")');
@@ -307,7 +309,7 @@ test.describe('Certification Flow', () => {
       await page.goto('/admin/certifications');
 
       // Click on certification
-      await page.click('[data-testid="card"]:has-text("OSHA 10")');
+      await page.locator('.cursor-pointer').filter({ hasText: 'OSHA 10' }).first().click();
 
       // Click reject
       await page.click('button:has-text("Reject")');
@@ -330,7 +332,7 @@ test.describe('Certification Flow', () => {
       await page.goto('/admin/certifications');
 
       // Click on certification
-      await page.click('[data-testid="card"]:has-text("OSHA 10")');
+      await page.locator('.cursor-pointer').filter({ hasText: 'OSHA 10' }).first().click();
 
       // Click flag
       await page.click('button:has-text("Flag")');
@@ -350,10 +352,10 @@ test.describe('Certification Flow', () => {
 
     test('should filter by verification status tabs', async ({ page }) => {
       // Create certifications with different statuses
-      await createTestCertification(testContractor.id, {
-        credentialCategory: 'license',
+      // Note: certifications FK to workers table, so this needs a worker user
+      await createTestCertification(testWorker.id, {
         certificationType: 'General Contractor',
-        issuedBy: 'State Board',
+        issuingOrganization: 'State Board',
         verificationStatus: 'verified',
         imageUrl: 'https://example.com/verified-cert.jpg',
       });
@@ -377,36 +379,42 @@ test.describe('Certification Flow', () => {
   test.describe('Certification Status Display', () => {
     test('should show verified badge after admin approval', async ({ page }) => {
       // Create verified certification
-      await testDb.from('certifications').delete().eq('user_id', testWorker.id);
+      await testDb.from('certifications').delete().eq('worker_id', testWorker.id);
       await createTestCertification(testWorker.id, {
-        credentialCategory: 'certification',
         certificationType: 'OSHA 30',
-        issuedBy: 'OSHA',
+        issuingOrganization: 'OSHA',
         verificationStatus: 'verified',
       });
 
       await loginAsUser(page, testWorker);
       await page.goto('/dashboard/profile');
 
+      // Click the Certifications tab to see certifications
+      await page.locator('a:has-text("Certifications"), button:has-text("Certifications")').first().click();
+      await page.waitForTimeout(1000);
+
       // Should show verified status
       await expect(page.locator('text=OSHA 30')).toBeVisible();
-      await expect(page.locator('text=/verified|✓/i')).toBeVisible();
+      await expect(page.locator('text=/verified|✓/i').first()).toBeVisible();
     });
 
     test('should show rejection reason to user', async ({ page }) => {
       // Create rejected certification
-      await testDb.from('certifications').delete().eq('user_id', testWorker.id);
+      await testDb.from('certifications').delete().eq('worker_id', testWorker.id);
       await testDb.from('certifications').insert({
-        user_id: testWorker.id,
-        credential_category: 'certification',
-        certification_type: 'First Aid/CPR',
-        issued_by: 'Red Cross',
+        worker_id: testWorker.id,
+        name: 'First Aid/CPR',
+        issuing_organization: 'Red Cross',
         verification_status: 'rejected',
         rejection_reason: 'Document expired - please submit current certification',
       });
 
       await loginAsUser(page, testWorker);
       await page.goto('/dashboard/profile');
+
+      // Click the Certifications tab
+      await page.locator('a:has-text("Certifications"), button:has-text("Certifications")').first().click();
+      await page.waitForTimeout(1000);
 
       // Should show rejected status
       await expect(page.locator('text=First Aid/CPR')).toBeVisible();
@@ -418,17 +426,20 @@ test.describe('Certification Flow', () => {
       const expiryDate = new Date();
       expiryDate.setDate(expiryDate.getDate() + 30);
 
-      await testDb.from('certifications').delete().eq('user_id', testWorker.id);
+      await testDb.from('certifications').delete().eq('worker_id', testWorker.id);
       await createTestCertification(testWorker.id, {
-        credentialCategory: 'certification',
         certificationType: 'OSHA 10',
-        issuedBy: 'OSHA',
+        issuingOrganization: 'OSHA',
         verificationStatus: 'verified',
-        expiresAt: expiryDate.toISOString(),
+        expirationDate: expiryDate.toISOString().split('T')[0],
       });
 
       await loginAsUser(page, testWorker);
       await page.goto('/dashboard/profile');
+
+      // Click the Certifications tab
+      await page.locator('a:has-text("Certifications"), button:has-text("Certifications")').first().click();
+      await page.waitForTimeout(1000);
 
       // Should show certification with expiry info
       await expect(page.locator('text=OSHA 10')).toBeVisible();

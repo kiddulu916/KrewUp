@@ -14,7 +14,7 @@ export async function fillApplicationWizard(
   }
 ) {
   // Step 1: Documents - Cover letter text
-  await expect(page.locator('text=Documents')).toBeVisible();
+  await expect(page.locator('h2:has-text("Documents")')).toBeVisible();
 
   if (options?.coverLetter) {
     await page.fill('textarea[name="coverLetterText"]', options.coverLetter);
@@ -176,8 +176,9 @@ export async function expectWizardStep(
   stepNumber: number,
   totalSteps: number = 8
 ) {
+  // Use .first() because "Step X of Y" appears in both progress indicator and footer
   await expect(
-    page.locator(`text=/step ${stepNumber} of ${totalSteps}/i`)
+    page.locator(`text=/step ${stepNumber} of ${totalSteps}/i`).first()
   ).toBeVisible();
 }
 

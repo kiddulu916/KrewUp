@@ -191,7 +191,7 @@ test.describe('Visual Regression Tests - Worker Dashboard', () => {
       // Create application
       await testDb.from('job_applications').insert({
         job_id: job.id,
-        applicant_id: worker.id,
+        worker_id: worker.id,
         cover_letter: 'Test application for visual regression',
         status: 'pending',
       });
@@ -243,11 +243,11 @@ test.describe('Visual Regression Tests - Worker Dashboard', () => {
     test('certifications page with data', async ({ page }) => {
       // Add certification
       await testDb.from('certifications').insert({
-        worker_id: worker.id,
+        user_id: worker.id,
         name: 'OSHA 10',
         issuing_organization: 'OSHA',
         issue_date: '2023-01-01',
-        verification_status: 'verified',
+        status: 'verified',
       });
 
       await loginAsUser(page, worker);
@@ -558,7 +558,7 @@ test.describe('Visual Regression Tests - Admin Pages', () => {
     test('admin certification queue with pending items', async ({ page }) => {
       // Add pending certification
       await testDb.from('certifications').insert({
-        worker_id: worker.id,
+        user_id: worker.id,
         name: 'OSHA 30',
         issuing_organization: 'OSHA',
         issue_date: '2024-01-01',

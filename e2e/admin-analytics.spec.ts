@@ -41,7 +41,7 @@ test.describe('Admin Analytics - Dashboard Overview Metrics', () => {
       password: 'AdminPassword123!',
       role: 'worker',
       name: 'Admin User',
-      trade: 'General Laborer',
+      trade: 'Electrical',
     });
     await makeUserAdmin(admin.id);
   });
@@ -187,19 +187,16 @@ test.describe('Admin Analytics - Dashboard Overview Metrics', () => {
 
     // Create 2 pending certifications
     await createTestCertification(workers[0].id, {
-      credentialCategory: 'certification',
       certificationType: 'OSHA 10',
       verificationStatus: 'pending',
     });
     await createTestCertification(workers[1].id, {
-      credentialCategory: 'certification',
       certificationType: 'OSHA 30',
       verificationStatus: 'pending',
     });
 
     // Create 1 verified certification (should NOT count as pending)
     await createTestCertification(workers[0].id, {
-      credentialCategory: 'certification',
       certificationType: 'First Aid',
       verificationStatus: 'verified',
     });
@@ -311,7 +308,7 @@ test.describe('Admin Analytics - Engagement Metrics', () => {
       password: 'AdminPassword123!',
       role: 'worker',
       name: 'Admin User',
-      trade: 'General Laborer',
+      trade: 'Electrical',
     });
     await makeUserAdmin(admin.id);
 
@@ -428,7 +425,7 @@ test.describe('Admin Analytics - User Growth Chart', () => {
       password: 'AdminPassword123!',
       role: 'worker',
       name: 'Admin User',
-      trade: 'General Laborer',
+      trade: 'Electrical',
     });
     await makeUserAdmin(admin.id);
   });
@@ -520,7 +517,7 @@ test.describe('Admin Analytics - Data Accuracy Verification', () => {
       password: 'AdminPassword123!',
       role: 'worker',
       name: 'Admin User',
-      trade: 'General Laborer',
+      trade: 'Electrical',
     });
     await makeUserAdmin(admin.id);
   });
@@ -673,7 +670,7 @@ test.describe('Admin Analytics - Edge Cases', () => {
       password: 'AdminPassword123!',
       role: 'worker',
       name: 'Admin User',
-      trade: 'General Laborer',
+      trade: 'Electrical',
     });
     await makeUserAdmin(admin.id);
   });

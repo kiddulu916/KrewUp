@@ -141,7 +141,7 @@ test.describe('Mobile Responsiveness', () => {
 
       // Main content should have proper padding to avoid overlap
       // Layout uses: pt-20 (top) and pb-24 (bottom) on mobile
-      const main = page.locator('main');
+      const main = page.locator('main[role="main"]');
       const paddingTop = await main.evaluate((el) =>
         parseInt(window.getComputedStyle(el).paddingTop)
       );
@@ -215,7 +215,7 @@ test.describe('Mobile Responsiveness', () => {
       expect(viewport?.width).toBeGreaterThan(800);
 
       // Content should fit within viewport
-      const main = page.locator('main');
+      const main = page.locator('main[role="main"]');
       const box = await main.boundingBox();
       expect(box?.width).toBeLessThanOrEqual(viewport!.width);
     });
@@ -225,7 +225,7 @@ test.describe('Mobile Responsiveness', () => {
       await page.goto('/dashboard/feed');
 
       // On tablet, padding should be reduced (pt-8, pb-8 instead of pt-20, pb-24)
-      const main = page.locator('main');
+      const main = page.locator('main[role="main"]');
       const paddingTop = await main.evaluate((el) =>
         parseInt(window.getComputedStyle(el).paddingTop)
       );

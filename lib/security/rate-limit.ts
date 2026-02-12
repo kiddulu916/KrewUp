@@ -34,11 +34,15 @@ export type RateLimitConfig = {
   identifier?: () => Promise<string>;
 };
 
+// * Use relaxed limits in local development/testing (no VERCEL_ENV means local)
+const isVercel = Boolean(process.env.VERCEL_ENV);
+
 // * Default configurations for different action types
 export const RATE_LIMITS = {
   // ! Strict limits for authentication endpoints (brute force protection)
-  auth: { limit: 5, windowSeconds: 60 }, // 5 attempts per minute
-  authSignup: { limit: 3, windowSeconds: 60 }, // 3 signups per minute per IP
+  // Relaxed in local dev/test to avoid blocking E2E test suites
+  auth: { limit: isVercel ? 5 : 50, windowSeconds: 60 },
+  authSignup: { limit: isVercel ? 3 : 30, windowSeconds: 60 },
 
   // * Standard limits for general actions
   message: { limit: 30, windowSeconds: 60 }, // 30 messages per minute

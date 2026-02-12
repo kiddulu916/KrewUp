@@ -69,22 +69,21 @@ export async function createTestUser(data: {
   // Wait for the users record to be created by the trigger (retry up to 20 times)
   let userExists = false;
   for (let i = 0; i < 20; i++) {
-    const { data: existingUser, error } = await testDb
+    const { data: existingUsers, error } = await testDb
       .from('users')
       .select('id')
-      .eq('id', authData.user.id)
-      .single();
-    
-    if (existingUser) {
+      .eq('id', authData.user.id);
+
+    if (existingUsers && existingUsers.length > 0) {
       userExists = true;
       break;
     }
-    
+
     // Log progress for debugging
     if (i > 5) {
       console.log(`Waiting for users record... attempt ${i + 1}/20, error: ${error?.message || 'no data'}`);
     }
-    
+
     await new Promise(resolve => setTimeout(resolve, 500));
   }
 
@@ -150,17 +149,17 @@ export async function createTestUser(data: {
     }
   }
 
-  // Verify the update was successful by re-querying
-  const { data: verifiedUser, error: verifyError } = await testDb
+  // Verify the update was successful by re-querying (avoid .single() to prevent "Cannot coerce" errors)
+  const { data: verifiedUsers, error: verifyError } = await testDb
     .from('users')
     .select('first_name, last_name, role, location')
-    .eq('id', authData.user.id)
-    .single();
+    .eq('id', authData.user.id);
 
   if (verifyError) {
     throw new Error(`Failed to verify user update: ${verifyError.message}`);
   }
 
+  const verifiedUser = verifiedUsers?.[0];
   if (!verifiedUser) {
     throw new Error('User record not found after update!');
   }
@@ -175,11 +174,11 @@ export async function createTestUser(data: {
   // Create/update role-specific data to complete onboarding
   if (data.role === 'worker') {
     // Check if worker record already exists (trigger creates one with defaults)
-    const { data: existingWorker } = await testDb
+    const { data: existingWorkers } = await testDb
       .from('workers')
       .select('user_id, trade')
-      .eq('user_id', authData.user.id)
-      .single();
+      .eq('user_id', authData.user.id);
+    const existingWorker = existingWorkers?.[0];
     
     const desiredTrade = data.trade || 'Electrical';
     
@@ -216,11 +215,11 @@ export async function createTestUser(data: {
     }
       
     // Verify worker was created/updated properly
-    const { data: verifyWorker } = await testDb
+    const { data: verifyWorkers } = await testDb
       .from('workers')
       .select('user_id, trade')
-      .eq('user_id', authData.user.id)
-      .single();
+      .eq('user_id', authData.user.id);
+    const verifyWorker = verifyWorkers?.[0];
     
     if (!verifyWorker) {
       throw new Error('Worker record was not created successfully');
@@ -234,11 +233,11 @@ export async function createTestUser(data: {
     
     if (employerType === 'contractor') {
       // Check if contractor record already exists
-      const { data: existingContractor } = await testDb
+      const { data: existingContractors } = await testDb
         .from('contractors')
         .select('user_id')
-        .eq('user_id', authData.user.id)
-        .single();
+        .eq('user_id', authData.user.id);
+      const existingContractor = existingContractors?.[0];
       
       if (!existingContractor) {
         const { error: contractorError } = await testDb
@@ -254,11 +253,11 @@ export async function createTestUser(data: {
       }
     } else if (employerType === 'recruiter') {
       // Check if recruiter record already exists
-      const { data: existingRecruiter } = await testDb
+      const { data: existingRecruiters } = await testDb
         .from('recruiters')
         .select('user_id')
-        .eq('user_id', authData.user.id)
-        .single();
+        .eq('user_id', authData.user.id);
+      const existingRecruiter = existingRecruiters?.[0];
       
       if (!existingRecruiter) {
         const { error: recruiterError } = await testDb
@@ -420,13 +419,11 @@ export async function createTestApplication(
 export async function createTestCertification(
   userId: string,
   data: {
-    credentialCategory: 'license' | 'certification';
     certificationType: string;
-    issuedBy?: string;
-    issuingState?: string;
-    certificationNumber?: string;
+    issuingOrganization?: string;
+    credentialId?: string;
     issueDate?: string;
-    expiresAt?: string;
+    expirationDate?: string;
     verificationStatus?: 'pending' | 'verified' | 'rejected';
     imageUrl?: string;
   }
@@ -434,14 +431,12 @@ export async function createTestCertification(
   const { data: certification, error } = await testDb
     .from('certifications')
     .insert({
-      user_id: userId,
-      credential_category: data.credentialCategory,
-      certification_type: data.certificationType,
-      issued_by: data.issuedBy || 'Test Issuer',
-      issuing_state: data.issuingState || null,
-      certification_number: data.certificationNumber || null,
+      worker_id: userId,
+      name: data.certificationType,
+      issuing_organization: data.issuingOrganization || 'Test Issuer',
+      credential_id: data.credentialId || null,
       issue_date: data.issueDate || new Date().toISOString().split('T')[0],
-      expires_at: data.expiresAt || null,
+      expiration_date: data.expirationDate || null,
       verification_status: data.verificationStatus || 'pending',
       image_url: data.imageUrl || null,
     })
@@ -466,7 +461,8 @@ export async function cleanupTestData() {
   await testDb.from('jobs').delete().is('employer_id', null);
   await testDb.from('job_applications').delete().is('applicant_id', null);
   await testDb.from('messages').delete().is('sender_id', null);
-  await testDb.from('certifications').delete().is('worker_id', null);
+  // certifications reference workers, which cascade from users - orphans shouldn't exist
+  // but clean up just in case
 }
 
 /**
@@ -488,6 +484,7 @@ export async function makeUserPro(userId: string) {
     user_id: userId,
     stripe_customer_id: `cus_test_${userId}`,
     stripe_subscription_id: `sub_test_${userId}`,
+    stripe_price_id: 'price_test_monthly',
     status: 'active',
     plan_type: 'monthly',
     current_period_start: new Date().toISOString(),
@@ -515,20 +512,49 @@ export async function makeUserAdmin(userId: string) {
 
 
 /**
- * Create a test message between two users
+ * Create or find a conversation between two users, then send a message
  */
 export async function createTestMessage(
   senderId: string,
   recipientId: string,
   content: string
 ) {
+  // Find or create a conversation between these two users
+  const { data: existingConversation } = await testDb
+    .from('conversations')
+    .select('id')
+    .or(
+      `and(participant_1_id.eq.${senderId},participant_2_id.eq.${recipientId}),and(participant_1_id.eq.${recipientId},participant_2_id.eq.${senderId})`
+    )
+    .single();
+
+  let conversationId: string;
+
+  if (existingConversation) {
+    conversationId = existingConversation.id;
+  } else {
+    const { data: newConversation, error: convError } = await testDb
+      .from('conversations')
+      .insert({
+        participant_1_id: senderId,
+        participant_2_id: recipientId,
+      })
+      .select()
+      .single();
+
+    if (convError || !newConversation) {
+      throw new Error(`Failed to create conversation: ${convError?.message}`);
+    }
+    conversationId = newConversation.id;
+  }
+
   const { data: message, error } = await testDb
     .from('messages')
     .insert({
+      conversation_id: conversationId,
       sender_id: senderId,
-      recipient_id: recipientId,
       content,
-      read: false,
+      read_at: null,
     })
     .select()
     .single();
@@ -537,7 +563,13 @@ export async function createTestMessage(
     throw new Error(`Failed to create test message: ${error.message}`);
   }
 
-  return message;
+  // Update conversation's last_message_at
+  await testDb
+    .from('conversations')
+    .update({ last_message_at: new Date().toISOString() })
+    .eq('id', conversationId);
+
+  return { ...message, conversation_id: conversationId };
 }
 
 /**
