@@ -2,7 +2,6 @@ import { test, expect } from '@playwright/test';
 import {
   createTestUser,
   deleteTestUser,
-  cleanupTestData,
   TestUser,
 } from './utils/test-db';
 import {
@@ -16,7 +15,6 @@ test.describe('Profile Management', () => {
   let testUser: TestUser;
 
   test.beforeEach(async ({ page }) => {
-    await cleanupTestData();
     testUser = await createTestUser({
       email: `worker-${Date.now()}@test.krewup.local`,
       password: 'TestPassword123!',

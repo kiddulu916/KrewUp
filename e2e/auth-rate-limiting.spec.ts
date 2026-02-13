@@ -1,5 +1,4 @@
 import { test, expect } from '@playwright/test';
-import { cleanupTestData } from './utils/test-db';
 
 /**
  * Auth Rate Limiting E2E Tests
@@ -18,10 +17,6 @@ import { cleanupTestData } from './utils/test-db';
  */
 
 test.describe('Auth Rate Limiting - UI Integration', () => {
-  test.beforeEach(async () => {
-    await cleanupTestData();
-  });
-
   test('login form should handle authentication errors gracefully', async ({ page }) => {
     await page.goto('/login');
 

@@ -2,7 +2,6 @@ import { test, expect, devices } from '@playwright/test';
 import {
   createTestUser,
   deleteTestUser,
-  cleanupTestData,
   TestUser,
   createTestJob,
 } from './utils/test-db';
@@ -19,8 +18,6 @@ test.describe('Mobile Interactions E2E Tests', () => {
   let jobId: string;
 
   test.beforeAll(async () => {
-    await cleanupTestData();
-    
     workerUser = await createTestUser({ role: 'worker' });
     employerUser = await createTestUser({ role: 'employer' });
     

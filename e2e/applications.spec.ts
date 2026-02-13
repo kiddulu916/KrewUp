@@ -2,9 +2,9 @@ import { test, expect } from '@playwright/test';
 import {
   createTestUser,
   deleteTestUser,
-  cleanupTestData,
   TestUser,
   createTestJob,
+  testDb,
 } from './utils/test-db';
 import {
   loginAsUser,
@@ -28,8 +28,6 @@ test.describe('Job Applications - Multi-Step Wizard', () => {
   let jobId: string;
 
   test.beforeEach(async () => {
-    await cleanupTestData();
-
     employer = await createTestUser({
       email: generateTestEmail(),
       password: 'TestPassword123!',
@@ -57,7 +55,14 @@ test.describe('Job Applications - Multi-Step Wizard', () => {
   });
 
   test.afterEach(async () => {
-    if (employer) await deleteTestUser(employer.id);
+    // Clean up jobs/applications before deleting users (FK constraints)
+    if (employer) {
+      await testDb.from('job_applications').delete().in('job_id',
+        (await testDb.from('jobs').select('id').eq('employer_id', employer.id)).data?.map(j => j.id) || []
+      );
+      await testDb.from('jobs').delete().eq('employer_id', employer.id);
+      await deleteTestUser(employer.id);
+    }
     if (worker) await deleteTestUser(worker.id);
   });
 
@@ -315,8 +320,6 @@ test.describe('Job Applications - Employer View', () => {
   let jobId: string;
 
   test.beforeEach(async () => {
-    await cleanupTestData();
-
     employer = await createTestUser({
       email: generateTestEmail(),
       password: 'TestPassword123!',
@@ -343,7 +346,14 @@ test.describe('Job Applications - Employer View', () => {
   });
 
   test.afterEach(async () => {
-    if (employer) await deleteTestUser(employer.id);
+    // Clean up jobs/applications before deleting users (FK constraints)
+    if (employer) {
+      await testDb.from('job_applications').delete().in('job_id',
+        (await testDb.from('jobs').select('id').eq('employer_id', employer.id)).data?.map(j => j.id) || []
+      );
+      await testDb.from('jobs').delete().eq('employer_id', employer.id);
+      await deleteTestUser(employer.id);
+    }
     if (worker) await deleteTestUser(worker.id);
   });
 
@@ -520,8 +530,6 @@ test.describe('Job Applications - Validation & Edge Cases', () => {
   let jobId: string;
 
   test.beforeEach(async () => {
-    await cleanupTestData();
-
     employer = await createTestUser({
       email: generateTestEmail(),
       password: 'TestPassword123!',
@@ -548,7 +556,14 @@ test.describe('Job Applications - Validation & Edge Cases', () => {
   });
 
   test.afterEach(async () => {
-    if (employer) await deleteTestUser(employer.id);
+    // Clean up jobs/applications before deleting users (FK constraints)
+    if (employer) {
+      await testDb.from('job_applications').delete().in('job_id',
+        (await testDb.from('jobs').select('id').eq('employer_id', employer.id)).data?.map(j => j.id) || []
+      );
+      await testDb.from('jobs').delete().eq('employer_id', employer.id);
+      await deleteTestUser(employer.id);
+    }
     if (worker) await deleteTestUser(worker.id);
   });
 
@@ -624,8 +639,6 @@ test.describe('Application Wizard - Auto-fill from Profile', () => {
   let jobId: string;
 
   test.beforeEach(async () => {
-    await cleanupTestData();
-
     employer = await createTestUser({
       email: generateTestEmail(),
       password: 'TestPassword123!',
@@ -653,7 +666,14 @@ test.describe('Application Wizard - Auto-fill from Profile', () => {
   });
 
   test.afterEach(async () => {
-    if (employer) await deleteTestUser(employer.id);
+    // Clean up jobs/applications before deleting users (FK constraints)
+    if (employer) {
+      await testDb.from('job_applications').delete().in('job_id',
+        (await testDb.from('jobs').select('id').eq('employer_id', employer.id)).data?.map(j => j.id) || []
+      );
+      await testDb.from('jobs').delete().eq('employer_id', employer.id);
+      await deleteTestUser(employer.id);
+    }
     if (worker) await deleteTestUser(worker.id);
   });
 

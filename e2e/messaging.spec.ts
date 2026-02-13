@@ -2,9 +2,9 @@ import { test, expect } from '@playwright/test';
 import {
   createTestUser,
   deleteTestUser,
-  cleanupTestData,
   TestUser,
   createTestJob,
+  testDb,
 } from './utils/test-db';
 import {
   loginAsUser,
@@ -28,8 +28,6 @@ test.describe('Messaging System', () => {
   let jobId: string;
 
   test.beforeEach(async () => {
-    await cleanupTestData();
-
     user1 = await createTestUser({
       email: generateTestEmail(),
       password: 'TestPassword123!',
@@ -55,8 +53,18 @@ test.describe('Messaging System', () => {
   });
 
   test.afterEach(async () => {
+    // Clean up conversations/messages before users (FK constraints)
+    if (user1 && user2) {
+      await testDb.from('messages').delete().or(`sender_id.eq.${user1.id},sender_id.eq.${user2.id}`);
+      await testDb.from('conversations').delete().or(
+        `participant_1_id.eq.${user1.id},participant_1_id.eq.${user2.id}`
+      );
+    }
+    if (user2) {
+      await testDb.from('jobs').delete().eq('employer_id', user2.id);
+      await deleteTestUser(user2.id);
+    }
     if (user1) await deleteTestUser(user1.id);
-    if (user2) await deleteTestUser(user2.id);
   });
 
   test('should send message from job detail page', async ({ page }) => {

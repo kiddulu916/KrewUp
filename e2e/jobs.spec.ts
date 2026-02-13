@@ -2,7 +2,6 @@ import { test, expect } from '@playwright/test';
 import {
   createTestUser,
   deleteTestUser,
-  cleanupTestData,
   TestUser,
   createTestJob,
   testDb,
@@ -19,8 +18,6 @@ test.describe('Job Posting and Feed', () => {
   let worker: TestUser;
 
   test.beforeEach(async () => {
-    await cleanupTestData();
-
     // Create employer with can_post_jobs enabled
     employer = await createTestUser({
       email: generateTestEmail(),
@@ -42,7 +39,11 @@ test.describe('Job Posting and Feed', () => {
   });
 
   test.afterEach(async () => {
-    if (employer) await deleteTestUser(employer.id);
+    // Clean up jobs before deleting users (FK constraint)
+    if (employer) {
+      await testDb.from('jobs').delete().eq('employer_id', employer.id);
+      await deleteTestUser(employer.id);
+    }
     if (worker) await deleteTestUser(worker.id);
   });
 

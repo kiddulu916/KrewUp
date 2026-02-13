@@ -2,7 +2,6 @@ import { test, expect } from '@playwright/test';
 import {
   createTestUser,
   deleteTestUser,
-  cleanupTestData,
   TestUser,
   makeUserPro,
   createTestJob,
@@ -21,8 +20,6 @@ test.describe('Pro Features', () => {
   let employer: TestUser;
 
   test.beforeEach(async () => {
-    await cleanupTestData();
-
     proUser = await createTestUser({
       email: generateTestEmail(),
       password: 'TestPassword123!',
@@ -51,9 +48,26 @@ test.describe('Pro Features', () => {
   });
 
   test.afterEach(async () => {
-    if (proUser) await deleteTestUser(proUser.id);
-    if (freeUser) await deleteTestUser(freeUser.id);
-    if (employer) await deleteTestUser(employer.id);
+    // Clean up related data before users (FK constraints)
+    if (employer) {
+      await testDb.from('job_views').delete().in('job_id',
+        (await testDb.from('jobs').select('id').eq('employer_id', employer.id)).data?.map(j => j.id) || []
+      );
+      await testDb.from('jobs').delete().eq('employer_id', employer.id);
+    }
+    if (proUser) {
+      await testDb.from('profile_views').delete().eq('viewed_profile_id', proUser.id);
+      await testDb.from('subscriptions').delete().eq('user_id', proUser.id);
+      await deleteTestUser(proUser.id);
+    }
+    if (freeUser) {
+      await testDb.from('profile_views').delete().eq('viewed_profile_id', freeUser.id);
+      await deleteTestUser(freeUser.id);
+    }
+    if (employer) {
+      await testDb.from('subscriptions').delete().eq('user_id', employer.id);
+      await deleteTestUser(employer.id);
+    }
   });
 
   test.describe('Profile Boost', () => {

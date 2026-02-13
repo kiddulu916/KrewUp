@@ -2,7 +2,6 @@ import { test, expect } from '@playwright/test';
 import {
   createTestUser,
   deleteTestUser,
-  cleanupTestData,
   TestUser,
 } from './utils/test-db';
 import { loginAsUser, waitForText } from './utils/test-helpers';
@@ -11,7 +10,6 @@ test.describe('Error States E2E Tests', () => {
   let testUser: TestUser;
 
   test.beforeAll(async () => {
-    await cleanupTestData();
     testUser = await createTestUser({ role: 'worker' });
   });
 

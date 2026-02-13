@@ -2,12 +2,12 @@ import { test, expect } from '@playwright/test';
 import {
   createTestUser,
   deleteTestUser,
-  cleanupTestData,
   TestUser,
   createTestJob,
   createTestApplication,
   createTestCertification,
   createTestMessage,
+  cleanupTestData,
   makeUserPro,
   makeUserAdmin,
   testDb,
@@ -33,8 +33,6 @@ test.describe('Admin Analytics - Dashboard Overview Metrics', () => {
   let employers: TestUser[] = [];
 
   test.beforeEach(async () => {
-    await cleanupTestData();
-
     // Create admin user
     admin = await createTestUser({
       email: generateTestEmail(),
@@ -301,8 +299,6 @@ test.describe('Admin Analytics - Engagement Metrics', () => {
   let employer: TestUser;
 
   test.beforeEach(async () => {
-    await cleanupTestData();
-
     admin = await createTestUser({
       email: generateTestEmail(),
       password: 'AdminPassword123!',
@@ -418,8 +414,6 @@ test.describe('Admin Analytics - User Growth Chart', () => {
   let testUsers: TestUser[] = [];
 
   test.beforeEach(async () => {
-    await cleanupTestData();
-
     admin = await createTestUser({
       email: generateTestEmail(),
       password: 'AdminPassword123!',

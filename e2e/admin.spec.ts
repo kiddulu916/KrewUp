@@ -2,7 +2,6 @@ import { test, expect } from '@playwright/test';
 import {
   createTestUser,
   deleteTestUser,
-  cleanupTestData,
   TestUser,
 } from './utils/test-db';
 import {
@@ -17,8 +16,6 @@ test.describe('Admin Dashboard E2E Tests', () => {
   let regularUser: TestUser;
 
   test.beforeAll(async () => {
-    await cleanupTestData();
-    
     // Create admin user
     adminUser = await createTestUser({
       role: 'employer',

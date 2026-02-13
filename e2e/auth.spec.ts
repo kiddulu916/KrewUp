@@ -2,7 +2,6 @@ import { test, expect } from '@playwright/test';
 import {
   createTestUser,
   deleteTestUser,
-  cleanupTestData,
   TestUser,
   testDb,
 } from './utils/test-db';
@@ -18,7 +17,6 @@ test.describe('Authentication Flows', () => {
   let testUser: TestUser;
 
   test.beforeEach(async ({ page }) => {
-    await cleanupTestData();
     // Dismiss consent banner on all pages to prevent it from blocking interactions
     await page.addInitScript(() => {
       localStorage.setItem('krewup_ad_consent', JSON.stringify({
