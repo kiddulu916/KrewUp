@@ -27,7 +27,7 @@ export default async function AddExperiencePage() {
 
   const { data: profile, error } = await supabase
     .from('users')
-    .select('role, employer_type')
+    .select('id, first_name, last_name, email, role, employer_type, subscription_status, is_lifetime_pro, is_admin, location, created_at, updated_at')
     .eq('id', user.id)
     .single();
 
@@ -37,6 +37,12 @@ export default async function AddExperiencePage() {
   }
 
   const labels = getExperienceLabels(profile.role, profile.employer_type);
+
+  // Show photo upload only for contractors and developers
+  const isContractorOrDeveloper =
+    profile.role === 'employer' &&
+    (profile.employer_type === 'contractor' || profile.employer_type === 'developer');
+  const showPhotoUpload = isContractorOrDeveloper;
 
   // Determine description text based on user type
   const getDescriptionText = () => {
@@ -61,7 +67,11 @@ export default async function AddExperiencePage() {
         </p>
       </div>
 
-      <ExperienceForm labels={labels ?? undefined} />
+      <ExperienceForm
+        labels={labels ?? undefined}
+        profile={profile}
+        showPhotoUpload={showPhotoUpload}
+      />
     </div>
   );
 }
