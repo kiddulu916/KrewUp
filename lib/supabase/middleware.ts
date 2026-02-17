@@ -155,7 +155,9 @@ export async function updateSession(request: NextRequest) {
   // Protected routes logic
   const isProtectedRoute = request.nextUrl.pathname.startsWith('/dashboard');
   const isAuthRoute =
-  request.nextUrl.pathname === '/login' || request.nextUrl.pathname === '/signup';
+  request.nextUrl.pathname === '/login' ||
+  request.nextUrl.pathname === '/signup' ||
+  request.nextUrl.pathname === '/forgot-password';
 
   // Redirect unauthenticated users trying to access protected routes
   if (!user && isProtectedRoute) {
