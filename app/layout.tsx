@@ -16,56 +16,40 @@ export const metadata: Metadata = {
   icons: { icon: "/logo.png" },
 };
 
-/** Valid AdSense publisher ID format (ca-pub- plus 16 digits). */
-const ADSENSE_CLIENT_REGEX = /^ca-pub-\d{16}$/;
-
 export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   const csrfToken = await getOrCreateCsrfToken();
-  const adsenseClientId = (process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID ?? '').trim();
-  const adsEnabled = process.env.NEXT_PUBLIC_ADS_ENABLED === 'true';
-  const showAdSense =
-    adsEnabled &&
-    adsenseClientId.length > 0 &&
-    ADSENSE_CLIENT_REGEX.test(adsenseClientId) &&
-    adsenseClientId !== 'ca-pub-XXXXXXX';
-
+  const adsenseClientId = process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID
   return (
     <html lang="en">
       <head>
-        {showAdSense && (
-          <meta name="google-adsense-account" content={adsenseClientId} />
-        )}
+        <meta name="google-adsense-account" content={adsenseClientId} />
       </head>
       <body className="antialiased">
-        {showAdSense && (
-          <>
-            <Script id="google-consent-init" strategy="beforeInteractive">
-              {`
-                window.dataLayer = window.dataLayer || [];
-                function gtag(){dataLayer.push(arguments);}
-                window.gtag = gtag;
-                gtag('consent', 'default', {
-                  'ad_storage': 'denied',
-                  'ad_user_data': 'denied',
-                  'ad_personalization': 'denied',
-                  'analytics_storage': 'denied',
-                  'wait_for_update': 500,
-                });
-              `}
-            </Script>
-            <Script
-              id="google-adsense"
-              async
-              src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${adsenseClientId}`}
-              crossOrigin="anonymous"
-              strategy="beforeInteractive"
-            />
-          </>
-        )}
+        <Script async id="google-consent-init" strategy="beforeInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            window.gtag = gtag;
+            gtag('consent', 'default', {
+              'ad_storage': 'denied',
+              'ad_user_data': 'denied',
+              'ad_personalization': 'denied',
+              'analytics_storage': 'denied',
+              'wait_for_update': 500,
+            });
+          `}
+        </Script>
+        <Script
+          async
+          src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${adsenseClientId}`}
+          id="google-adsense"
+          strategy="afterInteractive"
+          crossOrigin="anonymous"
+        />
         <SkipLink />
         <QueryProvider>
           <ToastProvider>

@@ -4,7 +4,6 @@ import { MessageButton } from '@/features/messaging/components/message-button';
 import { BoostBadge } from '@/features/subscriptions/components/boost-badge';
 import { ProfileViewTracker } from '@/features/subscriptions/components/profile-view-tracker';
 import { VerifiedCertificationBadge } from '@/components/common';
-import { SidebarAd } from '@/components/ads/sidebar-ad';
 import { notFound, redirect } from 'next/navigation';
 import Link from 'next/link';
 import { cookies } from 'next/headers';
@@ -245,16 +244,6 @@ export default async function PublicProfilePage({ params }: Props) {
           </CardContent>
         </Card>
       )}
-      </div>
-
-      {/* Sidebar with Ad */}
-      <div className="lg:col-span-1">
-        <div className="lg:sticky lg:top-6 space-y-4">
-          <SidebarAd 
-            subscriptionStatus={currentUserProfile?.subscription_status}
-            isLifetimePro={currentUserProfile?.is_lifetime_pro}
-          />
-        </div>
       </div>
     </div>
   );

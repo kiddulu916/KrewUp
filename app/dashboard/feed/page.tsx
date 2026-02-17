@@ -2,9 +2,9 @@ import { createClient } from '@/lib/supabase/server';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui';
 import { InitialLocationCapture } from '@/features/dashboard/components/initial-location-capture';
 import { cookies } from 'next/headers';
-import { FeedAdBanner } from '@/components/ads/feed-ad-banner';
 import { getFullName } from '@/lib/utils';
 import Link from 'next/link';
+import { InFeedAd } from '@/components/ads';
 
       
 
@@ -184,7 +184,7 @@ export default async function FeedPage() {
       </Card>
 
       {/* Ad banner for free users (AdSense via env: NEXT_PUBLIC_ADSENSE_*) */}
-      <FeedAdBanner
+      <InFeedAd
         subscriptionStatus={profile?.subscription_status}
         isLifetimePro={profile?.is_lifetime_pro}
       />
