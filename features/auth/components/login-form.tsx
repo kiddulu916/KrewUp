@@ -130,7 +130,7 @@ export function LoginForm() {
             <span className="ml-2 text-sm text-gray-600">Remember me</span>
           </label>
           <a
-            href="/auth/forgot-password"
+            href="/forgot-password"
             className="text-sm text-krewup-blue hover:underline"
           >
             Forgot password?
