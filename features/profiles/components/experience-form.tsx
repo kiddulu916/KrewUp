@@ -10,6 +10,9 @@ import { addExperience, updateExperience } from '../actions/experience-actions';
 import { experienceSchema, type ExperienceSchema } from '../utils/validation';
 import { EXPERIENCE_FIELD_LABELS, type ExperienceLabels } from '../constants/experience-labels';
 import { ExperiencePhotoManager } from './experience-photo-manager';
+import { ExperiencePhotoStager } from './experience-photo-stager';
+import { uploadExperiencePhoto } from '../actions/experience-photo-actions';
+import { hasProAccess } from '@/lib/utils/subscription';
 import type { Profile } from '@/lib/types/profile.types';
 
 type Props = {
@@ -33,6 +36,8 @@ export function ExperienceForm({ labels, existingExperience, onSuccess, onCancel
   const router = useRouter();
   const toast = useToast();
   const [error, setError] = useState<string | null>(null);
+  const [stagedPhotos, setStagedPhotos] = useState<File[]>([]);
+  const [uploadProgress, setUploadProgress] = useState<string | null>(null);
 
   const fieldLabels = labels || EXPERIENCE_FIELD_LABELS.worker;
   const isEditing = !!existingExperience;
@@ -61,6 +66,7 @@ export function ExperienceForm({ labels, existingExperience, onSuccess, onCancel
 
   const onSubmit = async (data: ExperienceSchema) => {
     setError(null);
+    setUploadProgress(null);
 
     try {
       const payload = {
@@ -83,7 +89,38 @@ export function ExperienceForm({ labels, existingExperience, onSuccess, onCancel
         return;
       }
 
-      toast.success(`${fieldLabels.tabTitle} ${isEditing ? 'updated' : 'added'} successfully!`);
+      // Upload staged photos for new experiences
+      if (!isEditing && stagedPhotos.length > 0 && result.data) {
+        const experienceId = Array.isArray(result.data) ? result.data[0].id : result.data.id;
+        let uploaded = 0;
+        let failed = 0;
+
+        for (let i = 0; i < stagedPhotos.length; i++) {
+          setUploadProgress(`Uploading photos (${i + 1}/${stagedPhotos.length})...`);
+          const formData = new FormData();
+          formData.append('file', stagedPhotos[i]);
+
+          const uploadResult = await uploadExperiencePhoto(formData, experienceId);
+          if (uploadResult.success) {
+            uploaded++;
+          } else {
+            failed++;
+          }
+        }
+
+        setUploadProgress(null);
+
+        if (failed > 0 && uploaded > 0) {
+          toast.warning(`${fieldLabels.tabTitle} added. ${uploaded} of ${stagedPhotos.length} photos uploaded. Add the rest from the edit page.`);
+        } else if (failed > 0 && uploaded === 0) {
+          toast.warning(`${fieldLabels.tabTitle} added but photos failed to upload. Try again from the edit page.`);
+        } else {
+          toast.success(`${fieldLabels.tabTitle} added with ${uploaded} photo${uploaded !== 1 ? 's' : ''} successfully!`);
+        }
+      } else {
+        toast.success(`${fieldLabels.tabTitle} ${isEditing ? 'updated' : 'added'} successfully!`);
+      }
+
       if (onSuccess) {
         onSuccess();
       } else {
@@ -94,6 +131,7 @@ export function ExperienceForm({ labels, existingExperience, onSuccess, onCancel
       const errorMsg = err instanceof Error ? err.message : `Failed to ${isEditing ? 'update' : 'add'} work experience`;
       setError(errorMsg);
       toast.error(errorMsg);
+      setUploadProgress(null);
     }
   };
 
@@ -184,7 +222,7 @@ export function ExperienceForm({ labels, existingExperience, onSuccess, onCancel
         </CardContent>
       </Card>
 
-      {/* Project Photos - Only shown for employers when editing existing experience */}
+      {/* Project Photos - Edit mode: use ExperiencePhotoManager (server upload) */}
       {showPhotoUpload && existingExperience && profile && (
         <Card>
           <CardHeader>
@@ -197,6 +235,15 @@ export function ExperienceForm({ labels, existingExperience, onSuccess, onCancel
             />
           </CardContent>
         </Card>
+      )}
+
+      {/* Project Photos - Create mode: use ExperiencePhotoStager (local staging) */}
+      {showPhotoUpload && !existingExperience && profile && (
+        <ExperiencePhotoStager
+          onPhotosChange={setStagedPhotos}
+          isPro={hasProAccess(profile)}
+          disabled={isSubmitting}
+        />
       )}
 
       {error && (
@@ -222,7 +269,7 @@ export function ExperienceForm({ labels, existingExperience, onSuccess, onCancel
           className="w-full"
         >
           {isSubmitting
-            ? (isEditing ? 'Updating...' : 'Adding...')
+            ? (uploadProgress || (isEditing ? 'Updating...' : 'Adding...'))
             : (isEditing ? 'Update' : 'Add') + ' ' + fieldLabels.tabTitle}
         </Button>
       </div>
