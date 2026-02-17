@@ -3,15 +3,12 @@ import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import { cookies } from 'next/headers';
 
-      
-
 export const metadata = {
   title: 'Sign Up - KrewUp',
   description: 'Create your KrewUp account',
 };
 
 export default async function SignupPage() {
-  // Check if user is already logged in
   const supabase = await createClient(await cookies());
   const {
     data: { user },
@@ -21,9 +18,5 @@ export default async function SignupPage() {
     redirect('/dashboard/feed');
   }
 
-  return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-12 sm:px-6 lg:px-8">
-      <SignupForm />
-    </div>
-  );
+  return <SignupForm />;
 }
