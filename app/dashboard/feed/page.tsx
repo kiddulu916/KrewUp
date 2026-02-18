@@ -101,7 +101,7 @@ export default async function FeedPage() {
   return (
     <div className="space-y-6">
       {/* Capture initial location on first visit */}
-      <InitialLocationCapture />
+      <InitialLocationCapture currentLocation={profile?.location} />
 
       <div className="flex items-center justify-between">
         <div>
