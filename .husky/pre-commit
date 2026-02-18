@@ -7,4 +7,10 @@ if ! command -v npx >/dev/null 2>&1 && [ -d "$HOME/.nvm/versions/node" ]; then
   NODE_VER=$(ls -1 "$HOME/.nvm/versions/node" 2>/dev/null | tail -1)
   [ -n "$NODE_VER" ] && export PATH="$HOME/.nvm/versions/node/$NODE_VER/bin:$PATH"
 fi
-npx lint-staged
+if ! npx lint-staged; then
+  echo "" >&2
+  echo "Pre-commit failed. Run in project root to see the error:" >&2
+  echo "  npx lint-staged" >&2
+  echo "Or run: npm run type-check  &&  npm run lint" >&2
+  exit 2
+fi

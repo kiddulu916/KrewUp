@@ -49,13 +49,14 @@ const nextConfig: NextConfig = {
             "default-src 'self'",
             // Note: 'unsafe-inline' is needed for Next.js hydration scripts
             // The static SHA hashes become invalid on each build
-            "script-src 'self' 'unsafe-inline' https://js.stripe.com https://*.stripe.com https://maps.googleapis.com https://*.ingest.sentry.io https://*.sentry.io https://*.vercel-analytics.com https://*.vercel-insights.com https://pagead2.googlesyndication.com https://www.googletagmanager.com",
+            // Note: 'unsafe-eval' is required by Google AdSense scripts
+            "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://*.stripe.com https://maps.googleapis.com https://*.ingest.sentry.io https://*.sentry.io https://*.vercel-analytics.com https://*.vercel-insights.com https://pagead2.googlesyndication.com https://www.googletagmanager.com https://cdn.jsdelivr.net",
             "worker-src 'self' blob:",
             "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
             "font-src 'self' https://fonts.gstatic.com",
-            "img-src 'self' data: blob: https://*.supabase.co https://lh3.googleusercontent.com https://*.stripe.com https://maps.googleapis.com https://*.gstatic.com",
-            "connect-src 'self' https://*.supabase.co https://js.stripe.com https://*.stripe.com https://maps.googleapis.com https://*.googleapis.com https://*.ingest.sentry.io https://*.sentry.io https://*.vercel-analytics.com https://*.vercel-insights.com https://pagead2.googlesyndication.com https://www.googletagmanager.com",
-            "frame-src 'self' https://js.stripe.com https://*.stripe.com https://accounts.google.com",
+            "img-src 'self' data: blob: https://*.supabase.co https://lh3.googleusercontent.com https://*.stripe.com https://maps.googleapis.com https://*.gstatic.com https://pagead2.googlesyndication.com",
+            "connect-src 'self' https://*.supabase.co https://js.stripe.com https://*.stripe.com https://maps.googleapis.com https://*.googleapis.com https://*.ingest.sentry.io https://*.sentry.io https://*.vercel-analytics.com https://*.vercel-insights.com https://pagead2.googlesyndication.com https://www.googletagmanager.com https://ep1.adtrafficquality.google",
+            "frame-src 'self' https://js.stripe.com https://*.stripe.com https://accounts.google.com https://googleads.g.doubleclick.net",
             "object-src 'none'",
             "base-uri 'self'",
             "form-action 'self' https://accounts.google.com",

@@ -1,5 +1,8 @@
 {
-  "*.{ts,tsx}": ["npx eslint --fix", "bash -c 'npm run type-check'"],
+  "*.{ts,tsx}": [
+    "npx eslint --fix --no-warn-ignored",
+    "bash -c 'npm run type-check'"
+  ],
   "*.{js,jsx}": ["npx eslint --fix"],
   "*.{json,md}": ["npx prettier --write"]
 }
