@@ -16,7 +16,7 @@ Next.js 16 App Router structure with route groups, server components, and API en
 
 ```
 app/
-├── (auth)/             # Auth layout group (login, signup)
+├── (auth)/             # Auth layout group (login, signup, forgot-password, reset-password)
 ├── (dashboard)/        # Dashboard layout group
 ├── (marketing)/        # Marketing layout group (landing)
 ├── admin/              # Admin dashboard pages
@@ -30,11 +30,18 @@ app/
 │   ├── cron/           # Scheduled tasks
 │   └── webhooks/       # External webhooks (Stripe)
 ├── dashboard/          # User dashboard
+│   ├── analytics/      # Dashboard analytics
 │   ├── applications/   # Application management
+│   ├── feed/           # Job feed
 │   ├── jobs/           # Job listings/posting
 │   ├── messages/       # Messaging
+│   ├── notifications/  # Notification center
 │   ├── profile/        # Profile editing
-│   └── settings/       # User settings
+│   ├── profiles/       # Worker profiles browsing
+│   ├── settings/       # User settings
+│   ├── subscription/   # Subscription management
+│   ├── test-sentry/    # Sentry debug page
+│   └── workers/        # Worker directory
 ├── legal/              # Legal pages (privacy, terms)
 ├── login/              # Login page
 ├── onboarding/         # Onboarding flow

@@ -60,6 +60,7 @@ components/
     ├── pull-to-refresh.tsx
     ├── skip-link.tsx
     ├── textarea.tsx
+    ├── card.tsx          # Card container - renders as plain <div> with NO data-testid
     └── toast.tsx
 ```
 
@@ -164,6 +165,11 @@ describe('UI Component', () => {
 <!-- END AUTO-MANAGED -->
 
 <!-- MANUAL -->
+
+## E2E Testing Gotchas
+
+- `Card` renders as `<div class="rounded-xl ...">` with **no `data-testid`**. Use `.cursor-pointer` filter or `h3:has-text()` to target cards in Playwright.
+- Dashboard layout has TWO `<main>` elements. Use `main[role="main"]` to target dashboard content area.
 
 ## Component Checklist
 

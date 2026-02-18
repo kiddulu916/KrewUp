@@ -63,10 +63,11 @@ npx cap open android        # Open in Android Studio
 ```
 krewup/
 ├── app/                    # Next.js App Router pages
-│   ├── (auth)/             # Auth layout group
+│   ├── (auth)/             # Auth layout group (login, signup, forgot-password, reset-password)
 │   ├── (dashboard)/        # Dashboard layout group
 │   ├── (marketing)/        # Marketing layout group
 │   ├── admin/              # Admin dashboard (11 pages)
+│   ├── workers/            # Public worker directory
 │   ├── api/                # API routes (webhooks, cron)
 │   ├── dashboard/          # User dashboard pages
 │   └── layout.tsx          # Root layout
@@ -95,7 +96,7 @@ krewup/
 ├── stores/                 # Zustand stores
 ├── providers/              # App-level providers
 ├── supabase/               # Database migrations
-│   └── migrations/         # SQL migrations (19 files)
+│   └── migrations/         # SQL migrations (23 files)
 │       ├── 20260105000000_users_roles.sql       # Core users/roles schema
 │       ├── 20260105010000_certs_licenses.sql    # Certifications & licenses
 │       ├── 20260105020000_core_features.sql     # Jobs, applications, portfolio
@@ -104,7 +105,10 @@ krewup/
 │       ├── 20260105050000_triggers.sql          # Auto-update triggers
 │       ├── 20260105060000_policies.sql          # RLS policies
 │       ├── 20260105090000_missing_functions_and_tables.sql  # Proximity search, notification prefs
-│       └── 20260201020000_add_geography_columns.sql  # PostGIS geography columns and GIST indexes
+│       ├── 20260201020000_add_geography_columns.sql  # PostGIS geography columns and GIST indexes
+│       ├── 20260210000000_experience_photos.sql  # Experience photo URLs
+│       ├── 20260210000002_profile_views.sql  # Profile view tracking
+│       └── 20260210100000_credentials_table.sql  # Worker credentials
 ├── e2e/                    # Playwright E2E tests
 ├── tests/                  # Test utilities and helpers
 │   └── hooks-setup.tsx     # React Query wrappers (renderHookWithQuery, createTestQueryClient)
@@ -155,7 +159,7 @@ See `.env.example` for required variables:
 
 ### Database Migrations
 
-Migrations in `supabase/migrations/` (19 files). Always test locally first.
+Migrations in `supabase/migrations/` (23 files). Always test locally first.
 
 **Schema Organization:**
 
@@ -170,7 +174,5 @@ Migrations in `supabase/migrations/` (19 files). Always test locally first.
 ### Deployment
 
 Push to main branch triggers Vercel auto-deploy. Ensure env vars are set in Vercel dashboard.
-
-For full reference, see `CLAUDE.md.backup` which contains the complete original documentation.
 
 <!-- END MANUAL -->
